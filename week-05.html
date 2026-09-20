@@ -1,0 +1,1467 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 05 — Networking II: TCP, Ports, DNS, DHCP + Wireshark | Pre Cybersecurity 0.1</title>
+<meta name="description" content="Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body data-week="5">
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html" aria-current="page"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <a href="path.html#stage-03"><span class="only-en">Networking</span><span class="only-ar">الشبكات</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span><span class="only-en">Week 05</span><span class="only-ar">الأسبوع 05</span></span>
+  </nav>
+  <!-- Names the same stage the learning path names, so the number in the corner of
+       the page matches the dot the student clicked to get here. -->
+  <span class="eyebrow" style="margin-top:14px"><span class="only-en">Stage 03 of 07 · Month 1</span><span class="only-ar">المرحلة 3 من 7 · الشهر الأول</span></span>
+  <h1><span class="only-en">Networking II: TCP, Ports, DNS, DHCP + Wireshark</span><span class="only-ar" dir="rtl" lang="ar">الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark</span></h1>
+  <p class="lede"><span class="only-en">Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.</span><span class="only-ar" dir="rtl" lang="ar">شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.</span></p>
+  <div class="meta-strip">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Intermediate</span><span class="only-ar">متوسط</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="only-en">~18h estimated</span><span class="only-ar">~18h تقديرياً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>4 <span class="only-en">lessons</span><span class="only-ar">درساً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><a href="week-04.html"><span class="only-en">Week 04 checkpoint</span><span class="only-ar">الأسبوع 04 — نقطة تحقّق</span></a></span>
+  </div>
+  <div class="card-pad" style="margin-top:20px;padding:0">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="eyebrow"><span class="only-en">Your progress in this course</span><span class="only-ar">تقدّمك في هذا المسار</span></span>
+      <div id="pc-weekbar" style="flex:1 1 200px;min-width:140px"></div>
+      <span id="pc-weekbar-label" dir="ltr" style="font-weight:700;font-size:.86rem;color:var(--accent);font-variant-numeric:tabular-nums"></span>
+    </div>
+  </div>
+  </div>
+</header>
+
+<div class="section" style="padding-top:0;border-bottom:0">
+  <div class="container">
+  <div class="grid grid-2">
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><h2><span class="only-en">What you'll learn</span><span class="only-ar">ما ستتعلّمه</span></h2></div>
+  <div class="card-pad">
+    <ul class="outcomes only-en"><li>Describe the TCP three-way handshake and name the flag and sequence number in each packet</li><li>Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals</li><li>Contrast TCP and UDP and choose correctly between them for a given use case</li><li>State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory</li><li>Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)</li></ul>
+    <ul class="outcomes only-ar" dir="rtl" lang="ar"><li>اشرح المصافحة الثلاثية في TCP وحدّد العلم (flag) ورقم التسلسل في كل حزمة</li><li>اشرح كيف يُنهي TCP الاتصال (FIN/ACK)، واذكر الأعلام (SYN, ACK, FIN, RST, PSH, URG) وما يرمز إليه كل واحد منها</li><li>قارن بين TCP و UDP واختر بينهما اختياراً صحيحاً لحالة استخدام معينة</li><li>اذكر نطاقات المنافذ (well-known / registered / dynamic) وسمِّ 15 منفذاً معروفاً من الذاكرة</li><li>تتبّع تحليل DNS: التعاودي مقابل التكراري، ودور كل نوع من السجلات (A, AAAA, CNAME, MX, NS, TXT)</li></ul>
+    <a class="card-more" href="#objectives"><span class="only-en">All 8 objectives, with a checklist to tick off ↓</span><span class="only-ar" dir="rtl" lang="ar">كل الأهداف (8) مع قائمة تُعلّم عليها ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><h2><span class="only-en">Terms you'll meet this week</span><span class="only-ar">مصطلحات ستقابلها هذا الأسبوع</span></h2></div>
+  <div class="card-pad">
+    <div class="chips"><span class="chip chip-accent">Three-Way Handshake</span><span class="chip chip-accent">Sequence Number</span><span class="chip chip-accent">Flag</span><span class="chip chip-accent">RST</span><span class="chip chip-accent">Teardown</span><span class="chip chip-accent">Ephemeral Port</span></div>
+    <p class="hint"><span class="only-en">These stay in English on purpose. They are the words you will meet in the tools, the documentation and the interview.</span><span class="only-ar" dir="rtl" lang="ar">تبقى هذه المصطلحات بالإنجليزية عمداً. فهي الكلمات التي ستقابلها في الأدوات والوثائق والمقابلات.</span></p>
+    <a class="card-more" href="#terms"><span class="only-en">What each one means ↓</span><span class="only-ar" dir="rtl" lang="ar">ما معنى كل مصطلح ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+<nav class="wk-rail" aria-label="Sections / الأقسام"><div class="wk-rail-in"><div class="wk-rail-links"><a href="#objectives"><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></a><a href="#theory"><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></a><a href="#lab"><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></a><a href="#challenge"><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></a><a href="#payoff"><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></a><a href="#checkpoint"><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></a><a href="#notes"><span class="only-en">Concept Notes</span><span class="only-ar">ملاحظات مفاهيمية موسّعة</span></a><a href="#terms"><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></a></div><button type="button" id="pc-collapse" aria-pressed="false"><span class="only-en">Collapse all</span><span class="only-ar">اطوِ الكل</span></button></div></nav>
+<div class="container">
+<div class="flow">
+<details class="lesson-sec" id="objectives" data-sec="objectives" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The goals for this week</span><span class="only-ar">أهداف هذا الأسبوع</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Describe the TCP three-way handshake and name the flag and sequence number in each packet</li>
+<li class="task">Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals</li>
+<li class="task">Contrast TCP and UDP and choose correctly between them for a given use case</li>
+<li class="task">State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory</li>
+<li class="task">Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)</li>
+<li class="task">Explain the DHCP DORA exchange and what each of the four messages carries</li>
+<li class="task">Explain NAT/PAT and why your laptop's private IP never appears on the internet</li>
+<li class="task">Capture, filter, and follow a TCP stream in Wireshark, and read a pcap file with <code>tshark</code></li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">اشرح المصافحة الثلاثية في TCP وحدّد العلم (flag) ورقم التسلسل في كل حزمة</li>
+<li class="task">اشرح كيف يُنهي TCP الاتصال (FIN/ACK)، واذكر الأعلام (SYN, ACK, FIN, RST, PSH, URG) وما يرمز إليه كل واحد منها</li>
+<li class="task">قارن بين TCP و UDP واختر بينهما اختياراً صحيحاً لحالة استخدام معينة</li>
+<li class="task">اذكر نطاقات المنافذ (well-known / registered / dynamic) وسمِّ 15 منفذاً معروفاً من الذاكرة</li>
+<li class="task">تتبّع تحليل DNS: التعاودي مقابل التكراري، ودور كل نوع من السجلات (A, AAAA, CNAME, MX, NS, TXT)</li>
+<li class="task">اشرح تبادل DORA في DHCP وما تحمله كل رسالة من الرسائل الأربع</li>
+<li class="task">اشرح NAT/PAT ولماذا لا يظهر عنوان IP الخاص بحاسوبك على الإنترنت أبداً</li>
+<li class="task">التقط الحزم وفلترها وتتبّع مجرى TCP في Wireshark، واقرأ ملف pcap باستخدام <code>tshark</code></li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="theory" data-sec="theory" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈4h · Read and take notes</span><span class="only-ar">≈4ساعات · اقرأ ودوّن الملاحظات</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Topic</th>
+<th>Resource</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>TCP: handshake, flags, sequence numbers, teardown</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc793">RFC 793 — Transmission Control Protocol</a></td>
+<td>60m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>UDP: connectionless by design</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc768">RFC 768 — User Datagram Protocol</a></td>
+<td>25m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Ports, sockets, and well-known numbers</td>
+<td><a href="https://www.professormesser.com/network-plus/n10-009/n10-009-video/n10-009-training-course/">Professor Messer — Network+ N10-009</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>4</td>
+<td>DNS: resolution, record types, hierarchy</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc1034">RFC 1034 — Domain Names, Concepts and Facilities</a> · <a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_domain_name">MDN — What is a domain name</a></td>
+<td>60m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>DHCP and the DORA exchange</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc2131">RFC 2131 — Dynamic Host Configuration Protocol</a></td>
+<td>30m</td>
+</tr>
+<tr>
+<td>6</td>
+<td>NAT and PAT</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc3022">RFC 3022 — Traditional IP Network Address Translator</a></td>
+<td>30m</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Wireshark: the user's guide</td>
+<td><a href="https://www.wireshark.org/docs/wsug_html_chunked/">Wireshark User's Guide</a></td>
+<td>60m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Arabic supplement:</strong> <a href="https://www.youtube.com/@ITDose22">IT Dose — عماد نشأت</a> for the Port Numbers and NAT episodes. These two topics are explained with graphics that make the port/address distinction click immediately.</p>
+<p><strong>Reference to keep open all week:</strong> <a href="https://www.wireshark.org/docs/dfref/">Wireshark Display Filter Reference</a> — every filter field Wireshark understands, with types. Bookmark it.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الموضوع</th>
+<th>المصدر</th>
+<th>الوقت</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>TCP: المصافحة، الأعلام، أرقام التسلسل، الإغلاق</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc793">RFC 793 — Transmission Control Protocol</a></td>
+<td>60 دقيقة</td>
+</tr>
+<tr>
+<td>2</td>
+<td>UDP: بلا اتصال بالتصميم</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc768">RFC 768 — User Datagram Protocol</a></td>
+<td>25 دقيقة</td>
+</tr>
+<tr>
+<td>3</td>
+<td>المنافذ والمقابس (sockets) والأرقام المعروفة</td>
+<td><a href="https://www.professormesser.com/network-plus/n10-009/n10-009-video/n10-009-training-course/">Professor Messer — Network+ N10-009</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>DNS: التحليل، أنواع السجلات، الهرمية</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc1034">RFC 1034 — Domain Names, Concepts and Facilities</a> · <a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_domain_name">MDN — What is a domain name</a></td>
+<td>60 دقيقة</td>
+</tr>
+<tr>
+<td>5</td>
+<td>DHCP وتبادل DORA</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc2131">RFC 2131 — Dynamic Host Configuration Protocol</a></td>
+<td>30 دقيقة</td>
+</tr>
+<tr>
+<td>6</td>
+<td>NAT و PAT</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc3022">RFC 3022 — Traditional IP Network Address Translator</a></td>
+<td>30 دقيقة</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Wireshark: دليل المستخدم</td>
+<td><a href="https://www.wireshark.org/docs/wsug_html_chunked/">Wireshark User's Guide</a></td>
+<td>60 دقيقة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>إضافة بالعربية:</strong> <a href="https://www.youtube.com/@ITDose22">IT Dose — عماد نشأت</a> لحلقتي Port Numbers و NAT. هذان الموضوعان مشروحان برسوم توضيحية تجعل التمييز بين المنفذ والعنوان يرسخ في ذهنك فوراً.</p>
+<p><strong>مرجع أبقِه مفتوحاً طوال الأسبوع:</strong> <a href="https://www.wireshark.org/docs/dfref/">Wireshark Display Filter Reference</a> — كل حقل فلترة يفهمه Wireshark، مع أنواعه. أضِفه إلى المفضلة.</p></div>
+  </div>
+</details><details class="lesson-sec" id="lab" data-sec="lab" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈7h · Step by step, with expected results</span><span class="only-ar">≈7ساعات · خطوة بخطوة مع النتائج المتوقعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><h3>Lab 5.1 — Dissect a TCP handshake (1.5h)</h3>
+<p><strong>Goal:</strong> Stop reading about the handshake and watch it happen.</p>
+<p><strong>Setup:</strong> Kali and Ubuntu on the same NAT Network (from Week 4). Wireshark installed on Kali (<code>sudo apt install wireshark -y</code>; choose "yes" when it asks about non-root capture, or just run with <code>sudo</code>).</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Start the capture on Kali: <code>sudo wireshark</code>, pick the interface facing <code>labnet</code>, start.</li>
+<li>From Kali, open a TCP connection to Ubuntu: <code>nc -v &lt;ubuntu-ip&gt; 22</code> (SSH port — it will answer with a banner). Leave it open.</li>
+<li>Stop the capture. Filter: <code>tcp.port == 22</code></li>
+<li><strong>Find the handshake.</strong> It is exactly three packets:</li>
+</ol>
+<ul>
+<li>Packet 1 — <code>SYN</code>, flags <code>0x002</code>, <code>Seq=0</code></li>
+<li>Packet 2 — <code>SYN, ACK</code>, flags <code>0x012</code>, <code>Seq=0 Ack=1</code></li>
+<li>Packet 3 — <code>ACK</code>, flags <code>0x010</code>, <code>Seq=1 Ack=1</code></li>
+</ul>
+<ol start="5">
+<li>Click each packet and expand the TCP header. Write down, for each: source port, destination port, sequence number, acknowledgement number, and the flag bits.</li>
+<li>
+<p><strong>Display filters drill.</strong> Write and record the result of each:
+   <div class="highlight"><pre><span></span><code>tcp.flags.syn == 1 and tcp.flags.ack == 0     # only initial SYNs
+tcp.flags.reset == 1                          # only resets
+tcp.port == 22                                # anything on port 22
+tcp.stream eq 0                               # one complete conversation
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>The teardown.</strong> In the capture, the FIN packets appear after you close your connection. Find them. Count how many packets the teardown took. Why four and not three?</p>
+</li>
+<li><strong>See a RST.</strong> From Kali: <code>nc -v &lt;ubuntu-ip&gt; 9999</code> (a closed port). Capture it. What did Ubuntu send back? A RST is the network saying <em>"nothing is listening here"</em> — and it is the single most valuable packet for a port scanner. Remember this going into Week 6.</li>
+</ol>
+<p><strong>Deliverable:</strong> A screenshot or text export of the three handshake packets with every field annotated by hand, plus your filter results.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No packets captured at all</td>
+<td>Wrong interface selected in Wireshark — check <code>ip a</code> for the <code>labnet</code> interface</td>
+</tr>
+<tr>
+<td>You see the handshake but no data</td>
+<td>Correct — SSH is encrypted. Nothing readable is expected here. That's the point of Week 6</td>
+</tr>
+<tr>
+<td>Connection goes to <code>SYN</code> then <code>RST</code></td>
+<td>Nothing is listening on that port on the target, or a firewall rejected it</td>
+</tr>
+<tr>
+<td><code>tcp.stream eq 0</code> shows nothing</td>
+<td>Stream indices are per-capture; find the real index via right-click → <em>Follow → TCP Stream</em></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 5.2 — Capture a login in plaintext (2h)</h3>
+<p><strong>Goal:</strong> Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.</p>
+<p><strong>Setup:</strong> A deliberately insecure HTTP login page on the Ubuntu VM. Zero budget, no downloads — a 20-line Python server.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>
+<p>On Ubuntu, create <code>~/insecure-login.py</code>:
+   <div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">http.server</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseHTTPRequestHandler</span><span class="p">,</span> <span class="n">HTTPServer</span>
+
+<span class="n">PAGE</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;&quot;&lt;html&gt;&lt;body&gt;&lt;h3&gt;Lab Login&lt;/h3&gt;</span>
+<span class="s2">&lt;form method=&quot;POST&quot; action=&quot;/login&quot;&gt;</span>
+<span class="s2">  User: &lt;input name=&quot;username&quot;&gt;&lt;br&gt;</span>
+<span class="s2">  Pass: &lt;input name=&quot;password&quot; type=&quot;password&quot;&gt;&lt;br&gt;</span>
+<span class="s2">  &lt;input type=&quot;submit&quot; value=&quot;Log in&quot;&gt;</span>
+<span class="s2">&lt;/form&gt;&lt;/body&gt;&lt;/html&gt;&quot;&quot;&quot;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">H</span><span class="p">(</span><span class="n">BaseHTTPRequestHandler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_GET</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s2">&quot;text/html&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">PAGE</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_POST</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CREDS RECEIVED:&quot;</span><span class="p">,</span> <span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;ok&quot;</span><span class="p">)</span>
+
+<span class="n">HTTPServer</span><span class="p">((</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="mi">8080</span><span class="p">),</span> <span class="n">H</span><span class="p">)</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Run it: <code>python3 ~/insecure-login.py</code></p>
+</li>
+<li>On Kali, start a capture filtered to <code>tcp.port == 8080</code>.</li>
+<li>In Kali's browser, visit <code>http://&lt;ubuntu-ip&gt;:8080</code>, type username <code>student</code> and password <code>SuperSecret123</code>, submit.</li>
+<li>
+<p><strong>Stop the capture and find your password.</strong> Use these filters in order:
+   <div class="highlight"><pre><span></span><code>http.request.method == &quot;POST&quot;
+http contains &quot;SuperSecret123&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>Right-click the POST packet → <strong>Follow → HTTP Stream</strong>. Read the raw request. The password is sitting in plain ASCII.</p>
+</li>
+<li><strong>Now do it over HTTPS.</strong> Browse to any real HTTPS site, log in somewhere with a throwaway account, capture it, and try the same filter. You will see TLS records and nothing readable. Write down what changed and why.</li>
+<li><strong>Repeat on the same network from the target's perspective.</strong> Run <code>sudo tcpdump -i &lt;iface&gt; -A 'tcp port 8080'</code> on Ubuntu while you log in from Kali. Where else did the credential appear?</li>
+</ol>
+<p><strong>Deliverable:</strong> The base64-free, plain-text credential extracted from your own capture, plus a one-paragraph explanation of what a passive attacker on the same Wi-Fi network would have obtained.</p>
+<blockquote>
+<p>⚠️ <strong>This is your own lab and your own throwaway password.</strong> Never do this on a network you don't own — capturing another person's traffic is a criminal offence in most jurisdictions, regardless of intent.</p>
+</blockquote>
+<h3>Lab 5.3 — Follow a DNS resolution (1.5h)</h3>
+<p><strong>Goal:</strong> See the exact packets behind "typing a name into a browser".</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>On Kali, start a capture with filter <code>udp.port == 53</code>.</li>
+<li>
+<p>Clear the cache and look up a domain:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>resolvectl<span class="w"> </span>flush-caches<span class="w">     </span><span class="c1"># or: sudo systemd-resolve --flush-caches</span>
+dig<span class="w"> </span>www.wikipedia.org
+</code></pre></div></p>
+</li>
+<li>
+<p>In Wireshark, find the query packet. Expand DNS. Record: transaction ID, flags, question name, query type (<code>A</code>), and the response's answer records with their TTL.</p>
+</li>
+<li>
+<p><strong>Now query each record type deliberately</strong> and capture each:
+   <div class="highlight"><pre><span></span><code>dig<span class="w"> </span>A<span class="w"> </span>wikipedia.org
+dig<span class="w"> </span>AAAA<span class="w"> </span>wikipedia.org
+dig<span class="w"> </span>MX<span class="w"> </span>gmail.com
+dig<span class="w"> </span>NS<span class="w"> </span>wikipedia.org
+dig<span class="w"> </span>TXT<span class="w"> </span>google.com
+dig<span class="w"> </span>CNAME<span class="w"> </span>www.github.com
+dig<span class="w"> </span>+trace<span class="w"> </span>www.wikipedia.org<span class="w">      </span><span class="c1"># watch iterative resolution from the root</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><code>dig +trace</code> is the whole lesson.</strong> Read its output top to bottom. You will see the query go to a <strong>root</strong> server, then to the <code>.org</code> <strong>TLD</strong> server, then to Wikipedia's <strong>authoritative</strong> server. That is <strong>iterative</strong> resolution.</p>
+</li>
+<li><strong>Recursive vs iterative.</strong> Your machine asks the resolver one question and expects one final answer — that is <strong>recursive</strong>. The resolver does the walking itself — that is <strong>iterative</strong>. Write both definitions in your notes with the actors named.</li>
+<li><strong>Over TCP?</strong> Run <code>dig +tcp wikipedia.org</code> with the same filter but change it to <code>tcp.port == 53</code>. Why does DNS sometimes use TCP? (Hint: what happens when an answer is too big for a UDP datagram?)</li>
+</ol>
+<p><strong>Deliverable:</strong> Screenshots of a DNS query and its response with the answer record and TTL annotated, plus the <code>dig +trace</code> output with each of the three server tiers labelled.</p>
+<h3>Lab 5.4 — Capture DHCP DORA and analyse a pcap (2h)</h3>
+<p><strong>Goal:</strong> See how a machine gets an address, then analyse traffic you did not generate.</p>
+<p><strong>Setup:</strong> The DHCP exchange needs a DHCP server. Your <code>labnet</code> (Week 4) has none — that is the point of part 1.</p>
+<p><strong>Part A — DORA (45m):</strong></p>
+<ol>
+<li>On Kali, put an interface on the host's <strong>NAT Network</strong> (which <em>does</em> have DHCP) and start a capture with filter <code>udp.port == 67 or udp.port == 68</code>.</li>
+<li>Release and renew: <code>sudo dhclient -r &lt;iface&gt;</code> then <code>sudo dhclient -v &lt;iface&gt;</code> (or bounce the adapter in NetworkManager).</li>
+<li>Find the four packets and label them: <strong>D</strong>iscover (broadcast, client → 255.255.255.255) · <strong>O</strong>ffer (server → client) · <strong>R</strong>equest (broadcast — why broadcast?) · <strong>A</strong>CK.</li>
+<li>Expand the Offer and record: offered IP, subnet mask, router (option 3), DNS servers (option 6), lease time (option 51).</li>
+<li><strong>The security question:</strong> the Discover and Request are broadcast — <em>everyone</em> on the segment sees them. What could a malicious host do with that? Write your answer before reading Week 5's Security Payoff.</li>
+</ol>
+<p><strong>Part B — Analyse a stranger's pcap (75m):</strong></p>
+<ol>
+<li>Download a capture from a source that did not come from your lab:</li>
+</ol>
+<ul>
+<li><a href="https://wiki.wireshark.org/SampleCaptures">Wireshark SampleCaptures</a> — curated, safe, legal</li>
+<li><a href="https://www.malware-traffic-analysis.net/">malware-traffic-analysis.net</a> — real captured malware traffic, with exercises</li>
+</ul>
+<ol start="2">
+<li><strong>Answer these from the pcap alone, using only Wireshark filters:</strong></li>
+</ol>
+<ul>
+<li>How many hosts are involved? (<code>Statistics → Conversations</code>)</li>
+<li>Which ports are being contacted? (<code>Statistics → Endpoints</code>)</li>
+<li>Is there any cleartext protocol? Filter <code>http</code>, then <code>ftp</code>, then <code>telnet</code>.</li>
+<li>What are the top talkers by bytes? (<code>Statistics → Protocol Hierarchy</code>)</li>
+<li>Is there a DNS query for something suspicious — a long random-looking name, or a <code>TXT</code> record to a domain you don't recognise?</li>
+</ul>
+<ol start="3">
+<li>
+<p><strong>Then do the same with the command line:</strong>
+   <div class="highlight"><pre><span></span><code>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>conv,tcp
+tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>dns.qry.name<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u
+tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http.request&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>http.host<span class="w"> </span>-e<span class="w"> </span>http.request.uri
+</code></pre></div></p>
+</li>
+<li>
+<p>Write a <strong>one-page incident note</strong>: what happened, between whom, over which protocols, and what you would investigate next.</p>
+</li>
+</ol>
+<p><strong>Deliverable:</strong> The four DHCP packets identified and annotated, plus the one-page incident note on the downloaded pcap.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No DHCP packets captured</td>
+<td>The interface has a static address, or the adapter is on Internal Network (no DHCP server there)</td>
+</tr>
+<tr>
+<td><code>dig +trace</code> output is short and goes nowhere</td>
+<td>A local resolver is answering before the trace starts. Point <code>dig</code> at a public resolver: <code>dig +trace @1.1.1.1 www.wikipedia.org</code></td>
+</tr>
+<tr>
+<td>Credentials don't appear in the Wireshark filter</td>
+<td>The site used HTTPS, or the form submitted via JavaScript in a way that changed the encoding — check <em>Follow HTTP Stream</em></td>
+</tr>
+<tr>
+<td><code>tshark</code> says "no such field"</td>
+<td>Typo in the display filter field name. Look it up in the <a href="https://www.wireshark.org/docs/dfref/">Display Filter Reference</a></td>
+</tr>
+<tr>
+<td>Pcap opens but shows thousands of packets you can't read</td>
+<td>That's normal. Use <code>Statistics → Protocol Hierarchy</code> first, then narrow with filters. Never read a pcap top-to-bottom</td>
+</tr>
+</tbody>
+</table></div></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><h3>المختبر 5.1 — تفكيك مصافحة TCP (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> توقّف عن القراءة عن المصافحة وشاهدها تحدث أمامك.</p>
+<p><strong>التهيئة:</strong> Kali و Ubuntu على نفس شبكة NAT Network (من الأسبوع 4). Wireshark مثبَّت على Kali (<code>sudo apt install wireshark -y</code>؛ اختر "yes" عندما يسألك عن الالتقاط بدون root، أو شغّله بـ <code>sudo</code> مباشرة).</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>ابدأ الالتقاط على Kali: <code>sudo wireshark</code>، اختر الواجهة المتصلة بـ <code>labnet</code>، ثم ابدأ.</li>
+<li>من Kali، افتح اتصال TCP إلى Ubuntu: <code>nc -v &lt;ubuntu-ip&gt; 22</code> (منفذ SSH — سيرد بـ banner). اتركه مفتوحاً.</li>
+<li>أوقف الالتقاط. الفلتر: <code>tcp.port == 22</code></li>
+<li><strong>جد المصافحة.</strong> إنها ثلاث حزم بالضبط:</li>
+</ol>
+<ul>
+<li>الحزمة 1 — <code>SYN</code>، الأعلام <code>0x002</code>، <code>Seq=0</code></li>
+<li>الحزمة 2 — <code>SYN, ACK</code>، الأعلام <code>0x012</code>، <code>Seq=0 Ack=1</code></li>
+<li>الحزمة 3 — <code>ACK</code>، الأعلام <code>0x010</code>، <code>Seq=1 Ack=1</code></li>
+</ul>
+<ol start="5">
+<li>انقر على كل حزمة ووسّع ترويسة TCP. سجّل لكل حزمة: منفذ المصدر، منفذ الوجهة، رقم التسلسل، رقم التأكيد، وبتات الأعلام.</li>
+<li>
+<p><strong>تدريب على فلاتر العرض.</strong> اكتب وسجّل نتيجة كل فلتر:
+   <div class="highlight"><pre><span></span><code>tcp.flags.syn == 1 and tcp.flags.ack == 0     # only initial SYNs
+tcp.flags.reset == 1                          # only resets
+tcp.port == 22                                # anything on port 22
+tcp.stream eq 0                               # one complete conversation
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>الإغلاق (Teardown).</strong> في الالتقاط، تظهر حزم FIN بعد أن تغلق اتصالك. جدها. عُدّ كم حزمة استغرق الإغلاق. لماذا أربع حزم وليست ثلاثاً؟</p>
+</li>
+<li><strong>شاهد RST.</strong> من Kali: <code>nc -v &lt;ubuntu-ip&gt; 9999</code> (منفذ مغلق). التقطه. بماذا رد Ubuntu؟ حزمة RST هي الشبكة وهي تقول <em>"لا شيء يستمع هنا"</em> — وهي أثمن حزمة على الإطلاق بالنسبة لماسح المنافذ. تذكّر هذا عند دخولك الأسبوع 6.</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> لقطة شاشة أو تصدير نصي لحزم المصافحة الثلاث مع تعليق يدوي على كل حقل، بالإضافة إلى نتائج فلاترك.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>لم تُلتقط أي حزمة إطلاقاً</td>
+<td>واجهة خاطئة مختارة في Wireshark — تحقق من <code>ip a</code> للعثور على واجهة <code>labnet</code></td>
+</tr>
+<tr>
+<td>ترى المصافحة لكن لا ترى أي بيانات</td>
+<td>هذا صحيح — SSH مشفّر. لا يُتوقع أي شيء مقروء هنا. وهذا هو جوهر الأسبوع 6</td>
+</tr>
+<tr>
+<td>الاتصال يذهب إلى <code>SYN</code> ثم <code>RST</code></td>
+<td>لا شيء يستمع على ذلك المنفذ في الهدف، أو أن جداراً نارياً رفضه</td>
+</tr>
+<tr>
+<td><code>tcp.stream eq 0</code> لا يعرض شيئاً</td>
+<td>فهارس المجرى خاصة بكل عملية التقاط؛ جد الفهرس الحقيقي عبر النقر بالزر الأيمن → <em>Follow → TCP Stream</em></td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 5.2 — التقاط تسجيل دخول بنص صريح (2 ساعة)</h3>
+<p><strong>الهدف:</strong> شاهد بيانات الاعتماد تعبر الشبكة بترميز ASCII مقروء. هذا هو المختبر الذي يتذكره المتعلمون سنوات.</p>
+<p><strong>التهيئة:</strong> صفحة تسجيل دخول HTTP غير آمنة عمداً على آلة Ubuntu الوهمية. ميزانية صفر، وبلا أي تنزيلات — خادم Python من 20 سطراً.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>
+<p>على Ubuntu، أنشئ <code>~/insecure-login.py</code>:
+   <div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">http.server</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseHTTPRequestHandler</span><span class="p">,</span> <span class="n">HTTPServer</span>
+
+<span class="n">PAGE</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;&quot;&lt;html&gt;&lt;body&gt;&lt;h3&gt;Lab Login&lt;/h3&gt;</span>
+<span class="s2">&lt;form method=&quot;POST&quot; action=&quot;/login&quot;&gt;</span>
+<span class="s2">  User: &lt;input name=&quot;username&quot;&gt;&lt;br&gt;</span>
+<span class="s2">  Pass: &lt;input name=&quot;password&quot; type=&quot;password&quot;&gt;&lt;br&gt;</span>
+<span class="s2">  &lt;input type=&quot;submit&quot; value=&quot;Log in&quot;&gt;</span>
+<span class="s2">&lt;/form&gt;&lt;/body&gt;&lt;/html&gt;&quot;&quot;&quot;</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">H</span><span class="p">(</span><span class="n">BaseHTTPRequestHandler</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_GET</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s2">&quot;text/html&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">PAGE</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">do_POST</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CREDS RECEIVED:&quot;</span><span class="p">,</span> <span class="n">body</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">&quot;replace&quot;</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;ok&quot;</span><span class="p">)</span>
+
+<span class="n">HTTPServer</span><span class="p">((</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="mi">8080</span><span class="p">),</span> <span class="n">H</span><span class="p">)</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>شغّله: <code>python3 ~/insecure-login.py</code></p>
+</li>
+<li>على Kali، ابدأ التقاطاً مفلتراً على <code>tcp.port == 8080</code>.</li>
+<li>في متصفح Kali، زُر <code>http://&lt;ubuntu-ip&gt;:8080</code>، واكتب اسم المستخدم <code>student</code> وكلمة المرور <code>SuperSecret123</code>، ثم أرسل.</li>
+<li>
+<p><strong>أوقف الالتقاط وجد كلمة مرورك.</strong> استخدم هذين الفلترين بالترتيب:
+   <div class="highlight"><pre><span></span><code>http.request.method == &quot;POST&quot;
+http contains &quot;SuperSecret123&quot;
+</code></pre></div></p>
+</li>
+<li>
+<p>انقر بزر الفأرة الأيمن على حزمة POST → <strong>Follow → HTTP Stream</strong>. اقرأ الطلب الخام. كلمة المرور مكشوفة بنص ASCII صريح.</p>
+</li>
+<li><strong>الآن كرّر الأمر عبر HTTPS.</strong> تصفّح أي موقع HTTPS حقيقي، وسجّل الدخول فيه بحساب مؤقت لا قيمة له، والتقط الحركة، وجرّب الفلتر نفسه. سترى سجلات TLS ولا شيء مقروء. سجّل ما الذي تغيّر ولماذا.</li>
+<li><strong>كرّر الأمر على الشبكة نفسها من منظور الهدف.</strong> شغّل <code>sudo tcpdump -i &lt;iface&gt; -A 'tcp port 8080'</code> على Ubuntu بينما تسجّل الدخول من Kali. أين ظهرت بيانات الاعتماد مرة أخرى؟</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> بيانات الاعتماد بنص صريح ودون base64، مستخرجة من التقاطك أنت، بالإضافة إلى فقرة واحدة تشرح ما كان سيملكه مهاجم سلبي على شبكة Wi-Fi نفسها.</p>
+<blockquote>
+<p>⚠️ <strong>هذا مختبرك أنت، وكلمة المرور هذه مؤقتة ولا قيمة لها.</strong> لا تفعل هذا أبداً على شبكة لا تملكها — التقاط حركة شخص آخر جريمة جنائية في معظم الدول، بغض النظر عن النية.</p>
+</blockquote>
+<h3>المختبر 5.3 — تتبّع تحليل DNS (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> شاهد الحزم الفعلية التي تقف خلف عبارة "أكتب اسماً في المتصفح".</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>على Kali، ابدأ التقاطاً بفلتر <code>udp.port == 53</code>.</li>
+<li>
+<p>امسح الذاكرة المؤقتة وابحث عن نطاق:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>resolvectl<span class="w"> </span>flush-caches<span class="w">     </span><span class="c1"># or: sudo systemd-resolve --flush-caches</span>
+dig<span class="w"> </span>www.wikipedia.org
+</code></pre></div></p>
+</li>
+<li>
+<p>في Wireshark، جد حزمة الاستعلام. وسّع DNS. سجّل: معرّف المعاملة (transaction ID)، الأعلام، اسم السؤال، نوع الاستعلام (<code>A</code>)، وسجلات الجواب في الاستجابة مع مدة صلاحيتها TTL.</p>
+</li>
+<li>
+<p><strong>الآن استعلم عن كل نوع سجل بشكل مقصود</strong> والتقط كلاً منها:
+   <div class="highlight"><pre><span></span><code>dig<span class="w"> </span>A<span class="w"> </span>wikipedia.org
+dig<span class="w"> </span>AAAA<span class="w"> </span>wikipedia.org
+dig<span class="w"> </span>MX<span class="w"> </span>gmail.com
+dig<span class="w"> </span>NS<span class="w"> </span>wikipedia.org
+dig<span class="w"> </span>TXT<span class="w"> </span>google.com
+dig<span class="w"> </span>CNAME<span class="w"> </span>www.github.com
+dig<span class="w"> </span>+trace<span class="w"> </span>www.wikipedia.org<span class="w">      </span><span class="c1"># watch iterative resolution from the root</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><code>dig +trace</code> هو الدرس كله.</strong> اقرأ مخرجاته من الأعلى إلى الأسفل. سترى الاستعلام يذهب إلى خادم <strong>الجذر (root)</strong>، ثم إلى خادم <strong>النطاق الأعلى (TLD)</strong> الخاص بـ <code>.org</code>، ثم إلى خادم Wikipedia <strong>المسؤول (authoritative)</strong>. هذا هو التحليل <strong>التكراري (iterative)</strong>.</p>
+</li>
+<li><strong>التعاودي مقابل التكراري.</strong> جهازك يسأل المحلّل سؤالاً واحداً وينتظر جواباً نهائياً واحداً — هذا <strong>تعاودي (recursive)</strong>. المحلّل هو من يقوم بالتنقل بنفسه — هذا <strong>تكراري (iterative)</strong>. اكتب التعريفين في ملاحظاتك مع تسمية الأطراف.</li>
+<li><strong>عبر TCP؟</strong> شغّل <code>dig +tcp wikipedia.org</code> بالفلتر نفسه لكن غيّره إلى <code>tcp.port == 53</code>. لماذا يستخدم DNS أحياناً TCP؟ (تلميح: ماذا يحدث عندما يكون الجواب أكبر من أن يتسع في حزمة UDP واحدة؟)</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> لقطات شاشة لاستعلام DNS واستجابته مع تعليق على سجل الجواب و TTL، بالإضافة إلى مخرجات <code>dig +trace</code> مع تسمية كل مستوى من مستويات الخوادم الثلاثة.</p>
+<h3>المختبر 5.4 — التقاط DORA الخاص بـ DHCP وتحليل ملف pcap (2 ساعة)</h3>
+<p><strong>الهدف:</strong> شاهد كيف يحصل جهاز على عنوان، ثم حلّل حركة لم تصدر عنك.</p>
+<p><strong>التهيئة:</strong> يحتاج تبادل DHCP إلى خادم DHCP. شبكتك <code>labnet</code> (الأسبوع 4) لا تحتوي على أي خادم — وهذا هو جوهر الجزء الأول.</p>
+<p><strong>الجزء أ — DORA (45 دقيقة):</strong></p>
+<ol>
+<li>على Kali، ضع واجهة على <strong>NAT Network</strong> الخاصة بالمضيف (وهي <em>تحتوي</em> فعلاً على DHCP) وابدأ التقاطاً بفلتر <code>udp.port == 67 or udp.port == 68</code>.</li>
+<li>حرّر العنوان وجدده: <code>sudo dhclient -r &lt;iface&gt;</code> ثم <code>sudo dhclient -v &lt;iface&gt;</code> (أو أعد تشغيل المُهايئ من NetworkManager).</li>
+<li>جد الحزم الأربع وسمِّها: <strong>D</strong>iscover (بث، العميل → 255.255.255.255) · <strong>O</strong>ffer (الخادم → العميل) · <strong>R</strong>equest (بث — لماذا بث؟) · <strong>A</strong>CK.</li>
+<li>وسّع حزمة Offer وسجّل: عنوان IP المعروض، قناع الشبكة، الموجّه (option 3)، خوادم DNS (option 6)، مدة الإيجار (option 51).</li>
+<li><strong>السؤال الأمني:</strong> رسالتا Discover و Request بث — <em>الجميع</em> في القطاع يراهما. ماذا يمكن لجهاز خبيث أن يفعل بذلك؟ اكتب جوابك قبل أن تقرأ العائد الأمني للأسبوع 5.</li>
+</ol>
+<p><strong>الجزء ب — تحليل ملف pcap لا يخصك (75 دقيقة):</strong></p>
+<ol>
+<li>نزّل ملف التقاط من مصدر ليس من مختبرك:</li>
+</ol>
+<ul>
+<li><a href="https://wiki.wireshark.org/SampleCaptures">Wireshark SampleCaptures</a> — منتقاة، آمنة، قانونية</li>
+<li><a href="https://www.malware-traffic-analysis.net/">malware-traffic-analysis.net</a> — حركة برمجيات خبيثة حقيقية ملتقطة، مع تمارين</li>
+</ul>
+<ol start="2">
+<li><strong>أجب عن هذه الأسئلة من ملف pcap وحده، باستخدام فلاتر Wireshark فقط:</strong></li>
+</ol>
+<ul>
+<li>كم عدد الأجهزة المشاركة؟ (<code>Statistics → Conversations</code>)</li>
+<li>ما المنافذ التي يتم الاتصال بها؟ (<code>Statistics → Endpoints</code>)</li>
+<li>هل هناك أي بروتوكول بنص صريح؟ فلتر <code>http</code>، ثم <code>ftp</code>، ثم <code>telnet</code>.</li>
+<li>من أكثر الأطراف تحدثاً بالبايتات؟ (<code>Statistics → Protocol Hierarchy</code>)</li>
+<li>هل هناك استعلام DNS عن شيء مريب — اسم طويل يبدو عشوائياً، أو سجل <code>TXT</code> إلى نطاق لا تعرفه؟</li>
+</ul>
+<ol start="3">
+<li>
+<p><strong>ثم افعل الشيء نفسه من سطر الأوامر:</strong>
+   <div class="highlight"><pre><span></span><code>tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-q<span class="w"> </span>-z<span class="w"> </span>conv,tcp
+tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;dns&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>dns.qry.name<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span>-u
+tshark<span class="w"> </span>-r<span class="w"> </span>capture.pcap<span class="w"> </span>-Y<span class="w"> </span><span class="s2">&quot;http.request&quot;</span><span class="w"> </span>-T<span class="w"> </span>fields<span class="w"> </span>-e<span class="w"> </span>http.host<span class="w"> </span>-e<span class="w"> </span>http.request.uri
+</code></pre></div></p>
+</li>
+<li>
+<p>اكتب <strong>ملاحظة حادث من صفحة واحدة</strong>: ماذا حدث، وبين مَن ومَن، وعبر أي بروتوكولات، وبماذا ستحقق بعد ذلك.</p>
+</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> حزم DHCP الأربع محدَّدة ومعلَّق عليها، بالإضافة إلى ملاحظة الحادث من صفحة واحدة عن ملف pcap الذي نزّلته.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>لم تُلتقط أي حزم DHCP</td>
+<td>الواجهة لها عنوان ثابت (static)، أو أن المُهايئ على Internal Network (لا يوجد خادم DHCP هناك)</td>
+</tr>
+<tr>
+<td>مخرجات <code>dig +trace</code> قصيرة ولا تذهب إلى أي مكان</td>
+<td>محلّل محلي يجيب قبل أن يبدأ التتبّع. وجّه <code>dig</code> إلى محلّل عام: <code>dig +trace @1.1.1.1 www.wikipedia.org</code></td>
+</tr>
+<tr>
+<td>لا تظهر بيانات الاعتماد في فلتر Wireshark</td>
+<td>الموقع استخدم HTTPS، أو أن النموذج أُرسل عبر JavaScript بطريقة غيّرت الترميز — تحقق من <em>Follow HTTP Stream</em></td>
+</tr>
+<tr>
+<td><code>tshark</code> يقول "no such field"</td>
+<td>خطأ مطبعي في اسم حقل فلتر العرض. ابحث عنه في <a href="https://www.wireshark.org/docs/dfref/">Display Filter Reference</a></td>
+</tr>
+<tr>
+<td>يفتح ملف pcap لكنه يعرض آلاف الحزم التي لا تستطيع قراءتها</td>
+<td>هذا طبيعي. استخدم <code>Statistics → Protocol Hierarchy</code> أولاً، ثم ضيّق النطاق بالفلاتر. لا تقرأ ملف pcap من أوله إلى آخره أبداً</td>
+</tr>
+</tbody>
+</table></div></div>
+  </div>
+</details><details class="lesson-sec" id="challenge" data-sec="challenge" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈5h · Unguided — this is where it sticks</span><span class="only-ar">≈5ساعات · بدون إرشاد — هنا يحدث التعلّم الحقيقي</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li>Bandit levels <strong>29-31</strong> (unguided). These are <strong>git</strong> levels — branching, tags, and history. When you get stuck, the <a href="https://git-scm.com/book/en/v2">Pro Git book</a> is free and covers everything you need.</li>
+<li><strong>Natas levels 0-2</strong> (<a href="https://overthewire.org/wargames/natas/">overthewire.org/wargames/natas</a>) — a web security wargame. It starts trivially easy and gets genuinely hard. Do not look up solutions.</li>
+<li><strong>Build a DNS investigation script.</strong> <code>dnsrecon.sh &lt;domain&gt;</code> that runs <code>dig</code> for A, AAAA, MX, NS, TXT, and SOA and prints a formatted report with timestamps. <strong>Run it only against domains you own or that explicitly permit it</strong> — start with <code>example.com</code>.</li>
+<li><strong>Build <code>portcheck.sh</code> v2.</strong> You wrote a basic version in Week 3. Rebuild it now: it takes a host and a list of ports, and for each prints <code>open</code> / <code>closed</code> / <code>filtered</code> by using <code>nc -z -w2</code>. Explain in your notes how you distinguish <em>closed</em> from <em>filtered</em> using only timing and response type. <strong>This is the core logic of a port scanner, and next week you meet the real one.</strong></li>
+<li><strong>Written analysis:</strong> the DNS TXT record can carry arbitrary text. If an attacker controlled a domain, could they use DNS as a data channel? Describe the mechanism in your own words (no need to build it) — what would the queries look like, and what would a defender have to log to notice?</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li>مستويات Bandit <strong>29-31</strong> (بدون إرشاد). هذه مستويات <strong>git</strong> — التفريع (branching) والوسوم (tags) والسجل. إذا توقفت، فكتاب <a href="https://git-scm.com/book/en/v2">Pro Git</a> مجاني ويغطي كل ما تحتاجه.</li>
+<li><strong>مستويات Natas من 0 إلى 2</strong> (<a href="https://overthewire.org/wargames/natas/">overthewire.org/wargames/natas</a>) — لعبة تدريبية في أمن الويب. تبدأ سهلة بشكل تافه ثم تصبح صعبة فعلاً. لا تبحث عن الحلول.</li>
+<li><strong>ابنِ سكربت تحقيق في DNS.</strong> <code>dnsrecon.sh &lt;domain&gt;</code> يشغّل <code>dig</code> على A و AAAA و MX و NS و TXT و SOA ويطبع تقريراً منسَّقاً مع الطوابع الزمنية. <strong>شغّله فقط على نطاقات تملكها أو تسمح بذلك صراحةً</strong> — ابدأ بـ <code>example.com</code>.</li>
+<li><strong>ابنِ <code>portcheck.sh</code> الإصدار 2.</strong> كتبت نسخة أساسية في الأسبوع 3. أعد بناءها الآن: تأخذ مضيفاً وقائمة منافذ، وتطبع لكل منفذ <code>open</code> / <code>closed</code> / <code>filtered</code> باستخدام <code>nc -z -w2</code>. اشرح في ملاحظاتك كيف تميّز بين <em>مغلق</em> و <em>مُرشَّح</em> بالاعتماد على التوقيت ونوع الرد فقط. <strong>هذا هو المنطق الجوهري لأي ماسح منافذ، وفي الأسبوع القادم تلتقي بالماسح الحقيقي.</strong></li>
+<li><strong>تحليل مكتوب:</strong> سجل TXT في DNS يمكنه حمل نص حر. لو سيطر مهاجم على نطاق، هل يمكنه استخدام DNS كقناة بيانات؟ صِف الآلية بكلماتك (لا حاجة لبنائها) — كيف ستبدو الاستعلامات، وما الذي يجب على المدافع تسجيله ليلاحظها؟</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="payoff" data-sec="payoff" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The security consequence</span><span class="only-ar">الأثر الأمني</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>This is the week the network stops being abstract and becomes visible. And what is visible is mostly unprotected.</strong></p>
+<p>Three things worth internalizing:</p>
+<ol>
+<li>
+<p><strong>Unencrypted protocols leak everything to anyone on the path.</strong> In Lab 5.2 you read your own password out of a packet capture. No exploit was involved. No vulnerability was exploited. HTTP simply does not encrypt anything — the username and password are bytes in a TCP payload, and anyone who can see the packets can read them. FTP, Telnet, SMTP, POP3, IMAP, SNMP v1/v2, and plain LDAP all behave the same way. The reason HTTPS matters is not that it is "more modern"; it is that without it, <strong>there is no confidentiality at all</strong>. When you study a real breach, ask about the protocol — an astonishing number of credential exposures come down to a service that was simply speaking in the clear.</p>
+</li>
+<li>
+<p><strong>DNS is a control channel, and attackers use it as one.</strong> DNS was designed for resolution, not security. Three consequences:</p>
+</li>
+</ol>
+<ul>
+<li><strong>DNS poisoning / spoofing:</strong> if an attacker can inject a forged response before the real one arrives — recall from Week 4 that UDP has no handshake — they can redirect you to their own server while the address bar still shows the correct name. Defences exist (DNSSEC, and resolvers that randomise source ports and transaction IDs), but the underlying protocol remains fundamentally trusting.</li>
+<li><strong>DNS tunnelling:</strong> a client can encode arbitrary data inside DNS query names, and receive data back in TXT or CNAME responses. Because DNS egress is almost always permitted through firewalls — nothing works without it — this becomes an exfiltration channel. The signature is distinctive: many queries to one domain, with long, high-entropy, base32-looking subdomains, at regular intervals. <strong>This is one of the most reliable detection opportunities in network security</strong>, and you now know exactly what to look for.</li>
+<li><strong>DNS as reconnaissance:</strong> before touching a target, an attacker enumerates subdomains, mail servers, and TXT records. Every record you publish is intelligence. <code>dev-</code>, <code>staging-</code>, <code>jenkins-</code> in a hostname tells them where the soft targets are.</li>
+</ul>
+<ol start="3">
+<li><strong>DHCP starvation and rogue servers — the attacks nobody expects.</strong> DHCP has no authentication either. A host that floods Discover messages with random MAC addresses can exhaust a server's entire address pool; legitimate clients then get nothing, and new devices cannot join the network — a denial of service delivered entirely at layer 2. Worse: an attacker who runs their own DHCP server can answer <em>faster</em> than the real one and hand out a <strong>malicious gateway and DNS server</strong>. Every victim then routes through the attacker, or resolves names through them. Combine that with Week 4's ARP spoofing and you have a complete local man-in-the-middle setup built entirely from unauthenticated protocols. <strong>This is why DHCP snooping and port security exist on managed switches</strong> — and precisely why a flat, unmanaged network is dangerous.</li>
+</ol>
+<p><strong>The thread connecting Weeks 4, 5, and 6:</strong> ARP trusts, DNS trusts, DHCP trusts, and TCP will happily talk to whoever answers. Almost none of the foundational internet protocols were designed with an adversary on the wire. Everything that keeps you safe today is a layer built <em>on top</em> — TLS, DNSSEC, DHCP snooping, 802.1X — precisely because the foundations could not be fixed without breaking the world.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>هذا هو الأسبوع الذي تتوقف فيه الشبكة عن كونها مجردة وتصبح مرئية. وما هو مرئي في معظمه غير محمي.</strong></p>
+<p>ثلاثة أمور تستحق أن تستوعبها جيداً:</p>
+<ol>
+<li>
+<p><strong>البروتوكولات غير المشفّرة تسرّب كل شيء إلى أي شخص على المسار.</strong> في المختبر 5.2 قرأت كلمة مرورك بنفسك من داخل ملف التقاط حزم. لم يكن هناك أي استغلال. ولم تُستغل أي ثغرة. HTTP ببساطة لا يشفّر شيئاً — اسم المستخدم وكلمة المرور مجرد بايتات داخل حمولة TCP، وأي شخص يرى الحزم يستطيع قراءتها. و FTP و Telnet و SMTP و POP3 و IMAP و SNMP v1/v2 و LDAP غير المشفّر تسلك السلوك نفسه تماماً. سبب أهمية HTTPS ليس أنه "أحدث"، بل أنه بدونه <strong>لا توجد سرية على الإطلاق</strong>. عندما تدرس اختراقاً حقيقياً، اسأل عن البروتوكول — فعدد مذهل من حالات تسريب بيانات الاعتماد يعود إلى خدمة كانت تتحدث بالنص الصريح فقط.</p>
+</li>
+<li>
+<p><strong>DNS قناة تحكم، والمهاجمون يستخدمونها كذلك.</strong> صُمّم DNS للتحليل، لا للأمان. ولهذا ثلاث نتائج:</p>
+</li>
+</ol>
+<ul>
+<li><strong>تسميم / انتحال DNS:</strong> إذا استطاع مهاجم حقن استجابة مزيفة قبل وصول الاستجابة الحقيقية — تذكّر من الأسبوع 4 أن UDP بلا مصافحة — فيمكنه توجيهك إلى خادمه الخاص بينما لا يزال شريط العنوان يعرض الاسم الصحيح. توجد دفاعات (DNSSEC، ومحلّلات تعشوّش منافذ المصدر ومعرّفات المعاملات)، لكن البروتوكول الأساسي يبقى واثقاً بشكل جذري.</li>
+<li><strong>نفق DNS:</strong> يستطيع العميل ترميز بيانات اعتباطية داخل أسماء استعلامات DNS، واستقبال بيانات في ردود TXT أو CNAME. ولأن خروج DNS مسموح دائماً تقريباً عبر الجدران النارية — فلا شيء يعمل بدونه — يصبح هذا قناة تسريب. والبصمة مميزة: استعلامات كثيرة لنطاق واحد، بأسماء فرعية طويلة عالية العشوائية تشبه base32، على فترات منتظمة. <strong>هذه واحدة من أكثر فرص الكشف موثوقية في أمن الشبكات</strong>، وأنت الآن تعرف بالضبط ما الذي تبحث عنه.</li>
+<li><strong>DNS كأداة استطلاع:</strong> قبل أن يلمس الهدف، يعدّد المهاجم النطاقات الفرعية وخوادم البريد وسجلات TXT. كل سجل تنشره هو معلومة استخبارية. وجود <code>dev-</code> أو <code>staging-</code> أو <code>jenkins-</code> في اسم مضيف يدلّهم على مواضع الأهداف الرخوة.</li>
+</ul>
+<ol start="3">
+<li><strong>استنزاف DHCP والخوادم المزيّفة — الهجمات التي لا يتوقعها أحد.</strong> DHCP أيضاً بلا مصادقة. فالجهاز الذي يغرق الشبكة برسائل Discover بعناوين MAC عشوائية يستطيع استنفاد مخزون العناوين بالكامل لدى الخادم؛ فلا يحصل العملاء الشرعيون على شيء، ولا تستطيع الأجهزة الجديدة الانضمام إلى الشبكة — حرمان من الخدمة يُنفَّذ بالكامل في الطبقة الثانية. والأسوأ: المهاجم الذي يشغّل خادم DHCP خاصاً به يستطيع الرد <em>أسرع</em> من الخادم الحقيقي ويمنح الضحايا <strong>بوابة وخادم DNS خبيثين</strong>. فيمرّ كل ضحية عبر المهاجم، أو يحلّ الأسماء من خلاله. اجمع هذا مع تسميم ARP من الأسبوع 4 فتحصل على منظومة رجل في المنتصف محلية كاملة مبنية بكاملها من بروتوكولات بلا مصادقة. <strong>لهذا يوجد DHCP snooping و port security على المبدلات المُدارة</strong> — ولهذا تحديداً تُعدّ الشبكة المسطحة غير المُدارة خطرة.</li>
+</ol>
+<p><strong>الخيط الذي يربط الأسابيع 4 و 5 و 6:</strong> ARP يثق، و DNS يثق، و DHCP يثق، و TCP سيتحدث بارتياح مع أي طرف يرد عليه. لا يكاد أي بروتوكول من بروتوكولات الإنترنت الأساسية قد صُمّم وبيده خصم على السلك. وكل ما يحميك اليوم هو طبقة مبنية <em>فوق</em> ذلك — TLS و DNSSEC و DHCP snooping و 802.1X — تحديداً لأن الأساسات لم يكن ممكناً إصلاحها دون تدمير العالم كله.</p></div>
+  </div>
+</details><details class="lesson-sec" id="checkpoint" data-sec="checkpoint" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4M4 4h12l-1.5 4L16 12H4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Prove it to yourself before moving on</span><span class="only-ar">أثبت لنفسك أنك أتقنت قبل المتابعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Draw the TCP handshake from memory with correct flags and sequence numbers</li>
+<li class="task">Explain, out loud, the difference between <code>SYN</code>, <code>SYN-ACK</code>, <code>ACK</code>, <code>FIN</code>, and <code>RST</code>, and what each tells you</li>
+<li class="task">Capture your own HTTP login and extract the credential in plaintext — then explain why HTTPS prevents it</li>
+<li class="task">Trace a full DNS resolution and name the roles of the root, TLD, and authoritative servers</li>
+<li class="task">Capture a DHCP DORA exchange and identify all four messages with their DHCP options</li>
+<li class="task">Explain NAT/PAT and why your private IP never reaches the internet</li>
+<li class="task">Analyze a downloaded pcap and produce a one-page incident note</li>
+<li class="task">Bandit 29-31 and Natas 0-2 complete</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">ارسم مصافحة TCP من الذاكرة بأعلام وأرقام تسلسل صحيحة</li>
+<li class="task">اشرح بصوت مسموع الفرق بين <code>SYN</code> و <code>SYN-ACK</code> و <code>ACK</code> و <code>FIN</code> و <code>RST</code>، وما يخبرك به كل واحد منها</li>
+<li class="task">التقط تسجيل دخولك عبر HTTP واستخرج بيانات الاعتماد بنص صريح — ثم اشرح لماذا يمنع HTTPS ذلك</li>
+<li class="task">تتبّع تحليلاً كاملاً لـ DNS وسمِّ أدوار خوادم الجذر و TLD والخادم المسؤول</li>
+<li class="task">التقط تبادل DORA في DHCP وحدّد الرسائل الأربع جميعها مع خيارات DHCP الخاصة بها</li>
+<li class="task">اشرح NAT/PAT ولماذا لا يصل عنوانك الخاص إلى الإنترنت أبداً</li>
+<li class="task">حلّل ملف pcap نزّلته وأنتج ملاحظة حادث من صفحة واحدة</li>
+<li class="task">إكمال Bandit 29-31 و Natas 0-2</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec only-ar" id="notes" data-sec="notes" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 0-9-9"/><path d="M12 7v5l3 2M3 21l3-3"/></svg></span>
+    <span class="lesson-titles">
+      <h2>ملاحظات مفاهيمية موسّعة</h2>
+      <span class="lesson-sub"><span>شرح إضافي موسّع</span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose" dir="rtl" lang="ar"><h3>TCP — المصافحة الثلاثية (Three-Way Handshake)</h3>
+<p>قبل أن يتبادل أي طرفين بيانات عبر TCP، يجب أن <strong>يتفقا</strong> على بدء الاتصال. هذا الاتفاق يحدث في <strong>ثلاث رسائل</strong> تُسمى المصافحة الثلاثية.</p>
+<p><strong>لماذا ثلاث رسائل وليست رسالتين؟</strong> لأن كلاً من الطرفين يجب أن يتأكد من <strong>شيئين</strong>: أن الآخر <strong>يسمعه</strong>، وأن الآخر <strong>جاهز</strong>. رسالتان لا تكفيان لتأكيد الاتجاهين معاً.</p>
+<p><strong>الخطوات:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الرسالة</th>
+<th>المُرسِل</th>
+<th>الأعلام (Flags)</th>
+<th>المعنى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>SYN</strong></td>
+<td>العميل</td>
+<td><code>SYN=1</code></td>
+<td>"أريد بدء اتصال، ورقم تسلسلي الأولي هو X"</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>SYN-ACK</strong></td>
+<td>الخادم</td>
+<td><code>SYN=1, ACK=1</code></td>
+<td>"موافق، رقمي التسلسلي هو Y، وأتوقع منك X+1"</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>ACK</strong></td>
+<td>العميل</td>
+<td><code>ACK=1</code></td>
+<td>"تمام، أتوقع منك Y+1"</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>مثال رقمي كامل:</strong></p>
+<div class="highlight"><pre><span></span><code>العميل  ──── SYN  seq=1000 ─────────────────────►  الخادم
+العميل  ◄─── SYN-ACK  seq=5000  ack=1001 ────────  الخادم
+العميل  ──── ACK  seq=1001  ack=5001 ───────────►  الخادم
+</code></pre></div>
+<p><strong>قراءة المثال:</strong></p>
+<ul>
+<li>العميل بدأ برقم تسلسلي <code>1000</code>.</li>
+<li>الخادم رد برقمه <code>5000</code>، ويؤكد استلام <code>1001</code> (أي <code>1000 + 1</code>).</li>
+<li>العميل أكّد <code>5001</code> (أي <code>5000 + 1</code>).</li>
+</ul>
+<blockquote>
+<p><strong>رقم التسلسل (Sequence Number)</strong> ليس "رقم الرسالة" بل <strong>موضع البايت الأول</strong> في مجرى البيانات. لهذا يزيد بمقدار حجم البيانات المُرسلة، وليس بمقدار 1 دائماً.</p>
+</blockquote>
+<h3>أعلام TCP (Flags) — لغة الاتصال</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العلم</th>
+<th>الاسم</th>
+<th>المعنى</th>
+<th>متى تراه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SYN</code></td>
+<td>Synchronize</td>
+<td>طلب بدء اتصال</td>
+<td>أول رسالة فقط</td>
+</tr>
+<tr>
+<td><code>ACK</code></td>
+<td>Acknowledge</td>
+<td>تأكيد استلام</td>
+<td>في معظم الرسائل بعد الأولى</td>
+</tr>
+<tr>
+<td><code>FIN</code></td>
+<td>Finish</td>
+<td>"انتهيت، أريد الإغلاق بلطف"</td>
+<td>عند إغلاق طبيعي</td>
+</tr>
+<tr>
+<td><code>RST</code></td>
+<td>Reset</td>
+<td>"أغلق فوراً" — رفض أو خطأ</td>
+<td>عند منفذ مغلق أو اتصال غير صالح</td>
+</tr>
+<tr>
+<td><code>PSH</code></td>
+<td>Push</td>
+<td>"سلّم هذه البيانات للتطبيق الآن"</td>
+<td>عند إرسال بيانات</td>
+</tr>
+<tr>
+<td><code>URG</code></td>
+<td>Urgent</td>
+<td>بيانات عاجلة</td>
+<td>نادر جداً</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong><code>RST</code> أهم علم أمنياً:</strong> عندما ترسل حزمة إلى منفذ مغلق، يرد الهدف بـ <code>RST</code>. وعندما يُسقط جدار ناري الحزمة بصمت، <strong>لا يرد بشيء</strong>. هذا الفرق بالضبط هو ما يميّز <strong>منفذ مغلق (closed)</strong> عن <strong>منفذ مُرشَّح (filtered)</strong> — وهو أساس عمل أي ماسح منافذ. <strong>تذكّر هذا في الأسبوع السادس.</strong></p>
+</blockquote>
+<h3>الإغلاق (Teardown) — لماذا أربع رسائل؟</h3>
+<p>TCP اتصال <strong>ثنائي الاتجاه</strong> — كل اتجاه يُغلق على حدة:</p>
+<div class="highlight"><pre><span></span><code>العميل  ──── FIN ──────────────────────────────►  الخادم     (1) أريد الإغلاق
+العميل  ◄─── ACK ──────────────────────────────    الخادم     (2) تمام، استلمت
+العميل  ◄─── FIN ──────────────────────────────    الخادم     (3) وأنا أيضاً أريد الإغلاق
+العميل  ──── ACK ──────────────────────────────►  الخادم     (4) تمام
+</code></pre></div>
+<p><strong>لماذا لا يكفي FIN واحد؟</strong> لأن إغلاق اتجاه لا يعني إغلاق الآخر. الخادم قد يكون لا يزال يرسل بيانات. لهذا يُغلق كل اتجاه باستقلالية.</p>
+<h3>TCP مقابل UDP</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المعيار</th>
+<th>TCP</th>
+<th>UDP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>الاتصال</td>
+<td>يتطلب مصافحة</td>
+<td>لا يوجد اتصال</td>
+</tr>
+<tr>
+<td>الموثوقية</td>
+<td>يضمن الوصول وإعادة الإرسال</td>
+<td>لا يضمن شيئاً</td>
+</tr>
+<tr>
+<td>الترتيب</td>
+<td>مرتّب بالضرورة</td>
+<td>غير مرتّب</td>
+</tr>
+<tr>
+<td>السرعة</td>
+<td>أبطأ (بسبب التأكيدات)</td>
+<td>أسرع بكثير</td>
+</tr>
+<tr>
+<td>حجم الرأس</td>
+<td>20 بايت على الأقل</td>
+<td>8 بايت فقط</td>
+</tr>
+<tr>
+<td>الاستخدام</td>
+<td>الويب، البريد، SSH، نقل الملفات</td>
+<td>DNS، DHCP، البث الحي، الألعاب</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>القاعدة العملية:</strong> استخدم TCP عندما <strong>لا يمكن تحمّل فقدان البيانات</strong> (تحميل صفحة، إرسال رسالة). استخدم UDP عندما <strong>السرعة أهم من الكمال</strong> (بث مباشر، مكالمة صوتية — لو فُقد إطار لن يلاحظه أحد).</p>
+</blockquote>
+<h3>المنافذ (Ports) — شقق في بناية واحدة</h3>
+<p><strong>التشبيه:</strong> عنوان IP = <strong>عنوان البناية</strong>. المنفذ = <strong>رقم الشقة</strong>. الخادم قد يدير عشرات الخدمات على نفس العنوان، وكل خدمة لها شقتها (منفذها).</p>
+<p><strong>النطاقات الثلاثة:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>النطاق</th>
+<th>المدى</th>
+<th>الاستخدام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Well-known</td>
+<td>0 – 1023</td>
+<td>الخدمات الأساسية (تحتاج صلاحيات root)</td>
+</tr>
+<tr>
+<td>Registered</td>
+<td>1024 – 49151</td>
+<td>تطبيقات مسجّلة (MySQL مثلاً)</td>
+</tr>
+<tr>
+<td>Dynamic / Ephemeral</td>
+<td>49152 – 65535</td>
+<td>منافذ مؤقتة يختارها العميل</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>منافذ يجب حفظها:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المنفذ</th>
+<th>البروتوكول</th>
+<th>الخدمة</th>
+<th>ملاحظة أمنية</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>21</td>
+<td>TCP</td>
+<td>FTP</td>
+<td><strong>نص صريح</strong> — بيانات الاعتماد مكشوفة</td>
+</tr>
+<tr>
+<td>22</td>
+<td>TCP</td>
+<td>SSH</td>
+<td>مشفّر — هدف دائم لهجمات التخمين</td>
+</tr>
+<tr>
+<td>23</td>
+<td>TCP</td>
+<td>Telnet</td>
+<td><strong>نص صريح</strong> — يجب ألا يعمل أبداً</td>
+</tr>
+<tr>
+<td>25</td>
+<td>TCP</td>
+<td>SMTP</td>
+<td>البريد الصادر</td>
+</tr>
+<tr>
+<td>53</td>
+<td>TCP/UDP</td>
+<td>DNS</td>
+<td>UDP للاستعلام، TCP للردود الكبيرة</td>
+</tr>
+<tr>
+<td>67/68</td>
+<td>UDP</td>
+<td>DHCP</td>
+<td>67 للخادم، 68 للعميل</td>
+</tr>
+<tr>
+<td>80</td>
+<td>TCP</td>
+<td>HTTP</td>
+<td><strong>نص صريح</strong></td>
+</tr>
+<tr>
+<td>110</td>
+<td>TCP</td>
+<td>POP3</td>
+<td><strong>نص صريح</strong></td>
+</tr>
+<tr>
+<td>143</td>
+<td>TCP</td>
+<td>IMAP</td>
+<td><strong>نص صريح</strong></td>
+</tr>
+<tr>
+<td>161</td>
+<td>UDP</td>
+<td>SNMP</td>
+<td>v1/v2 بلا تشفير</td>
+</tr>
+<tr>
+<td>389</td>
+<td>TCP</td>
+<td>LDAP</td>
+<td><strong>نص صريح</strong> — دليل المستخدمين</td>
+</tr>
+<tr>
+<td>443</td>
+<td>TCP</td>
+<td>HTTPS</td>
+<td>مشفّر</td>
+</tr>
+<tr>
+<td>445</td>
+<td>TCP</td>
+<td>SMB</td>
+<td>هدف تاريخي لأشهر الديدان</td>
+</tr>
+<tr>
+<td>3306</td>
+<td>TCP</td>
+<td>MySQL</td>
+<td>قاعدة بيانات</td>
+</tr>
+<tr>
+<td>3389</td>
+<td>TCP</td>
+<td>RDP</td>
+<td>سطح مكتب بعيد — هدف شائع</td>
+</tr>
+<tr>
+<td>8080</td>
+<td>TCP</td>
+<td>HTTP بديل</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>قاعدة أمنية:</strong> كل منفذ مفتوح = خدمة = سطح هجوم. <strong>أفضل دفاع هو إغلاق ما لا تحتاجه</strong>، وليس ترقيعه فقط.</p>
+<p><strong>ملاحظة عن المنافذ المؤقتة:</strong> في لينكس الحديث يبدأ المدى الديناميكي من <code>32768</code> حتى <code>60999</code> افتراضياً. هذا مهم عند قراءة نتائج أدوات المسح: منفذ مستخدم مثل <code>47132</code> هو على الأغلب منفذ عميل، وليس خدمة.</p>
+</blockquote>
+<h3>DNS — دفتر هاتف الإنترنت</h3>
+<p><strong>المشكلة:</strong> البشر يحفظون الأسماء، والحواسيب تحتاج الأرقام. DNS هو الجسر.</p>
+<p><strong>هرمية الأسماء — تُقرأ من اليمين إلى اليسار:</strong></p>
+<div class="highlight"><pre><span></span><code>www . wikipedia . org .
+ │         │        │   └── الجذر (نقطة ضمنية)
+ │         │        └────── النطاق الأعلى (TLD)
+ │         └─────────────── النطاق المسجَّل
+ └───────────────────────── اسم المضيف (Subdomain)
+</code></pre></div>
+<p><strong>نوعا الاستعلام:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>النوع</th>
+<th>المعنى</th>
+<th>من يقوم بالعمل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Recursive</strong></td>
+<td>"أعطني الجواب النهائي"</td>
+<td>الخادم يتحمل المسؤولية كاملة</td>
+</tr>
+<tr>
+<td><strong>Iterative</strong></td>
+<td>"أعطني أفضل جواب تعرفه"</td>
+<td>قد يكون إحالة لخادم آخر</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>سير الاستعلام الكامل:</strong></p>
+<ol>
+<li>جهازك يسأل <strong>Recursive Resolver</strong> (مثل <code>1.1.1.1</code>) سؤالاً <strong>تعاودياً</strong>.</li>
+<li>المحلّل يسأل <strong>خادم الجذر</strong> سؤالاً <strong>تكراريّاً</strong> → يرد: "لا أعرف، اسأل خادم <code>.org</code>".</li>
+<li>المحلّل يسأل <strong>خادم TLD الخاص بـ <code>.org</code></strong> → يرد: "اسأل الخادم المسؤول عن <code>wikipedia.org</code>".</li>
+<li>المحلّل يسأل <strong>الخادم المسؤول (Authoritative)</strong> → يرد بالعنوان النهائي.</li>
+<li>المحلّل يُخزّن النتيجة مؤقتاً حسب <strong>TTL</strong> ويرد عليك.</li>
+</ol>
+<p><strong>أنواع السجلات (Record Types):</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>النوع</th>
+<th>المعنى</th>
+<th>مثال</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A</code></td>
+<td>عنوان IPv4</td>
+<td><code>wikipedia.org → 208.80.154.224</code></td>
+</tr>
+<tr>
+<td><code>AAAA</code></td>
+<td>عنوان IPv6</td>
+<td></td>
+</tr>
+<tr>
+<td><code>CNAME</code></td>
+<td>اسم بديل (Alias)</td>
+<td><code>www → wikipedia.org</code></td>
+</tr>
+<tr>
+<td><code>MX</code></td>
+<td>خادم البريد</td>
+<td><code>gmail.com → gmail-smtp-in...</code></td>
+</tr>
+<tr>
+<td><code>NS</code></td>
+<td>خوادم الأسماء المسؤولة</td>
+<td>من يدير النطاق</td>
+</tr>
+<tr>
+<td><code>TXT</code></td>
+<td>نص حر</td>
+<td>التحقق من الملكية، SPF، <strong>ونفق البيانات</strong></td>
+</tr>
+<tr>
+<td><code>SOA</code></td>
+<td>بداية الصلاحية</td>
+<td>معلومات إدارة النطاق</td>
+</tr>
+<tr>
+<td><code>PTR</code></td>
+<td>عكسي</td>
+<td>من IP إلى اسم</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong><code>TXT</code> و <code>CNAME</code> هما نجما الهجمات:</strong> لأن كليهما يمكن أن يحمل <strong>نصاً حراً</strong>، استُخدما في <strong>أنفاق DNS (DNS Tunneling)</strong> لتهريب البيانات خارج الشبكة. العلامة المميزة: استعلامات كثيرة لنفس النطاق، بأسماء فرعية طويلة وعشوائية، على فترات منتظمة.</p>
+</blockquote>
+<h3>DHCP — كيف تحصل على عنوانك (DORA)</h3>
+<p><strong>DORA</strong> = أربع رسائل:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الحرف</th>
+<th>الرسالة</th>
+<th>الاتجاه</th>
+<th>المحتوى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>D</strong></td>
+<td>Discover</td>
+<td>العميل → بث</td>
+<td>"هل يوجد خادم DHCP؟ أحتاج عنواناً"</td>
+</tr>
+<tr>
+<td><strong>O</strong></td>
+<td>Offer</td>
+<td>الخادم → العميل</td>
+<td>"أستطيع إعطاءك 192.168.1.50"</td>
+</tr>
+<tr>
+<td><strong>R</strong></td>
+<td>Request</td>
+<td>العميل → بث</td>
+<td>"أريد 192.168.1.50 فعلاً"</td>
+</tr>
+<tr>
+<td><strong>A</strong></td>
+<td>Ack</td>
+<td>الخادم → العميل</td>
+<td>"تم، العنوان لك لمدة كذا"</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>لماذا Discover و Request بث (Broadcast)؟</strong> لأن العميل <strong>لا يملك عنوان IP بعد</strong> — فلا يستطيع إرسال شيء موجّه. يبثّ للجميع أملاً في أن يسمعه خادم.</p>
+<p><strong>خيارات DHCP المهمة:</strong> <code>3</code> = البوابة · <code>6</code> = خوادم DNS · <code>51</code> = مدة الإيجار · <code>1</code> = قناع الشبكة.</p>
+<blockquote>
+<p><strong>لماذا يهمنا أمنياً؟</strong></p>
+<ul>
+<li><strong>تجويع DHCP (Starvation):</strong> المهاجم يطلب عناوين بآلاف عناوين MAC وهمية حتى ينفد مخزون الخادم، فلا يستطيع أي جهاز جديد الدخول. <strong>حرمان خدمة من الطبقة الثانية.</strong></li>
+<li><strong>خادم DHCP مزيّف (Rogue):</strong> مهاجم يشغّل خادمه الخاص ويرد <strong>أسرع</strong> من الخادم الحقيقي، فيمنح الضحايا <strong>بوابة وخادم DNS يملكه المهاجم</strong>. بعدها يمر كل شيء عبره. <strong>هذا هو أساس الرجل في المنتصف محلياً.</strong></li>
+</ul>
+</blockquote>
+<h3>NAT/PAT — كيف يشارك بيت كامل عنواناً واحداً</h3>
+<p><strong>المشكلة:</strong> عناوين IPv4 انتهت. لديك في البيت عشرون جهازاً وعنوان عام واحد من مزوّد الخدمة.</p>
+<p><strong>الحل — NAT/PAT:</strong> الموجّه يستبدل <strong>العنوان الخاص</strong> و<strong>المنفذ المؤقت</strong> بعنوانه العام ومنفذ جديد يميّز كل اتصال:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>قبل</th>
+<th>بعد</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>192.168.1.10:51000</code></td>
+<td><code>203.0.113.5:40001</code></td>
+</tr>
+<tr>
+<td><code>192.168.1.11:51000</code></td>
+<td><code>203.0.113.5:40002</code></td>
+</tr>
+<tr>
+<td><code>192.168.1.12:51000</code></td>
+<td><code>203.0.113.5:40003</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>الموجّه يحتفظ بـ<strong>جدول ترجمة</strong>، وعندما يعود الرد يقلبه للخلف. لهذا <strong>لا يستطيع أحد من الخارج بدء اتصال بجهازك</strong> — لا يوجد مسار في الجدول حتى الآن. هذه فائدة أمنية جانبية ضخمة، وهي السبب في أن كل أجهزة المنزل مخفية خلف عنوان واحد.</p>
+<blockquote>
+<p><strong>تحذير:</strong> NAT <strong>ليس جداراً نارياً</strong> وليس حماية حقيقية — إنه أثر جانبي لنقص العناوين. عندما تسمح بتمرير منفذ (Port Forwarding) تُبطل هذه الحماية لذلك المنفذ تماماً.</p>
+</blockquote></div></div>
+</details><details class="lesson-sec" id="terms" data-sec="terms" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Keep these in English</span><span class="only-ar">احتفظ بها بالإنجليزية</span></span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>العربية</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Three-Way Handshake</td>
+<td>المصافحة الثلاثية</td>
+<td>SYN → SYN-ACK → ACK</td>
+</tr>
+<tr>
+<td>Sequence Number</td>
+<td>رقم التسلسل</td>
+<td>موضع البايت في المجرى</td>
+</tr>
+<tr>
+<td>Flag</td>
+<td>العلم</td>
+<td>بت في رأس TCP يعبّر عن حالة</td>
+</tr>
+<tr>
+<td>RST</td>
+<td>إعادة الضبط</td>
+<td>رفض فوري — يميّز المفتوح من المُرشَّح</td>
+</tr>
+<tr>
+<td>Teardown</td>
+<td>إنهاء الاتصال</td>
+<td>أربع رسائل FIN/ACK</td>
+</tr>
+<tr>
+<td>Ephemeral Port</td>
+<td>منفذ مؤقت</td>
+<td>يختاره العميل، مؤقت</td>
+</tr>
+<tr>
+<td>Recursive Query</td>
+<td>استعلام تعاودي</td>
+<td>الخادم يجلب الجواب كاملاً</td>
+</tr>
+<tr>
+<td>Iterative Query</td>
+<td>استعلام تكراري</td>
+<td>إحالة لخادم آخر</td>
+</tr>
+<tr>
+<td>Authoritative Server</td>
+<td>الخادم المسؤول</td>
+<td>المصدر الرسمي للنطاق</td>
+</tr>
+<tr>
+<td>TTL</td>
+<td>مدة الصلاحية</td>
+<td>كم يبقى الجواب مخزّناً</td>
+</tr>
+<tr>
+<td>DNS Tunneling</td>
+<td>نفق DNS</td>
+<td>تهريب بيانات داخل استعلامات DNS</td>
+</tr>
+<tr>
+<td>DORA</td>
+<td>دورة DHCP</td>
+<td>Discover, Offer, Request, Ack</td>
+</tr>
+<tr>
+<td>NAT / PAT</td>
+<td>ترجمة العناوين</td>
+<td>إخفاء شبكة كاملة خلف عنوان</td>
+</tr>
+<tr>
+<td>Packet Sniffing</td>
+<td>التقاط الحزم</td>
+<td>التنصّت السلبي على الشبكة</td>
+</tr>
+<tr>
+<td>Follow TCP Stream</td>
+<td>تتبّع المجرى</td>
+<td>إعادة تجميع محادثة كاملة</td>
+</tr>
+</tbody>
+</table></div></div></div>
+</details>
+</div>
+<nav class="weeknav"><a class="prev" href="week-04.html"><span class="dir"><span class="only-en">← Previous</span><span class="only-ar">→ السابق</span></span><span class="ttl"><span class="only-en">Networking I: Models, Addressing, How Packets Move</span><span class="only-ar" dir="rtl" lang="ar">الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم</span></span></a><a class="next" href="week-06.html"><span class="dir"><span class="only-en">Next →</span><span class="only-ar">← التالي</span></span><span class="ttl"><span class="only-en">Networking III: TLS, Firewalls, NAT + Nmap</span><span class="only-ar" dir="rtl" lang="ar">الشبكات ٣: TLS والجدران النارية وNAT مع Nmap</span></span></a></nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+<script id="pc-data" type="application/json">{"weeks": [{"n": 1, "en": "Terminal From Zero & Build Your Lab", "ar": "Terminal من الصفر وبناء مختبرك", "desc_en": "Start from absolute zero: learn what a terminal is, why almost all security work happens there, and build your own practice lab.", "desc_ar": "ابدأ من الصفر التام: تعلّم ما هو Terminal، ولماذا يحدث العمل الأمني كله تقريباً فيها، وابنِ مختبر تدريب خاصاً بك.", "stage": 1, "difficulty": "beginner", "load": "~18h", "prereq": null, "prereqKind": "", "url": "week-01.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Terminal", "Shell", "Kernel", "Linux", "Filesystem", "Directory"], "objectives": ["Explain what an operating system, a shell, and a filesystem are, in their own words", "Navigate the filesystem confidently: pwd, ls, cd, absolute vs relative paths", "Create, read, move, copy, and delete files and directories", "Use man and --help to teach themselves a command they've never seen", "Explain what a virtual machine is and why we use one instead of our real computer"]}, {"n": 2, "en": "Linux: Filesystem, Users, Permissions, Processes", "ar": "لينكس: نظام الملفات والمستخدمون والصلاحيات والعمليات", "desc_en": "Learn how Linux organises files and decides who may touch them — and why one wrong permission can hand over a whole system.", "desc_ar": "تعرّف على كيفية تنظيم Linux للملفات وتحديد من يحق له الوصول إليها — ولماذا خطأ صلاحيات واحد قد يسلّم النظام بالكامل.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 1, "prereqKind": "gate", "url": "week-02.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation", "Least Privilege", "Process ID (PID)"], "objectives": ["Explain the Linux permission model: owner / group / other, read / write / execute", "Read and set permissions in both symbolic (rwxr-xr-x) and numeric (755) notation", "Explain what chmod, chown, umask do and when each is used", "Create users and groups; explain why privilege separation matters", "Use sudo correctly and explain why running as root permanently is dangerous"]}, {"n": 3, "en": "Linux: Services, Logs, and Bash Scripting", "ar": "لينكس: الخدمات والسجلات وكتابة سكربتات Bash", "desc_en": "See what runs in the background, how logs record nearly everything, and how to automate repetitive work instead of repeating it.", "desc_ar": "اكتشف ما يعمل في الخلفية، وكيف تسجّل السجلات كل شيء تقريباً، وكيف تُؤتمت المهام المتكررة بدل تكرارها يدوياً.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 2, "prereqKind": "checkpoint", "url": "week-03.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Service / Daemon", "systemd", "Log", "journalctl", "cron", "Persistence"], "objectives": ["Explain what a service (daemon) is and how systemd manages it", "Start, stop, enable, disable, and inspect services with systemctl", "Read and interpret journalctl output", "Locate and read the key log files in /var/log and explain what each records", "Write a Bash script with variables, conditionals, loops, and arguments"]}, {"n": 4, "en": "Networking I: Models, Addressing, How Packets Move", "ar": "الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم", "desc_en": "Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.", "desc_ar": "افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 3, "prereqKind": "checkpoint", "url": "week-04.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask", "CIDR", "Broadcast"], "objectives": ["Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent", "Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer", "Convert between decimal and binary octets by hand, without a calculator", "Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges", "Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range"]}, {"n": 5, "en": "Networking II: TCP, Ports, DNS, DHCP + Wireshark", "ar": "الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark", "desc_en": "Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.", "desc_ar": "شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 4, "prereqKind": "checkpoint", "url": "week-05.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST", "Teardown", "Ephemeral Port"], "objectives": ["Describe the TCP three-way handshake and name the flag and sequence number in each packet", "Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals", "Contrast TCP and UDP and choose correctly between them for a given use case", "State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory", "Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)"]}, {"n": 6, "en": "Networking III: TLS, Firewalls, NAT + Nmap", "ar": "الشبكات ٣: TLS والجدران النارية وNAT مع Nmap", "desc_en": "Learn how connections are encrypted and filtered, then scan a network the way a security professional does — and find your own scan in the logs.", "desc_ar": "تعلّم كيف تُشفَّر الاتصالات وتُفلتر، ثم امسح شبكة كما يفعل محترف الأمن — وابحث عن أثر مسحتك أنت في السجلات.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 5, "prereqKind": "checkpoint", "url": "week-06.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust", "SNI", "Firewall"], "objectives": ["Explain what TLS protects and what it does not protect (hint: the endpoints are still endpoints)", "Describe the TLS handshake at a high level and explain the role of the certificate and the CA chain", "Inspect a live certificate with openssl s_client and read its subject, issuer, validity, and SANs", "Contrast stateless and stateful firewalls, and explain what connection tracking buys you", "Write, order, verify, and delete ufw rules, and read a firewall block in the logs"]}, {"n": 7, "en": "Web I: HTTP Deep, Cookies, Sessions, Browsers", "ar": "الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات", "desc_en": "Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.", "desc_ar": "تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 6, "prereqKind": "checkpoint", "url": "week-07.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Request / Response", "HTTP Header", "Method", "Status Code", "Stateless", "Cookie"], "objectives": ["Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page", "Use GET, POST, PUT, DELETE deliberately and explain when a server should use each", "Classify any status code by its class (1xx–5xx) and explain what the class means", "Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers", "Explain why HTTP is stateless, and how cookies and sessions restore state on top of it"]}, {"n": 8, "en": "Web II: Architecture, Databases, APIs + OWASP Top 10", "ar": "الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10", "desc_en": "See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.", "desc_ar": "تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 7, "prereqKind": "checkpoint", "url": "week-08.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Database", "SQL", "Query", "Injection", "SQL Injection", "Prepared Statement"], "objectives": ["Describe a three-tier web architecture and identify the trust boundary between each tier", "Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN", "Explain how application code builds a query and sends it to a database", "Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header", "Name the OWASP Top 10 categories and place a given vulnerability into the right one"]}, {"n": 9, "en": "Security Core: Risk, Threat Modeling, Access Control", "ar": "أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول", "desc_en": "Learn the words the profession runs on — threat, vulnerability, risk — and how to describe a problem precisely enough to fix it.", "desc_ar": "تعلّم الكلمات التي تقوم عليها المهنة — التهديد والثغرة والخطر — وكيف تصف مشكلة بدقة تكفي لحلّها.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 8, "prereqKind": "checkpoint", "url": "week-09.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Confidentiality", "Integrity", "Availability", "Authentication", "Authorization", "DAC / MAC / RBAC / ABAC"], "objectives": ["Explain the CIA triad and give a concrete, real failure of each of the three properties", "Distinguish authentication from authorization, and explain how conflating them produces breaches", "Compare the four access control models — DAC, MAC, RBAC, ABAC — and say when each is used", "Apply least privilege and separation of duties to a real scenario", "Define asset, threat, vulnerability, exploit, and risk — and never confuse them again"]}, {"n": 10, "en": "Applied Cryptography", "ar": "التشفير التطبيقي", "desc_en": "Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.", "desc_ar": "افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 9, "prereqKind": "checkpoint", "url": "week-10.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext", "Symmetric / Asymmetric", "Public / Private Key"], "objectives": ["Distinguish hashing, encryption, and encoding — and say what each is actually for", "Explain why MD5 is broken, what \"broken\" precisely means, and why it still appears everywhere", "Explain salting, and demonstrate why an unsalted password hash is catastrophic", "Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)", "Explain symmetric encryption, and articulate the key distribution problem it creates"]}, {"n": 11, "en": "Defensive Taster: Hardening, Detection, Incident Response", "ar": "جولة دفاعية: التقوية والكشف والاستجابة للحوادث", "desc_en": "Play defence: lock down a system, collect its logs, then attack your own machine and detect yourself in a SIEM.", "desc_ar": "العب دور الدفاع: قوِّ نظاماً، واجمع سجلاته، ثم اهجم على جهازك أنت واكتشف هجومك في نظام SIEM.", "stage": 6, "difficulty": "intermediate", "load": "~18h", "prereq": 10, "prereqKind": "checkpoint", "url": "week-11.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark", "Prevention / Detection / Response", "Log Aggregation"], "objectives": ["Explain system hardening and what a CIS Benchmark actually is", "Reduce attack surface on a real Ubuntu VM: services, ports, packages, config", "Explain why prevention alone always eventually fails, and what detection adds", "Explain what a log is, what log aggregation solves, and why central collection matters", "Describe what a SIEM is, what it correlates, and why it exists"]}, {"n": 12, "en": "Offensive Taster: Methodology, Recon, Exploitation, Reporting", "ar": "جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير", "desc_en": "Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.", "desc_ar": "تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.", "stage": 6, "difficulty": "advanced", "load": "~18h", "prereq": 11, "prereqKind": "checkpoint", "url": "week-12.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)", "Penetration Test", "Vulnerability Assessment"], "objectives": ["Explain authorization, scope, and rules of engagement — and why all three are written, not spoken", "Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime", "Describe the PTES phases and where OWASP WSTG fits for web applications", "Perform passive reconnaissance using only public sources", "Perform active enumeration against your own lab target"]}, {"n": 13, "en": "Capstone: Attack/Defend Exercise & Specialization Decision", "ar": "مشروع الختام: تمرين هجوم/دفاع وقرار التخصص", "desc_en": "Put it all together in a two-team exercise, then choose the direction you will specialise in — based on what you actually did, not what sounded impressive.", "desc_ar": "اجمع كل شيء في تمرين بفريقين، ثم اختر الاتجاه الذي ستتخصص فيه — بناءً على ما فعلته فعلاً، لا على ما بدا مثيراً.", "stage": 7, "difficulty": "advanced", "load": "~18h", "prereq": 12, "prereqKind": "checkpoint", "url": "week-13.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "brief", "en": "The Scenario", "ar": "سيناريو التمرين", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "structure", "en": "Exercise Structure", "ar": "هيكل التمرين", "hours": null, "counts": true}, {"key": "rubric", "en": "How You'll Be Assessed", "ar": "كيف ستُقيَّم", "hours": null, "counts": false}, {"key": "deliverables", "en": "What You Must Deliver", "ar": "ما يجب أن تسلّمه", "hours": null, "counts": true}, {"key": "debrief", "en": "Structured Debrief", "ar": "المراجعة المنظّمة", "hours": null, "counts": false}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "decision", "en": "Choosing Your Direction", "ar": "اختيار مسارك", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "limits", "en": "What You Still Don't Know", "ar": "ما لا تعرفه بعد", "hours": null, "counts": false}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Capstone", "Attack/Defend Exercise", "Red Team / Blue Team", "Purple Team", "White Cell", "Rules of Engagement"], "objectives": ["Plan and execute a team engagement under a written scope and rules of engagement", "Defend a live Ubuntu target: hardening, monitoring, triage, containment, and reporting", "Attack a live Ubuntu target: reconnaissance, enumeration, verified exploitation, and reporting", "Keep an accurate, timestamped operational log throughout an engagement", "Produce a professional incident report (defenders) or penetration test report (attackers)"]}], "stages": [{"n": 1, "en": "Start Here — Computer & Terminal Basics", "ar": "ابدأ من هنا — أساسيات الحاسوب و Terminal", "weeks": [1], "desc_en": "What a terminal is, how a computer organises files, and how to build a safe lab you can break and rebuild without risking anything real.", "desc_ar": "ما هو Terminal، وكيف ينظّم الحاسوب ملفاته، وكيف تبني مختبراً آمناً تكسره وتعيد بناءه دون أي خطر على أجهزتك الحقيقية.", "out_en": "You have your own isolated lab and can move around a system from the command line.", "out_ar": "تملك مختبراً معزولاً خاصاً بك، وتستطيع التنقل في النظام من سطر الأوامر.", "icon": "terminal"}, {"n": 2, "en": "Linux Fundamentals", "ar": "أساسيات Linux", "weeks": [2, 3], "desc_en": "How Linux stores files, who is allowed to touch them, what runs in the background — and how intruders stay on a machine once they are in.", "desc_ar": "كيف يخزّن Linux الملفات، ومن يُسمح له بالوصول إليها، وما يعمل في الخلفية — وكيف يبقى المهاجم على الجهاز بعد دخوله.", "out_en": "You can navigate, inspect and script a Linux system — and spot the misconfigurations that give it away.", "out_ar": "تستطيع التنقل في نظام Linux وفحصه وكتابة سكربتات له — وملاحظة الأخطاء الإعدادية التي تسلّمه.", "icon": "terminal"}, {"n": 3, "en": "Networking", "ar": "الشبكات", "weeks": [4, 5, 6], "desc_en": "How machines find each other, how data actually travels, and how to watch that traffic — the skill most attacks and defences are built on.", "desc_ar": "كيف تجد الأجهزة بعضها، وكيف تنتقل البيانات فعلاً، وكيف تراقب هذه الحركة — المهارة التي يُبنى عليها معظم الهجوم والدفاع.", "out_en": "You can read a packet capture, explain what you see, and scan a network you are authorised to test.", "out_ar": "تستطيع قراءة تحليل حزم الشبكة، وشرح ما تراه، ومسح شبكة مصرَّح لك باختبارها.", "icon": "network"}, {"n": 4, "en": "Web Security", "ar": "أمن الويب", "weeks": [7, 8], "desc_en": "How a website really works — requests, cookies, sessions, databases — and where those pieces break when user input is trusted.", "desc_ar": "كيف يعمل موقع الويب فعلاً — الطلبات والكوكيز والجلسات وقواعد البيانات — وأين تنكسر هذه الأجزاء عند الثقة بمدخلات المستخدم.", "out_en": "You can follow a web request end to end, and name the flaw behind a broken page.", "out_ar": "تستطيع تتبّع طلب ويب من البداية للنهاية، وتسمية الثغرة وراء أي خلل.", "icon": "globe"}, {"n": 5, "en": "Cybersecurity Fundamentals", "ar": "أساسيات الأمن السيبراني", "weeks": [9, 10], "desc_en": "The vocabulary the whole profession runs on: threat, vulnerability, risk, the CIA Triad, authentication — plus what hashing and encryption actually do.", "desc_ar": "المفردات التي تقوم عليها المهنة كلها: التهديد والثغرة والخطر وثلاثي CIA والمصادقة — إضافة إلى ما تفعله التجزئة والتشفير فعلاً.", "out_en": "You can describe a risk precisely, using the same words a security team uses.", "out_ar": "تستطيع وصف أي خطر بدقة، بالكلمات نفسها التي يستخدمها فريق الأمن.", "icon": "shield"}, {"n": 6, "en": "Practical Security", "ar": "الأمن التطبيقي", "weeks": [11, 12], "desc_en": "Both sides of the job: harden and monitor a system, then run a real assessment against a target you are authorised to test — and write it up.", "desc_ar": "وجها العمل: تقوية نظام ومراقبته، ثم تنفيذ تقييم حقيقي على هدف مصرَّح لك باختباره — وكتابة تقريره.", "out_en": "You have done both defence and offence, under scope, and documented the result.", "out_ar": "نفّذت الدفاع والهجوم معاً، ضمن نطاق محدد، ووثّقت النتيجة.", "icon": "target"}, {"n": 7, "en": "Choose Your Direction", "ar": "اختر مسارك", "weeks": [13], "desc_en": "A team attack/defend exercise, then an evidence-based decision about which specialisation fits you — not a guess made in week one.", "desc_ar": "تمرين هجوم/دفاع بفريقين، ثم قرار مبني على دليل حول التخصص الذي يناسبك — لا تخمين في الأسبوع الأول.", "out_en": "You know which direction you are heading, and why.", "out_ar": "تعرف إلى أين تتجه، ولماذا.", "icon": "compass"}], "practice": [{"wk": 1, "id": "w1-build-the-lab", "en": "Build the lab", "ar": "Build the lab", "goal_en": "A working host + Ubuntu + Kali setup.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-terminal-survival-kit", "en": "Terminal survival kit", "ar": "Terminal survival kit", "goal_en": "Fluency with the 20 commands that cover 90% of daily work.", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-bandit-levels-0-10", "en": "Bandit levels 0-10", "ar": "Bandit levels 0-10", "goal_en": "Apply the survival kit to real problems.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 2, "id": "w2-the-permission-model-by-hand", "en": "The permission model by hand", "ar": "The permission model by hand", "goal_en": "Build intuition for permissions by creating every combination.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-users-groups-and-sudo", "en": "Users, groups, and sudo", "ar": "Users, groups, and sudo", "goal_en": "Notes explaining why limited sudo is better than full sudo, with reference to a real-world scenario.", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-processes-and-signals", "en": "Processes and signals", "ar": "Processes and signals", "goal_en": "", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-finding-suid-binaries", "en": "Finding SUID binaries", "ar": "Finding SUID binaries", "goal_en": "The first genuinely security-flavored lab.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 3, "id": "w3-services-and-systemd", "en": "Services and systemd", "ar": "Services and systemd", "goal_en": "Your working unit file plus an explanation of the difference between stop/disable and start/enable.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-reading-the-logs", "en": "Reading the logs", "ar": "Reading the logs", "goal_en": "The output of step 4 (you'll need to generate failures from at least two different source IPs, or simulate it), plus a written explanation of the pipeline.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-bash-scripting", "en": "Bash scripting", "ar": "Bash scripting", "goal_en": "", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 4, "id": "w4-subnetting-drills-by-hand", "en": "Subnetting drills, by hand", "ar": "Subnetting drills, by hand", "goal_en": "Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-map-your-own-lab-network", "en": "Map your own lab network", "ar": "Map your own lab network", "goal_en": "Read the network your own machine lives on, from the command line only.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-build-a-three-machine-network-on-an-internal-net", "en": "Build a three-machine network on an Internal Network", "ar": "Build a three-machine network on an Internal Network", "goal_en": "Build a switched network with no router and no DHCP. You assign every address by hand. This is where addressing stops being theory.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-enumerate-the-lab-with-arp-scan", "en": "Enumerate the lab with `arp-scan`", "ar": "Enumerate the lab with `arp-scan`", "goal_en": "Discover every host on a network without asking a single one of them for permission — using only ARP.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 5, "id": "w5-dissect-a-tcp-handshake", "en": "Dissect a TCP handshake", "ar": "Dissect a TCP handshake", "goal_en": "Stop reading about the handshake and watch it happen.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-a-login-in-plaintext", "en": "Capture a login in plaintext", "ar": "Capture a login in plaintext", "goal_en": "Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-follow-a-dns-resolution", "en": "Follow a DNS resolution", "ar": "Follow a DNS resolution", "goal_en": "See the exact packets behind \"typing a name into a browser\".", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-dhcp-dora-and-analyse-a-pcap", "en": "Capture DHCP DORA and analyse a pcap", "ar": "Capture DHCP DORA and analyse a pcap", "goal_en": "See how a machine gets an address, then analyse traffic you did not generate.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 6, "id": "w6-firewalls-with-ufw-and-reading-the-blocks", "en": "Firewalls with `ufw`, and reading the blocks", "ar": "Firewalls with `ufw`, and reading the blocks", "goal_en": "Write firewall rules, verify them from the outside, and find the denied traffic in the logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-tls-inspect-a-real-certificate", "en": "TLS: inspect a real certificate", "ar": "TLS: inspect a real certificate", "goal_en": "See the trust chain, not just the padlock.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-nmap-from-discovery-to-service-identification", "en": "Nmap: from discovery to service identification", "ar": "Nmap: from discovery to service identification", "goal_en": "Scan your own lab every way Nmap allows, and understand what each scan type actually sends.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-services-versions-nse-and-the-defender-s-view", "en": "Services, versions, NSE, and the defender's view", "ar": "Services, versions, NSE, and the defender's view", "goal_en": "Go from \"port 22 is open\" to \"this is OpenSSH version X on Ubuntu\" — then watch yourself get caught.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 7, "id": "w7-read-the-wire-with-devtools", "en": "Read the wire with DevTools", "ar": "Read the wire with DevTools", "goal_en": "See that a web page is not a thing — it is a transcript.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-the-same-requests-by-hand-with-curl", "en": "The same requests, by hand, with curl", "ar": "The same requests, by hand, with curl", "goal_en": "Prove that the browser is a convenience, not a requirement.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-your-own-web-server-and-its-access-log", "en": "Your own web server and its access log", "ar": "Your own web server and its access log", "goal_en": "Own both ends of the conversation.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-burp-suite-as-a-proxy-and-breaking-a-cookie", "en": "Burp Suite as a proxy, and breaking a cookie", "ar": "Burp Suite as a proxy, and breaking a cookie", "goal_en": "Put yourself between the browser and the server — then prove why cookie flags exist.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 8, "id": "w8-stand-up-a-deliberately-vulnerable-app", "en": "Stand up a deliberately vulnerable app", "ar": "Stand up a deliberately vulnerable app", "goal_en": "A target you are unambiguously authorized to attack, running in your own lab.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-sql-by-hand-on-your-own-data", "en": "SQL by hand, on your own data", "ar": "SQL by hand, on your own data", "goal_en": "Understand injection by first understanding the language being injected into.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-portswigger-academy-sql-injection", "en": "PortSwigger Academy: SQL injection", "ar": "PortSwigger Academy: SQL injection", "goal_en": "Your first real exploitation, on a target that is built to be exploited.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-access-control-and-finding-the-attack-in-the-log", "en": "Access control, and finding the attack in the log", "ar": "Access control, and finding the attack in the log", "goal_en": "The second root-cause pattern, then close the loop back to Week 3's logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 9, "id": "w9-threat-model-your-own-lab-with-stride", "en": "Threat model your own lab with STRIDE", "ar": "Threat model your own lab with STRIDE", "goal_en": "Produce a data-flow diagram and a complete STRIDE analysis of the lab you built in Weeks 1–8. You are attacking your own creation, on paper.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-risk-assessment-likelihood-impact", "en": "Risk assessment: likelihood × impact", "ar": "Risk assessment: likelihood × impact", "goal_en": "Turn the threat list from Lab 9.1 into a prioritised, defensible risk register.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-design-an-rbac-scheme-for-a-small-company", "en": "Design an RBAC scheme for a small company", "ar": "Design an RBAC scheme for a small company", "goal_en": "Design access control from scratch for a realistic business, and defend every permission.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-find-a-real-misconfiguration-and-write-it-up-as-", "en": "Find a real misconfiguration and write it up as a finding", "ar": "Find a real misconfiguration and write it up as a finding", "goal_en": "Produce a professional-grade vulnerability finding about your own environment, with evidence and a risk rating.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-analyse-a-published-cve-writeup-and-classify-it", "en": "Analyse a published CVE writeup and classify it", "ar": "Analyse a published CVE writeup and classify it", "goal_en": "Read a real vulnerability the way a professional does, and place it inside this week's framework.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 10, "id": "w10-hashing-is-not-encryption", "en": "Hashing is not encryption", "ar": "Hashing is not encryption", "goal_en": "Feel, not read, the difference between a hash and a cipher.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-crack-your-own-hashes-and-learn-why-password-pol", "en": "Crack your own hashes, and learn why password policy exists", "ar": "Crack your own hashes, and learn why password policy exists", "goal_en": "Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-inspect-a-real-tls-certificate-and-decode-every-", "en": "Inspect a real TLS certificate and decode every field", "ar": "Inspect a real TLS certificate and decode every field", "goal_en": "Stop treating the padlock as magic.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-generate-a-keypair-sign-a-file-and-break-the-sig", "en": "Generate a keypair, sign a file, and break the signature", "ar": "Generate a keypair, sign a file, and break the signature", "goal_en": "Prove a digital signature is bound to a specific file.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-watch-ecb-mode-leak-a-picture", "en": "Watch ECB mode leak a picture", "ar": "Watch ECB mode leak a picture", "goal_en": "See why ECB is the textbook example of a mode you must never use.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 11, "id": "w11-harden-your-ubuntu-vm", "en": "Harden your Ubuntu VM", "ar": "Harden your Ubuntu VM", "goal_en": "Take a machine from default-install to a documented, defensible baseline.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-stand-up-a-siem-and-ship-logs-into-it", "en": "Stand up a SIEM and ship logs into it", "ar": "Stand up a SIEM and ship logs into it", "goal_en": "A working Wazuh deployment receiving logs from your Ubuntu VM.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-the-full-loop-attack-it-then-detect-it", "en": "The full loop: attack it, then detect it", "ar": "The full loop: attack it, then detect it", "goal_en": "Generate a real brute-force against your own target and catch it in the SIEM. This is the single most important lab of the week.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-write-a-sigma-rule", "en": "Write a Sigma rule", "ar": "Write a Sigma rule", "goal_en": "Describe a behaviour in a vendor-neutral way.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-incident-timeline-and-att-ck-mapping", "en": "Incident timeline and ATT&CK mapping", "ar": "Incident timeline and ATT&CK mapping", "goal_en": "Turn scattered alerts into a story.", "goal_ar": "", "hours": 0.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-paperwork-first", "en": "Write the paperwork first", "ar": "Write the paperwork first", "goal_en": "Produce a real scope and rules-of-engagement document before you produce a single packet.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-passive-reconnaissance", "en": "Passive reconnaissance", "ar": "Passive reconnaissance", "goal_en": "Learn how much is knowable about a target without ever touching its infrastructure.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-scan-and-enumerate-metasploitable2", "en": "Scan and enumerate Metasploitable2", "ar": "Scan and enumerate Metasploitable2", "goal_en": "Take a deliberately vulnerable machine from \"unknown host\" to \"mapped attack surface.\"", "goal_ar": "", "hours": 2.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-verify-don-t-trust", "en": "Verify, don't trust", "ar": "Verify, don't trust", "goal_en": "Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-finding", "en": "Write the finding", "ar": "Write the finding", "goal_en": "Produce the actual deliverable of a penetration test.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}], "totalLessons": 53}</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

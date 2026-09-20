@@ -1,0 +1,1368 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 10 — Applied Cryptography | Pre Cybersecurity 0.1</title>
+<meta name="description" content="Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body data-week="10">
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html" aria-current="page"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <a href="path.html#stage-05"><span class="only-en">Cybersecurity Fundamentals</span><span class="only-ar">أساسيات الأمن السيبراني</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span><span class="only-en">Week 10</span><span class="only-ar">الأسبوع 10</span></span>
+  </nav>
+  <!-- Names the same stage the learning path names, so the number in the corner of
+       the page matches the dot the student clicked to get here. -->
+  <span class="eyebrow" style="margin-top:14px"><span class="only-en">Stage 05 of 07 · Month 3</span><span class="only-ar">المرحلة 5 من 7 · الشهر الثالث</span></span>
+  <h1><span class="only-en">Applied Cryptography</span><span class="only-ar" dir="rtl" lang="ar">التشفير التطبيقي</span></h1>
+  <p class="lede"><span class="only-en">Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.</span><span class="only-ar" dir="rtl" lang="ar">افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.</span></p>
+  <div class="meta-strip">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Intermediate</span><span class="only-ar">متوسط</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="only-en">~18h estimated</span><span class="only-ar">~18h تقديرياً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>4 <span class="only-en">lessons</span><span class="only-ar">درساً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><a href="week-09.html"><span class="only-en">Week 09 checkpoint</span><span class="only-ar">الأسبوع 09 — نقطة تحقّق</span></a></span>
+  </div>
+  <div class="card-pad" style="margin-top:20px;padding:0">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="eyebrow"><span class="only-en">Your progress in this course</span><span class="only-ar">تقدّمك في هذا المسار</span></span>
+      <div id="pc-weekbar" style="flex:1 1 200px;min-width:140px"></div>
+      <span id="pc-weekbar-label" dir="ltr" style="font-weight:700;font-size:.86rem;color:var(--accent);font-variant-numeric:tabular-nums"></span>
+    </div>
+  </div>
+  </div>
+</header>
+
+<div class="section" style="padding-top:0;border-bottom:0">
+  <div class="container">
+  <div class="grid grid-2">
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><h2><span class="only-en">What you'll learn</span><span class="only-ar">ما ستتعلّمه</span></h2></div>
+  <div class="card-pad">
+    <ul class="outcomes only-en"><li>Distinguish hashing, encryption, and encoding — and say what each is actually for</li><li>Explain why MD5 is broken, what &quot;broken&quot; precisely means, and why it still appears everywhere</li><li>Explain salting, and demonstrate why an unsalted password hash is catastrophic</li><li>Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)</li><li>Explain symmetric encryption, and articulate the key distribution problem it creates</li></ul>
+    <ul class="outcomes only-ar" dir="rtl" lang="ar"><li>ميّز بين التجزئة والتشفير والترميز — واذكر الغرض الفعلي لكل واحد منها</li><li>اشرح لماذا MD5 مكسورة، وما معنى &quot;مكسورة&quot; بالضبط، ولماذا لا تزال تظهر في كل مكان</li><li>اشرح الملح (Salt)، وأثبت عملياً لماذا تكون تجزئة كلمة مرور بلا ملح كارثة</li><li>قارن تخزين كلمات المرور الصحيح (Argon2 · scrypt · bcrypt) بالخاطئ (MD5 · SHA-1 · SHA-256 بلا ملح)</li><li>اشرح التشفير المتماثل، وصِغ بوضوح مشكلة توزيع المفتاح التي يخلقها</li></ul>
+    <a class="card-more" href="#objectives"><span class="only-en">All 10 objectives, with a checklist to tick off ↓</span><span class="only-ar" dir="rtl" lang="ar">كل الأهداف (10) مع قائمة تُعلّم عليها ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><h2><span class="only-en">Terms you'll meet this week</span><span class="only-ar">مصطلحات ستقابلها هذا الأسبوع</span></h2></div>
+  <div class="card-pad">
+    <div class="chips"><span class="chip chip-accent">Encoding</span><span class="chip chip-accent">Hashing</span><span class="chip chip-accent">Encryption</span><span class="chip chip-accent">Plaintext / Ciphertext</span><span class="chip chip-accent">Symmetric / Asymmetric</span><span class="chip chip-accent">Public / Private Key</span></div>
+    <p class="hint"><span class="only-en">These stay in English on purpose. They are the words you will meet in the tools, the documentation and the interview.</span><span class="only-ar" dir="rtl" lang="ar">تبقى هذه المصطلحات بالإنجليزية عمداً. فهي الكلمات التي ستقابلها في الأدوات والوثائق والمقابلات.</span></p>
+    <a class="card-more" href="#terms"><span class="only-en">What each one means ↓</span><span class="only-ar" dir="rtl" lang="ar">ما معنى كل مصطلح ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+<nav class="wk-rail" aria-label="Sections / الأقسام"><div class="wk-rail-in"><div class="wk-rail-links"><a href="#objectives"><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></a><a href="#theory"><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></a><a href="#lab"><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></a><a href="#challenge"><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></a><a href="#payoff"><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></a><a href="#checkpoint"><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></a><a href="#notes"><span class="only-en">Concept Notes</span><span class="only-ar">ملاحظات مفاهيمية موسّعة</span></a><a href="#terms"><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></a></div><button type="button" id="pc-collapse" aria-pressed="false"><span class="only-en">Collapse all</span><span class="only-ar">اطوِ الكل</span></button></div></nav>
+<div class="container">
+<div class="flow">
+<details class="lesson-sec" id="objectives" data-sec="objectives" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The goals for this week</span><span class="only-ar">أهداف هذا الأسبوع</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Distinguish hashing, encryption, and encoding — and say what each is actually for</li>
+<li class="task">Explain why MD5 is broken, what "broken" precisely means, and why it still appears everywhere</li>
+<li class="task">Explain salting, and demonstrate why an unsalted password hash is catastrophic</li>
+<li class="task">Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)</li>
+<li class="task">Explain symmetric encryption, and articulate the key distribution problem it creates</li>
+<li class="task">Explain asymmetric encryption, and how public/private key pairs solve key distribution</li>
+<li class="task">Verify a digital signature and explain what non-repudiation actually proves</li>
+<li class="task">Trace a certificate chain from a leaf certificate to a trusted root, and decode every field</li>
+<li class="task">Explain what TLS does, and which cryptographic primitive it uses at each stage</li>
+<li class="task">Name the crypto failures that cause most real breaches, and why you never roll your own</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">ميّز بين التجزئة والتشفير والترميز — واذكر الغرض الفعلي لكل واحد منها</li>
+<li class="task">اشرح لماذا MD5 مكسورة، وما معنى "مكسورة" بالضبط، ولماذا لا تزال تظهر في كل مكان</li>
+<li class="task">اشرح الملح (Salt)، وأثبت عملياً لماذا تكون تجزئة كلمة مرور بلا ملح كارثة</li>
+<li class="task">قارن تخزين كلمات المرور الصحيح (Argon2 · scrypt · bcrypt) بالخاطئ (MD5 · SHA-1 · SHA-256 بلا ملح)</li>
+<li class="task">اشرح التشفير المتماثل، وصِغ بوضوح مشكلة توزيع المفتاح التي يخلقها</li>
+<li class="task">اشرح التشفير غير المتماثل، وكيف يحل زوج المفتاح العام/الخاص مشكلة توزيع المفتاح</li>
+<li class="task">تحقّق من توقيع رقمي واشرح ما يثبته عدم الإنكار فعلاً</li>
+<li class="task">تتبّع سلسلة شهادة من الشهادة الطرفية إلى جذر موثوق، وفُكّ ترميز كل حقل</li>
+<li class="task">اشرح ما الذي يفعله TLS، وأي عنصر تشفيري (primitive) يستخدمه في كل مرحلة</li>
+<li class="task">سمِّ إخفاقات التشفير التي تسبب معظم الاختراقات الحقيقية، ولماذا لا تكتب تشفيرك بنفسك أبداً</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="theory" data-sec="theory" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈4h · Read and take notes</span><span class="only-ar">≈4ساعات · اقرأ ودوّن الملاحظات</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Topic</th>
+<th>Resource</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Hashing, encryption, encoding — the three-way distinction</td>
+<td><a href="https://cryptobook.nakov.com/">Practical Cryptography for Developers — Nakov</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Cryptographic hash functions, SHA-256, collisions</td>
+<td><a href="https://crypto101.io/">Crypto101 — free book</a> (hash functions and MACs chapters)</td>
+<td>60m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Password storage done right</td>
+<td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP Password Storage Cheat Sheet</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Symmetric ciphers, AES, block cipher modes</td>
+<td><a href="https://cryptobook.nakov.com/symmetric-key-ciphers">Nakov — Symmetric Key Ciphers</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Asymmetric ciphers: RSA, ECC, key exchange</td>
+<td><a href="https://cryptobook.nakov.com/asymmetric-key-ciphers">Nakov — Asymmetric Key Ciphers</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>6</td>
+<td>How TLS puts all of it together, byte by byte</td>
+<td><a href="https://tls13.xargs.org/">The Illustrated TLS 1.3 Connection</a></td>
+<td>60m</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Applying crypto correctly — and the common mistakes</td>
+<td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html">OWASP Cryptographic Storage Cheat Sheet</a></td>
+<td>30m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Arabic supplements:</strong> <a href="https://www.youtube.com/@NetridersAcad">Netriders Academy</a> — the Security+ cryptography domain in Arabic · <a href="https://www.youtube.com/@nakerahnetwork">ناكراه Nakerah Network</a> for how crypto failures appear in real offensive work · <a href="https://www.youtube.com/@secstien">SECstien — سكشتــاين</a> for Arabic tooling walkthroughs · <a href="https://www.youtube.com/@hemayagroup">جمعية أمن المعلومات — حماية</a> for awareness clips you can reuse when explaining encryption to non-technical people.</p>
+<blockquote>
+<p><strong>The one rule for this week:</strong> cryptography is the only area of security where being wrong is not a matter of opinion. A firewall misconfiguration is a judgement call; broken crypto is arithmetic, and arithmetic does not negotiate. <strong>You do not invent crypto, modify crypto, or implement crypto from a description on a blog.</strong> You use vetted libraries, correctly.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الموضوع</th>
+<th>المصدر</th>
+<th>الوقت</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>التجزئة والتشفير والترميز — التمييز الثلاثي</td>
+<td><a href="https://cryptobook.nakov.com/">Practical Cryptography for Developers — Nakov</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>2</td>
+<td>دوال التجزئة التشفيرية، SHA-256، التصادمات</td>
+<td><a href="https://crypto101.io/">Crypto101 — free book</a> (فصلا دوال التجزئة و MACs)</td>
+<td>60 دقيقة</td>
+</tr>
+<tr>
+<td>3</td>
+<td>تخزين كلمات المرور بالطريقة الصحيحة</td>
+<td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html">OWASP Password Storage Cheat Sheet</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>الشيفرات المتماثلة، AES، أنماط شفرات الكتل</td>
+<td><a href="https://cryptobook.nakov.com/symmetric-key-ciphers">Nakov — Symmetric Key Ciphers</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>5</td>
+<td>الشيفرات غير المتماثلة: RSA · ECC · تبادل المفاتيح</td>
+<td><a href="https://cryptobook.nakov.com/asymmetric-key-ciphers">Nakov — Asymmetric Key Ciphers</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>6</td>
+<td>كيف يجمع TLS كل ذلك معاً، بايتاً بايتاً</td>
+<td><a href="https://tls13.xargs.org/">The Illustrated TLS 1.3 Connection</a></td>
+<td>60 دقيقة</td>
+</tr>
+<tr>
+<td>7</td>
+<td>تطبيق التشفير بشكل صحيح — والأخطاء الشائعة</td>
+<td><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html">OWASP Cryptographic Storage Cheat Sheet</a></td>
+<td>30 دقيقة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>إضافات بالعربية:</strong> <a href="https://www.youtube.com/@NetridersAcad">Netriders Academy</a> — مجال التشفير في شهادة Security+ بالعربية · <a href="https://www.youtube.com/@nakerahnetwork">ناكراه Nakerah Network</a> لكيف تظهر إخفاقات التشفير في العمل الهجومي الحقيقي · <a href="https://www.youtube.com/@secstien">SECstien — سكشتــاين</a> لشروحات الأدوات بالعربية · <a href="https://www.youtube.com/@hemayagroup">جمعية أمن المعلومات — حماية</a> لمقاطع توعوية يمكنك إعادة استخدامها عند شرح التشفير لغير التقنيين.</p>
+<blockquote>
+<p><strong>القاعدة الوحيدة لهذا الأسبوع:</strong> التشفير هو المجال الأمني الوحيد الذي لا يكون فيه الخطأ مسألة رأي. خطأ إعداد جدار ناري مسألة تقدير؛ أما التشفير المكسور فهو حساب، والحساب لا يتفاوض. <strong>لا تخترع تشفيراً، ولا تعدّل تشفيراً، ولا تُنفّذ خوارزمية من وصف قرأته في مدوّنة.</strong> استخدم مكتبات مُدقَّقة، وبالطريقة الصحيحة.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="lab" data-sec="lab" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈7h · Step by step, with expected results</span><span class="only-ar">≈7ساعات · خطوة بخطوة مع النتائج المتوقعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><h3>Lab 10.1 — Hashing is not encryption (2h)</h3>
+<p><strong>Goal:</strong> Feel, not read, the difference between a hash and a cipher. <strong>Setup:</strong> Kali VM, terminal only.</p>
+<ol>
+<li>
+<p><strong>Avalanche effect</strong> — change one character, watch everything change:
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;password&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sha256sum
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;Password&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sha256sum
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;password &quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum
+</code></pre></div>
+   Roughly half the output bits change for a one-bit input change. <strong>This is what makes hashes useful for integrity.</strong></p>
+</li>
+<li>
+<p><strong>Determinism — the property that makes unsalted hashes dangerous.</strong> Run <code>echo -n "password" | sha256sum</code> twice: identical both times. Now think about a password database: every user with the password <code>password</code> has the <strong>identical</strong> stored hash.</p>
+</li>
+<li>
+<p><strong>Hashing is one-way.</strong> Run <code>echo -n "correct horse battery staple" | sha256sum</code>, then try to reverse it. You cannot — not because the tool lacks an option, but because the information is genuinely destroyed. A 60-character input and a 3-character input both produce 64 hex characters:
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w">        </span><span class="c1"># 64 hex chars</span>
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>md5sum<span class="w">           </span><span class="c1"># 32 hex chars</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Integrity in practice.</strong> Download a file from a site that publishes checksums, then:
+   <div class="highlight"><pre><span></span><code>sha256sum<span class="w"> </span>downloaded-file.iso
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;published-hash&gt;  downloaded-file.iso&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>check.txt<span class="w">   </span><span class="c1"># exactly TWO spaces</span>
+sha256sum<span class="w"> </span>-c<span class="w"> </span>check.txt<span class="w">      </span><span class="c1"># prints: OK</span>
+</code></pre></div>
+   Copy the file, corrupt one byte with <code>dd</code>, verify again — it fails. <strong>This is how package managers and your OS verify nothing was tampered with in transit.</strong></p>
+</li>
+<li>
+<p><strong>Now prove hashing is not encryption:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;password&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>plain.txt
+openssl<span class="w"> </span>enc<span class="w"> </span>-aes-128-cbc<span class="w"> </span>-nosalt<span class="w"> </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-iv<span class="w"> </span>0102030405060708090a0b0c0d0e0f10<span class="w"> </span>-in<span class="w"> </span>plain.txt<span class="w"> </span>-out<span class="w"> </span>cipher.bin
+openssl<span class="w"> </span>enc<span class="w"> </span>-d<span class="w"> </span>-aes-128-cbc<span class="w"> </span>-nosalt<span class="w"> </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-iv<span class="w"> </span>0102030405060708090a0b0c0d0e0f10<span class="w"> </span>-in<span class="w"> </span>cipher.bin
+</code></pre></div>
+   The ciphertext is reversible <strong>because a key exists</strong>. A hash has no key and no reverse. Write that sentence in your own words.</p>
+</li>
+</ol>
+<p><strong>Deliverable:</strong> All three hashes from step 1, the <code>sha256sum -c</code> success and failure output, the decrypted text from step 5, and a three-sentence explanation of the difference between a hash and a cipher.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>openssl enc</code> output starts with <code>Salted__</code></td>
+<td>You omitted <code>-nosalt</code> — OpenSSL prepended its own salt header</td>
+</tr>
+<tr>
+<td><code>sha256sum -c</code> says <code>FAILED</code> on an uncorrupted file</td>
+<td>Wrong spacing — the format is exactly two spaces</td>
+</tr>
+<tr>
+<td>Your two <code>sha256sum</code> runs differ</td>
+<td><code>echo</code> added a newline — use <code>-n</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 10.2 — Crack your own hashes, and learn why password policy exists (1.5h)</h3>
+<blockquote>
+<p>⚠️ <strong>LEGAL BOUNDARY — READ BEFORE YOU TYPE ANYTHING.</strong>
+You may crack <strong>only hashes you generated yourself, on your own VM, in this lab.</strong> That is the entire scope. Cracking, or attempting to crack, password hashes you do not own, or do not have <strong>explicit written authorization</strong> to test, is a criminal offence in essentially every jurisdiction — under computer-misuse statutes in the US and EU and equivalent laws across the Arab world. "It was on a website I found" is not authorization. "It was in a dump I downloaded" is not authorization. There is no grey area here.
+The purpose of this lab is to make you feel, in your own hands, <strong>why password policy matters</strong> — so you can defend it with evidence instead of repeating it as a rule.</p>
+</blockquote>
+<p><strong>Goal:</strong> Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.</p>
+<p><strong>Setup:</strong> Kali VM. <code>john</code> and <code>hashcat</code> are preinstalled. The <code>rockyou</code> wordlist ships at <code>/usr/share/wordlists/rockyou.txt.gz</code> — decompress with <code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code>.</p>
+<ol>
+<li><strong>Create three training passwords</strong> — never a real password you use anywhere: <code>summer2024</code> (word plus a year: the most common real-world pattern), <code>Tr0ub4dor</code> (word with letter substitutions), and a long random passphrase.</li>
+<li>
+<p><strong>Generate the hashes yourself.</strong> You are the author of every hash in this lab:
+   <div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span>p<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s1">&#39;summer2024&#39;</span><span class="w"> </span><span class="s1">&#39;Tr0ub4dor&#39;</span><span class="w"> </span><span class="s1">&#39;correct-horse-battery-staple-9x&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;%s&#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$p</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span>
+<span class="k">done</span><span class="w"> </span>&gt;<span class="w"> </span>raw-sha256.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Crack them, and time it:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nb">time</span><span class="w"> </span>john<span class="w"> </span>--format<span class="o">=</span>raw-sha256<span class="w"> </span>--wordlist<span class="o">=</span>/usr/share/wordlists/rockyou.txt<span class="w"> </span>raw-sha256.txt
+john<span class="w"> </span>--show<span class="w"> </span>--format<span class="o">=</span>raw-sha256<span class="w"> </span>raw-sha256.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Change only the algorithm, not the password.</strong> bcrypt-hash the same weak password and crack that:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>apache2-utils<span class="w">        </span><span class="c1"># provides htpasswd</span>
+htpasswd<span class="w"> </span>-bnBC<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="s1">&#39;summer2024&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;:\n&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>bcrypt-pw.txt<span class="w">   </span><span class="c1"># note the $2y$10$ prefix</span>
+<span class="nb">time</span><span class="w"> </span>john<span class="w"> </span>--format<span class="o">=</span>bcrypt<span class="w"> </span>--wordlist<span class="o">=</span>/usr/share/wordlists/rockyou.txt<span class="w"> </span>bcrypt-pw.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Compare and record the numbers.</strong> Same password, same wordlist, same machine — only the storage algorithm differs. The gap is not a few percent; it is orders of magnitude.</p>
+</li>
+<li><strong>Benchmark your own hardware</strong> rather than trusting a number from an article — <code>hashcat -b -m 0</code> (MD5), <code>-m 1400</code> (SHA-256), <code>-m 3200</code> (bcrypt). <strong>This is the number that explains everything:</strong> an attacker needs no skill, only speed. When a fast hash allows billions of guesses per second, password length is the only defence left.</li>
+<li><strong>See salting in the file itself.</strong> Run <code>openssl passwd -6 'summer2024'</code> twice — the outputs <strong>differ</strong>, because <code>-6</code> (SHA-512 crypt) generates a random salt each time and stores it with the hash. Two users with the same password now have different stored values, so a precomputed rainbow table is useless.</li>
+</ol>
+<p><strong>Deliverable:</strong> A table of password, algorithm, time to crack, and benchmark hashes/sec. Plus one paragraph: <em>write the password policy you would recommend to a small business, and justify each rule with your own measured data.</em></p>
+<h3>Lab 10.3 — Inspect a real TLS certificate and decode every field (1.5h)</h3>
+<p><strong>Goal:</strong> Stop treating the padlock as magic. <strong>Setup:</strong> Kali VM with internet access, target <code>example.com</code> (<code>www.wikipedia.org</code> or <code>github.com</code> also work).</p>
+<ol>
+<li><strong>Connect and dump the certificate:</strong>
+   <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>s_client<span class="w"> </span>-connect<span class="w"> </span>example.com:443<span class="w"> </span>-servername<span class="w"> </span>example.com<span class="w"> </span>-showcerts<span class="w"> </span>&lt;/dev/null
+</code></pre></div><blockquote>
+<p><strong>Why <code>-servername</code>?</strong> It sends the hostname in the handshake (SNI — Server Name Indication). Without it, a server hosting many sites doesn't know which certificate to present and you get the wrong one. This confuses learners constantly.</p>
+</blockquote>
+</li>
+<li>
+<p><strong>Decode the leaf certificate:</strong>
+   <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>s_client<span class="w"> </span>-connect<span class="w"> </span>example.com:443<span class="w"> </span>-servername<span class="w"> </span>example.com<span class="w"> </span>&lt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>x509<span class="w"> </span>-noout<span class="w"> </span>-text
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Explain every field in your notes — this is the real deliverable:</strong></p>
+</li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Version</code></td>
+<td>Almost always <code>v3</code>. X.509 is the format; v3 added extensions</td>
+</tr>
+<tr>
+<td><code>Serial Number</code></td>
+<td>Unique per issuer — what a revocation list refers to</td>
+</tr>
+<tr>
+<td><code>Signature Algorithm</code></td>
+<td>What the <strong>issuer</strong> used to sign this cert, e.g. <code>sha256WithRSAEncryption</code></td>
+</tr>
+<tr>
+<td><code>Issuer</code> / <code>Subject</code></td>
+<td>Who signed it (the CA) and who it is for. Fields <code>C</code>, <code>O</code>, <code>CN</code></td>
+</tr>
+<tr>
+<td><code>Validity</code></td>
+<td><code>Not Before</code> / <code>Not After</code>. Outside this window the cert is invalid even if perfectly signed</td>
+</tr>
+<tr>
+<td><code>Subject Public Key Info</code></td>
+<td>The <strong>public key</strong> being vouched for, with algorithm and size (RSA 2048/4096 or an EC curve)</td>
+</tr>
+<tr>
+<td><code>Subject Alternative Name</code></td>
+<td>The hostnames this cert covers. <strong>Browsers ignore <code>CN</code> entirely and match on SAN</strong> — this is how one cert covers <code>example.com</code> and <code>www.example.com</code></td>
+</tr>
+<tr>
+<td><code>Basic Constraints: CA:</code></td>
+<td><code>TRUE</code> means it may sign other certificates. A leaf must say <code>FALSE</code></td>
+</tr>
+<tr>
+<td><code>Key Usage</code> / <code>Extended Key Usage</code></td>
+<td>What the key may legally be used for, e.g. <code>TLS Web Server Authentication</code></td>
+</tr>
+<tr>
+<td><code>Subject</code> / <code>Authority Key Identifier</code></td>
+<td>Fingerprints of this cert's key and the <strong>issuer's</strong> key — the links in the chain</td>
+</tr>
+<tr>
+<td><code>Authority Information Access</code> / <code>CRL Distribution Points</code></td>
+<td>Where to find the issuer's certificate, the OCSP responder, and the revocation list</td>
+</tr>
+<tr>
+<td><code>Signature Value</code></td>
+<td>The issuer's actual signature over all of the above</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="4">
+<li>
+<p><strong>Trace the chain to the root:</strong>
+   <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>s_client<span class="w"> </span>-connect<span class="w"> </span>example.com:443<span class="w"> </span>-servername<span class="w"> </span>example.com<span class="w"> </span>-showcerts<span class="w"> </span>&lt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;^ *[0-9]+ s:|^ *i:&quot;</span>
+grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;BEGIN CERTIFICATE&quot;</span><span class="w"> </span>/etc/ssl/certs/ca-certificates.crt<span class="w">    </span><span class="c1"># count your trusted roots</span>
+</code></pre></div>
+   You will see <strong>leaf</strong> (the site) → <strong>intermediate CA</strong> → <strong>root CA</strong>. The server usually sends the leaf and intermediates but <strong>not the root</strong> — the client already has it. That <code>.crt</code> file is the entire basis of trust on your machine: a certificate is only "valid" because a chain of signatures leads to one of those entries.</p>
+</li>
+<li>
+<p><strong>Read the dates, subject and issuer</strong> with <code>-noout -dates -subject -issuer</code>, and note how short the validity window is on modern certificates — short lifetimes limit the damage of a stolen key.</p>
+</li>
+<li><strong>Force a verification failure and read the error.</strong> Save a cert with <code>openssl x509 &gt; site.pem</code>, then run <code>openssl verify -CAfile /dev/null site.pem</code>. <code>unable to get local issuer certificate</code> means: <strong>I cannot trace this to anyone I trust.</strong> That is precisely the message a browser turns into a warning page — and precisely the message users click past.</li>
+</ol>
+<p><strong>Deliverable:</strong> Your notes explaining every field in step 3 in your own words, the chain output with the root identified, the count of trusted roots on your system, and the step 6 error with a one-sentence explanation for a non-technical user.</p>
+<h3>Lab 10.4 — Generate a keypair, sign a file, and break the signature (1h)</h3>
+<p><strong>Goal:</strong> Prove a digital signature is bound to a specific file. <strong>Setup:</strong> Kali VM, work in <code>~/lab/week10/</code>.</p>
+<ol>
+<li>
+<p><strong>Generate an RSA private key and inspect it:</strong>
+   <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>~/lab/week10<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/lab/week10
+openssl<span class="w"> </span>genpkey<span class="w"> </span>-algorithm<span class="w"> </span>RSA<span class="w"> </span>-pkeyopt<span class="w"> </span>rsa_keygen_bits:2048<span class="w"> </span>-out<span class="w"> </span>private.pem
+chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>private.pem<span class="w">                            </span><span class="c1"># a key readable by anyone is not private</span>
+openssl<span class="w"> </span>pkey<span class="w"> </span>-in<span class="w"> </span>private.pem<span class="w"> </span>-text<span class="w"> </span>-noout<span class="w">        </span><span class="c1"># see what you made</span>
+</code></pre></div>
+   You will see <code>modulus</code>, <code>publicExponent</code>, then <code>prime1</code>, <code>prime2</code>, <code>exponent1</code>… RSA's security rests on the fact that multiplying two large primes is easy, but <strong>factoring the product back into them is not.</strong> Everything else is derived from those two numbers. This is maths, not magic.</p>
+</li>
+<li>
+<p><strong>Extract the public key:</strong> <code>openssl rsa -in private.pem -pubout -out public.pem</code>. It is the modulus plus the public exponent — safe to publish, and that is the point.</p>
+</li>
+<li>
+<p><strong>Sign a file.</strong> Note what happened: OpenSSL <strong>hashed</strong> the file with SHA-256, then signed the hash. Signing the whole file would be slow and, for large files, impractical:
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Transfer 100 SAR to account 12345&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>message.txt
+openssl<span class="w"> </span>dgst<span class="w"> </span>-sha256<span class="w"> </span>-sign<span class="w"> </span>private.pem<span class="w"> </span>-out<span class="w"> </span>message.sig<span class="w"> </span>message.txt
+openssl<span class="w"> </span>dgst<span class="w"> </span>-sha256<span class="w"> </span>-verify<span class="w"> </span>public.pem<span class="w"> </span>-signature<span class="w"> </span>message.sig<span class="w"> </span>message.txt<span class="w">   </span><span class="c1"># Verified OK</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Now tamper — this is the moment the lab exists for:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Transfer 100000 SAR to account 12345&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>message.txt<span class="w">     </span><span class="c1"># one extra digit</span>
+openssl<span class="w"> </span>dgst<span class="w"> </span>-sha256<span class="w"> </span>-verify<span class="w"> </span>public.pem<span class="w"> </span>-signature<span class="w"> </span>message.sig<span class="w"> </span>message.txt<span class="w">   </span><span class="c1"># Verification Failure</span>
+</code></pre></div>
+   A signature is bound to the exact bytes of the file. Because the hash has the avalanche property from Lab 10.1, any modification at all is detected.</p>
+</li>
+<li>
+<p><strong>Try to forge a signature with only the public key.</strong> You cannot — signing requires <code>private.pem</code>. This is what <strong>non-repudiation</strong> means in practice.</p>
+</li>
+</ol>
+<blockquote>
+<p><strong>Be precise, because this is where people overclaim.</strong> Non-repudiation is a property of the <strong>key</strong>, not the <strong>person</strong>. If the private key was stolen, shared, or generated on a compromised machine, non-repudiation collapses. Cryptography proves possession of a key — it does not prove who was sitting at the keyboard.</p>
+</blockquote>
+<p><strong>Deliverable:</strong> The <code>Verified OK</code> and <code>Verification Failure</code> outputs, and a paragraph answering: <em>what does a valid signature actually prove, and what does it not prove?</em></p>
+<h3>Lab 10.5 — Watch ECB mode leak a picture (1h)</h3>
+<p><strong>Goal:</strong> See why ECB is the textbook example of a mode you must never use. <strong>Setup:</strong> <code>sudo apt install -y imagemagick</code>. Work in <code>~/lab/week10/</code>.</p>
+<ol>
+<li>
+<p><strong>Prepare an uncompressed image.</strong> ECB's weakness is visible in raw data, so you need an <strong>uncompressed</strong> format (BMP) — JPEG and PNG compress the data and destroy the pattern. Use dimensions that are multiples of 16 (like 512×512) so the demonstration is clean:
+   <div class="highlight"><pre><span></span><code>convert<span class="w"> </span>/usr/share/backgrounds/*.jpg<span class="w"> </span>-resize<span class="w"> </span>512x512<span class="w"> </span>-depth<span class="w"> </span><span class="m">8</span><span class="w"> </span>-type<span class="w"> </span>TrueColor<span class="w"> </span>-colorspace<span class="w"> </span>sRGB<span class="w"> </span>flat.bmp
+xxd<span class="w"> </span>flat.bmp<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-4<span class="w">      </span><span class="c1"># a 24-bit BMP: 54-byte header, then raw pixel bytes</span>
+</code></pre></div>
+   We preserve the header and encrypt only the pixels — otherwise the image viewer refuses to open the result at all.</p>
+</li>
+<li>
+<p><strong>Encrypt the pixels with ECB, then with CBC on the same data:</strong>
+   <div class="highlight"><pre><span></span><code>head<span class="w"> </span>-c<span class="w"> </span><span class="m">54</span><span class="w"> </span>flat.bmp<span class="w"> </span>&gt;<span class="w"> </span>header.bin
+tail<span class="w"> </span>-c<span class="w"> </span>+55<span class="w"> </span>flat.bmp<span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>enc<span class="w"> </span>-aes-128-ecb<span class="w"> </span>-nosalt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span>-out<span class="w"> </span>body-ecb.bin
+cat<span class="w"> </span>header.bin<span class="w"> </span>body-ecb.bin<span class="w"> </span>&gt;<span class="w"> </span>encrypted-ecb.bmp
+tail<span class="w"> </span>-c<span class="w"> </span>+55<span class="w"> </span>flat.bmp<span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>enc<span class="w"> </span>-aes-128-cbc<span class="w"> </span>-nosalt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-iv<span class="w"> </span>0102030405060708090a0b0c0d0e0f10<span class="w"> </span>-out<span class="w"> </span>body-cbc.bin
+cat<span class="w"> </span>header.bin<span class="w"> </span>body-cbc.bin<span class="w"> </span>&gt;<span class="w"> </span>encrypted-cbc.bmp
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Open both.</strong> <code>encrypted-cbc.bmp</code> is visual noise. <code>encrypted-ecb.bmp</code> <strong>still shows the shape of the original image.</strong> Put the screenshot beside the original in your notes.</p>
+</li>
+<li><strong>Explain why, and write it down.</strong> <strong>ECB</strong> encrypts every 16-byte block <strong>independently with the same key</strong>, so two identical plaintext blocks produce two identical ciphertext blocks — the encryption is deterministic, any repetition in the plaintext survives, and that is what your eye picks up. <strong>CBC</strong> XORs each plaintext block with the <strong>previous ciphertext block</strong> before encrypting, so identical plaintext blocks encrypt differently and the pattern is destroyed. <strong>Neither provides integrity:</strong> an attacker can flip bits in a CBC ciphertext and predictably corrupt the next block. That is why modern systems use <strong>AEAD</strong> modes — AES-GCM, ChaCha20-Poly1305 — which encrypt <em>and</em> authenticate.</li>
+<li><strong>Write the rule:</strong> ECB is not a "weaker option." It is a <strong>broken</strong> option for any data with structure — which is essentially all data.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong><code>openssl enc</code> is not your file-encryption tool.</strong> It is perfect for a demonstration, but its password-based mode uses a weak key-derivation function. For real file encryption use <code>age</code>, <code>gpg</code>, or full-disk encryption (LUKS) — a live example of this week's rule: <strong>use vetted tools the way they were designed to be used.</strong></p>
+</blockquote>
+<p><strong>Deliverable:</strong> The three images side by side, your written explanation of why ECB leaks and CBC does not, and one sentence naming the mode class you would use in production and why.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><h3>المختبر 10.1 — التجزئة ليست تشفيراً (2 ساعة)</h3>
+<p><strong>الهدف:</strong> أن تلمس الفرق بين دالة التجزئة والشيفرة، لا أن تقرأ عنه. <strong>التهيئة:</strong> آلة Kali وهمية، Terminal فقط.</p>
+<ol>
+<li>
+<p><strong>تأثير الانهيار (Avalanche)</strong> — غيّر حرفاً واحداً وراقب كيف يتغيّر كل شيء:
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;password&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sha256sum
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;Password&quot;</span><span class="w">  </span><span class="p">|</span><span class="w"> </span>sha256sum
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;password &quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum
+</code></pre></div>
+   يتغيّر ما يقارب نصف بتات المخرج مقابل تغيير بت واحد في المدخل. <strong>هذا ما يجعل دوال التجزئة مفيدة للتحقق من السلامة.</strong></p>
+</li>
+<li>
+<p><strong>الحتمية — الخاصية التي تجعل التجزئة بلا ملح خطرة.</strong> شغّل <code>echo -n "password" | sha256sum</code> مرتين: النتيجة متطابقة في المرتين. الآن فكّر في قاعدة بيانات كلمات مرور: كل مستخدم كلمة مروره <code>password</code> لديه <strong>نفس البصمة تماماً</strong>.</p>
+</li>
+<li>
+<p><strong>التجزئة اتجاه واحد.</strong> شغّل <code>echo -n "correct horse battery staple" | sha256sum</code>، ثم حاول عكسها. لن تستطيع — لا لأن الأداة تفتقر إلى خيار، بل لأن المعلومة <strong>دُمِّرت فعلاً</strong>. مدخل من 60 حرفاً ومدخل من حرف واحد ينتجان 64 حرفاً سادس عشرياً في الحالتين:
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w">        </span><span class="c1"># 64 hex chars</span>
+<span class="nb">echo</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>md5sum<span class="w">           </span><span class="c1"># 32 hex chars</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>السلامة عملياً.</strong> نزّل ملفاً من موقع ينشر بصماته، ثم:
+   <div class="highlight"><pre><span></span><code>sha256sum<span class="w"> </span>downloaded-file.iso
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&lt;published-hash&gt;  downloaded-file.iso&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>check.txt<span class="w">   </span><span class="c1"># exactly TWO spaces</span>
+sha256sum<span class="w"> </span>-c<span class="w"> </span>check.txt<span class="w">      </span><span class="c1"># prints: OK</span>
+</code></pre></div>
+   انسخ الملف، وأفسد بايتاً واحداً بـ <code>dd</code>، ثم تحقّق مرة أخرى — سيفشل التحقق. <strong>هكذا تتحقق مديريات الحزم ونظام تشغيلك من أن شيئاً لم يُعدَّل أثناء النقل.</strong></p>
+</li>
+<li>
+<p><strong>الآن أثبت أن التجزئة ليست تشفيراً:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;password&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>plain.txt
+openssl<span class="w"> </span>enc<span class="w"> </span>-aes-128-cbc<span class="w"> </span>-nosalt<span class="w"> </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-iv<span class="w"> </span>0102030405060708090a0b0c0d0e0f10<span class="w"> </span>-in<span class="w"> </span>plain.txt<span class="w"> </span>-out<span class="w"> </span>cipher.bin
+openssl<span class="w"> </span>enc<span class="w"> </span>-d<span class="w"> </span>-aes-128-cbc<span class="w"> </span>-nosalt<span class="w"> </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-iv<span class="w"> </span>0102030405060708090a0b0c0d0e0f10<span class="w"> </span>-in<span class="w"> </span>cipher.bin
+</code></pre></div>
+   النص المشفَّر قابل للعكس <strong>لأن هناك مفتاحاً</strong>. أما التجزئة فلا مفتاح لها ولا عكس. اكتب هذه الجملة بأسلوبك.</p>
+</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> البصمات الثلاث من الخطوة 1، ومخرجات النجاح والفشل لـ <code>sha256sum -c</code>، والنص المفكوك من الخطوة 5، وشرح من ثلاث جمل للفرق بين التجزئة والشيفرة.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>مخرجات <code>openssl enc</code> تبدأ بـ <code>Salted__</code></td>
+<td>نسيت <code>-nosalt</code> — أضاف OpenSSL ترويسة الملح الخاصة به</td>
+</tr>
+<tr>
+<td><code>sha256sum -c</code> يقول <code>FAILED</code> على ملف غير تالف</td>
+<td>المسافات خاطئة — الصيغة تتطلب مسافتين بالضبط</td>
+</tr>
+<tr>
+<td>تشغيلاك لـ <code>sha256sum</code> يختلفان</td>
+<td><code>echo</code> أضاف سطراً جديداً — استخدم <code>-n</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 10.2 — اكسر بصماتك أنت، وافهم لماذا توجد سياسة كلمات المرور (1.5 ساعة)</h3>
+<blockquote>
+<p>⚠️ <strong>حدّ قانوني — اقرأ هذا قبل أن تكتب أي شيء.</strong>
+يُسمح لك بكسر <strong>البصمات التي ولّدتها بنفسك فقط، على آلتك الوهمية، في هذا المختبر.</strong> هذا هو النطاق كاملاً. كسر بصمات كلمات مرور لا تملكها، أو لا تملك <strong>تصريحاً كتابياً صريحاً</strong> باختبارها، أو محاولة كسرها، جريمة جنائية في كل دولة تقريباً — بموجب قوانين إساءة استخدام الحاسوب في الولايات المتحدة والاتحاد الأوروبي والقوانين المكافئة في العالم العربي. عبارة "كانت على موقع وجدته" ليست تصريحاً. وعبارة "كانت في تسريب نزّلته" ليست تصريحاً. لا توجد منطقة رمادية هنا.
+الغرض من هذا المختبر أن تشعر بيديك <strong>لماذا تهم سياسة كلمات المرور</strong> — لتتمكن من الدفاع عنها بالدليل بدل ترديدها كقاعدة.</p>
+</blockquote>
+<p><strong>الهدف:</strong> قِس كم تموت كلمات المرور الضعيفة بسرعة، وكم تغيّر خوارزمية التخزين النتيجة.</p>
+<p><strong>التهيئة:</strong> آلة Kali وهمية. <code>john</code> و <code>hashcat</code> مثبَّتان مسبقاً. تأتي قائمة الكلمات <code>rockyou</code> في <code>/usr/share/wordlists/rockyou.txt.gz</code> — فُكّ ضغطها بـ <code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code>.</p>
+<ol>
+<li><strong>أنشئ ثلاث كلمات مرور تدريبية</strong> — لا كلمة مرور حقيقية تستخدمها في أي مكان: <code>summer2024</code> (كلمة + سنة: أكثر نمط واقعي شيوعاً)، و <code>Tr0ub4dor</code> (كلمة باستبدال حروف)، وعبارة مرور طويلة عشوائية.</li>
+<li>
+<p><strong>ولّد البصمات بنفسك.</strong> أنت مؤلف كل بصمة في هذا المختبر:
+   <div class="highlight"><pre><span></span><code><span class="k">for</span><span class="w"> </span>p<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="s1">&#39;summer2024&#39;</span><span class="w"> </span><span class="s1">&#39;Tr0ub4dor&#39;</span><span class="w"> </span><span class="s1">&#39;correct-horse-battery-staple-9x&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">  </span><span class="nb">printf</span><span class="w"> </span><span class="s1">&#39;%s&#39;</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$p</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sha256sum<span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span>
+<span class="k">done</span><span class="w"> </span>&gt;<span class="w"> </span>raw-sha256.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>اكسرها، وقِس الزمن:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nb">time</span><span class="w"> </span>john<span class="w"> </span>--format<span class="o">=</span>raw-sha256<span class="w"> </span>--wordlist<span class="o">=</span>/usr/share/wordlists/rockyou.txt<span class="w"> </span>raw-sha256.txt
+john<span class="w"> </span>--show<span class="w"> </span>--format<span class="o">=</span>raw-sha256<span class="w"> </span>raw-sha256.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>غيّر الخوارزمية وحدها، لا كلمة المرور.</strong> جزّئ نفس كلمة المرور الضعيفة بـ bcrypt واكسرها:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>apache2-utils<span class="w">        </span><span class="c1"># provides htpasswd</span>
+htpasswd<span class="w"> </span>-bnBC<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="s1">&#39;summer2024&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-d<span class="w"> </span><span class="s1">&#39;:\n&#39;</span><span class="w"> </span>&gt;<span class="w"> </span>bcrypt-pw.txt<span class="w">   </span><span class="c1"># note the $2y$10$ prefix</span>
+<span class="nb">time</span><span class="w"> </span>john<span class="w"> </span>--format<span class="o">=</span>bcrypt<span class="w"> </span>--wordlist<span class="o">=</span>/usr/share/wordlists/rockyou.txt<span class="w"> </span>bcrypt-pw.txt
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>قارن وسجّل الأرقام.</strong> نفس كلمة المرور، نفس قائمة الكلمات، نفس الجهاز — والخوارزمية وحدها هي المختلفة. الفارق ليس بضعة في المئة؛ بل هو مراتب كاملة من القدر.</p>
+</li>
+<li><strong>قِس أداء عتادك أنت</strong> بدل أن تثق برقم من مقال — <code>hashcat -b -m 0</code> (MD5)، و <code>-m 1400</code> (SHA-256)، و <code>-m 3200</code> (bcrypt). <strong>هذا هو الرقم الذي يفسّر كل شيء:</strong> المهاجم لا يحتاج مهارة، بل يحتاج سرعة فقط. وعندما تسمح دالة تجزئة سريعة بمليارات التخمينات في الثانية، يبقى طول كلمة المرور هو الدفاع الوحيد المتبقي.</li>
+<li><strong>شاهد الملح في الملف نفسه.</strong> شغّل <code>openssl passwd -6 'summer2024'</code> مرتين — المخرجات <strong>تختلف</strong>، لأن <code>-6</code> (SHA-512 crypt) يولّد ملحاً عشوائياً في كل مرة ويخزّنه مع البصمة. مستخدمان بنفس كلمة المرور لديهما الآن قيمتان مخزَّنتان مختلفتان، فصار جدول قوس المطر المحسوب مسبقاً عديم الفائدة.</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> جدول يضم كلمة المرور، والخوارزمية، وزمن الكسر، وعدد البصمات في الثانية في القياس. بالإضافة إلى فقرة واحدة: <em>اكتب سياسة كلمات المرور التي ستنصح بها منشأة صغيرة، وبرّر كل قاعدة ببياناتك المقيسة أنت.</em></p>
+<h3>المختبر 10.3 — افحص شهادة TLS حقيقية وفُكّ ترميز كل حقل فيها (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> توقّف عن التعامل مع القفل (padlock) كأنه سحر. <strong>التهيئة:</strong> آلة Kali وهمية متصلة بالإنترنت، والهدف <code>example.com</code> (و <code>www.wikipedia.org</code> أو <code>github.com</code> يعملان أيضاً).</p>
+<ol>
+<li><strong>اتصل واستخرج الشهادة:</strong>
+   <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>s_client<span class="w"> </span>-connect<span class="w"> </span>example.com:443<span class="w"> </span>-servername<span class="w"> </span>example.com<span class="w"> </span>-showcerts<span class="w"> </span>&lt;/dev/null
+</code></pre></div><blockquote>
+<p><strong>لماذا <code>-servername</code>؟</strong> لأنه يرسل اسم المضيف داخل المصافحة (SNI — Server Name Indication). بدونه، لا يعرف الخادم الذي يستضيف مواقع كثيرة أي شهادة يقدّم، فتحصل على الشهادة الخطأ. هذا الأمر يربك المتعلمين باستمرار.</p>
+</blockquote>
+</li>
+<li>
+<p><strong>فُكّ ترميز الشهادة الطرفية:</strong>
+   <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>s_client<span class="w"> </span>-connect<span class="w"> </span>example.com:443<span class="w"> </span>-servername<span class="w"> </span>example.com<span class="w"> </span>&lt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>x509<span class="w"> </span>-noout<span class="w"> </span>-text
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>اشرح كل حقل في ملاحظاتك — وهذا هو المخرج الحقيقي:</strong></p>
+</li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الحقل</th>
+<th>ما يعنيه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Version</code></td>
+<td>دائماً تقريباً <code>v3</code>. الصيغة هي X.509؛ و v3 أضافت الإضافات (extensions)</td>
+</tr>
+<tr>
+<td><code>Serial Number</code></td>
+<td>فريد لكل جهة إصدار — وهو ما تشير إليه قائمة الإبطال</td>
+</tr>
+<tr>
+<td><code>Signature Algorithm</code></td>
+<td>ما استخدمته <strong>جهة الإصدار</strong> لتوقيع هذه الشهادة، مثل <code>sha256WithRSAEncryption</code></td>
+</tr>
+<tr>
+<td><code>Issuer</code> / <code>Subject</code></td>
+<td>من وقّعها (جهة الإصدار CA) ولمن هي. الحقول <code>C</code> و <code>O</code> و <code>CN</code></td>
+</tr>
+<tr>
+<td><code>Validity</code></td>
+<td><code>Not Before</code> / <code>Not After</code>. خارج هذه النافذة تكون الشهادة غير صالحة حتى لو كانت موقَّعة بإتقان</td>
+</tr>
+<tr>
+<td><code>Subject Public Key Info</code></td>
+<td><strong>المفتاح العام</strong> الذي تُشهد له، مع الخوارزمية والحجم (RSA 2048/4096 أو منحنى EC)</td>
+</tr>
+<tr>
+<td><code>Subject Alternative Name</code></td>
+<td>أسماء المضيفين التي تغطيها هذه الشهادة. <strong>المتصفحات تتجاهل <code>CN</code> تماماً وتطابق على SAN</strong> — وهكذا تغطي شهادة واحدة <code>example.com</code> و <code>www.example.com</code></td>
+</tr>
+<tr>
+<td><code>Basic Constraints: CA:</code></td>
+<td><code>TRUE</code> تعني أنها قد توقّع شهادات أخرى. ويجب أن تقول الشهادة الطرفية <code>FALSE</code></td>
+</tr>
+<tr>
+<td><code>Key Usage</code> / <code>Extended Key Usage</code></td>
+<td>ما يُسمح باستخدام المفتاح له، مثل <code>TLS Web Server Authentication</code></td>
+</tr>
+<tr>
+<td><code>Subject</code> / <code>Authority Key Identifier</code></td>
+<td>بصمتان: بصمة مفتاح هذه الشهادة وبصمة مفتاح <strong>جهة الإصدار</strong> — وهما حلقتا السلسلة</td>
+</tr>
+<tr>
+<td><code>Authority Information Access</code> / <code>CRL Distribution Points</code></td>
+<td>أين تجد شهادة جهة الإصدار، ومستجيب OCSP، وقائمة الإبطال</td>
+</tr>
+<tr>
+<td><code>Signature Value</code></td>
+<td>توقيع جهة الإصدار الفعلي على كل ما سبق</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="4">
+<li>
+<p><strong>تتبّع السلسلة إلى الجذر:</strong>
+   <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>s_client<span class="w"> </span>-connect<span class="w"> </span>example.com:443<span class="w"> </span>-servername<span class="w"> </span>example.com<span class="w"> </span>-showcerts<span class="w"> </span>&lt;/dev/null<span class="w"> </span><span class="m">2</span>&gt;/dev/null<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;^ *[0-9]+ s:|^ *i:&quot;</span>
+grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;BEGIN CERTIFICATE&quot;</span><span class="w"> </span>/etc/ssl/certs/ca-certificates.crt<span class="w">    </span><span class="c1"># count your trusted roots</span>
+</code></pre></div>
+   سترى <strong>الشهادة الطرفية</strong> (الموقع) → <strong>الشهادة الوسيطة</strong> → <strong>الشهادة الجذرية</strong>. يرسل الخادم عادةً الشهادة الطرفية والوسيطة لكن <strong>لا يرسل الجذرية</strong> — فالعميل يملكها أصلاً. ملف <code>.crt</code> هذا هو أساس الثقة كله على جهازك: الشهادة ليست "صالحة" إلا لأن سلسلة توقيعات تؤدي إلى أحد مدخلات ذلك الملف.</p>
+</li>
+<li>
+<p><strong>اقرأ التواريخ والموضوع وجهة الإصدار</strong> بـ <code>-noout -dates -subject -issuer</code>، ولاحظ كم صار نافذة الصلاحية قصيرة في الشهادات الحديثة — فالعمر القصير يحدّ من ضرر مفتاح مسروق.</p>
+</li>
+<li><strong>افرض فشل التحقق واقرأ الخطأ.</strong> احفظ شهادة بـ <code>openssl x509 &gt; site.pem</code>، ثم شغّل <code>openssl verify -CAfile /dev/null site.pem</code>. رسالة <code>unable to get local issuer certificate</code> تعني: <strong>لا أستطيع تتبّع هذه الشهادة إلى أي طرف أثق به.</strong> وهذه بالضبط هي الرسالة التي يحوّلها المتصفح إلى صفحة تحذير — وبالضبط هي الرسالة التي ينقر المستخدمون عليها ويتجاوزونها.</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> ملاحظاتك تشرح كل حقل في الخطوة 3 بأسلوبك، ومخرجات السلسلة مع تحديد الجذر، وعدد الجذور الموثوقة على نظامك، وخطأ الخطوة 6 مع شرح من جملة واحدة لمستخدم غير تقني.</p>
+<h3>المختبر 10.4 — ولّد زوج مفاتيح، وقّع ملفاً، ثم اكسر التوقيع (1 ساعة)</h3>
+<p><strong>الهدف:</strong> أثبت أن التوقيع الرقمي مرتبط بملف بعينه. <strong>التهيئة:</strong> آلة Kali وهمية، واعمل داخل <code>~/lab/week10/</code>.</p>
+<ol>
+<li>
+<p><strong>ولّد مفتاحاً خاصاً RSA وافحصه:</strong>
+   <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>~/lab/week10<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>~/lab/week10
+openssl<span class="w"> </span>genpkey<span class="w"> </span>-algorithm<span class="w"> </span>RSA<span class="w"> </span>-pkeyopt<span class="w"> </span>rsa_keygen_bits:2048<span class="w"> </span>-out<span class="w"> </span>private.pem
+chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>private.pem<span class="w">                            </span><span class="c1"># a key readable by anyone is not private</span>
+openssl<span class="w"> </span>pkey<span class="w"> </span>-in<span class="w"> </span>private.pem<span class="w"> </span>-text<span class="w"> </span>-noout<span class="w">        </span><span class="c1"># see what you made</span>
+</code></pre></div>
+   سترى <code>modulus</code> و <code>publicExponent</code>، ثم <code>prime1</code> و <code>prime2</code> و <code>exponent1</code>… أمن RSA يقوم على أن ضرب عددين أوليين كبيرين سهل، لكن <strong>تحليل الناتج عائداً إلى العددين الأوليين ليس سهلاً.</strong> وكل ما عداهما مشتق منهما. هذه رياضيات، لا سحر.</p>
+</li>
+<li>
+<p><strong>استخرج المفتاح العام:</strong> <code>openssl rsa -in private.pem -pubout -out public.pem</code>. إنه المعامل (modulus) زائد الأس العام — يُنشر بأمان، وهذا هو المقصود.</p>
+</li>
+<li>
+<p><strong>وقّع ملفاً.</strong> لاحظ ما حدث: قام OpenSSL بـ <strong>تجزئة</strong> الملف بـ SHA-256، ثم وقّع البصمة. أما توقيع الملف كاملاً فسيكون بطيئاً، وغير عملي مع الملفات الكبيرة:
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Transfer 100 SAR to account 12345&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>message.txt
+openssl<span class="w"> </span>dgst<span class="w"> </span>-sha256<span class="w"> </span>-sign<span class="w"> </span>private.pem<span class="w"> </span>-out<span class="w"> </span>message.sig<span class="w"> </span>message.txt
+openssl<span class="w"> </span>dgst<span class="w"> </span>-sha256<span class="w"> </span>-verify<span class="w"> </span>public.pem<span class="w"> </span>-signature<span class="w"> </span>message.sig<span class="w"> </span>message.txt<span class="w">   </span><span class="c1"># Verified OK</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>الآن عبث بالمحتوى — هذه هي اللحظة التي وُجد المختبر من أجلها:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Transfer 100000 SAR to account 12345&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>message.txt<span class="w">     </span><span class="c1"># one extra digit</span>
+openssl<span class="w"> </span>dgst<span class="w"> </span>-sha256<span class="w"> </span>-verify<span class="w"> </span>public.pem<span class="w"> </span>-signature<span class="w"> </span>message.sig<span class="w"> </span>message.txt<span class="w">   </span><span class="c1"># Verification Failure</span>
+</code></pre></div>
+   التوقيع مرتبط بالبايتات المحددة للملف. ولأن البصمة تملك خاصية الانهيار من المختبر 10.1، فأي تعديل مهما كان صغيراً يُكتشف.</p>
+</li>
+<li>
+<p><strong>حاول تزوير توقيع بالمفتاح العام وحده.</strong> لن تستطيع — فالتوقيع يتطلب <code>private.pem</code>. وهذا هو معنى <strong>عدم الإنكار</strong> عملياً.</p>
+</li>
+</ol>
+<blockquote>
+<p><strong>كن دقيقاً، لأن هنا يتجاوز الناس حدود الدقة.</strong> عدم الإنكار خاصية <strong>المفتاح</strong>، لا خاصية <strong>الشخص</strong>. فإن سُرِق المفتاح الخاص أو شُورِك أو وُلِّد على جهاز مخترَق — ينهار عدم الإنكار بالكامل. التشفير يثبت <strong>حيازة مفتاح</strong> — ولا يثبت <strong>من كان يجلس أمام لوحة المفاتيح</strong>.</p>
+</blockquote>
+<p><strong>المخرج المطلوب:</strong> مخرجات <code>Verified OK</code> و <code>Verification Failure</code>، وفقرة تجيب عن: <em>ما الذي يثبته التوقيع الصالح فعلاً، وما الذي لا يثبته؟</em></p>
+<h3>المختبر 10.5 — شاهد نمط ECB يسرّب صورة (1 ساعة)</h3>
+<p><strong>الهدف:</strong> افهم لماذا ECB هو المثال النموذجي لنمط يجب ألا تستخدمه أبداً. <strong>التهيئة:</strong> <code>sudo apt install -y imagemagick</code>. واعمل داخل <code>~/lab/week10/</code>.</p>
+<ol>
+<li>
+<p><strong>جهّز صورة غير مضغوطة.</strong> ضعف ECB يظهر في البيانات الخام، لذا تحتاج صيغة <strong>غير مضغوطة</strong> (BMP) — فـ JPEG و PNG يضغطان البيانات ويدمّران النمط. استخدم أبعاداً من مضاعفات 16 (مثل 512×512) ليكون العرض نظيفاً:
+   <div class="highlight"><pre><span></span><code>convert<span class="w"> </span>/usr/share/backgrounds/*.jpg<span class="w"> </span>-resize<span class="w"> </span>512x512<span class="w"> </span>-depth<span class="w"> </span><span class="m">8</span><span class="w"> </span>-type<span class="w"> </span>TrueColor<span class="w"> </span>-colorspace<span class="w"> </span>sRGB<span class="w"> </span>flat.bmp
+xxd<span class="w"> </span>flat.bmp<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-4<span class="w">      </span><span class="c1"># a 24-bit BMP: 54-byte header, then raw pixel bytes</span>
+</code></pre></div>
+   نحتفظ بالترويسة ونشفّر البكسلات وحدها — وإلا رفض عارض الصور فتح الناتج أصلاً.</p>
+</li>
+<li>
+<p><strong>شفّر البكسلات بـ ECB، ثم بـ CBC على نفس البيانات:</strong>
+   <div class="highlight"><pre><span></span><code>head<span class="w"> </span>-c<span class="w"> </span><span class="m">54</span><span class="w"> </span>flat.bmp<span class="w"> </span>&gt;<span class="w"> </span>header.bin
+tail<span class="w"> </span>-c<span class="w"> </span>+55<span class="w"> </span>flat.bmp<span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>enc<span class="w"> </span>-aes-128-ecb<span class="w"> </span>-nosalt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span>-out<span class="w"> </span>body-ecb.bin
+cat<span class="w"> </span>header.bin<span class="w"> </span>body-ecb.bin<span class="w"> </span>&gt;<span class="w"> </span>encrypted-ecb.bmp
+tail<span class="w"> </span>-c<span class="w"> </span>+55<span class="w"> </span>flat.bmp<span class="w"> </span><span class="p">|</span><span class="w"> </span>openssl<span class="w"> </span>enc<span class="w"> </span>-aes-128-cbc<span class="w"> </span>-nosalt<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-K<span class="w"> </span>00112233445566778899aabbccddeeff<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-iv<span class="w"> </span>0102030405060708090a0b0c0d0e0f10<span class="w"> </span>-out<span class="w"> </span>body-cbc.bin
+cat<span class="w"> </span>header.bin<span class="w"> </span>body-cbc.bin<span class="w"> </span>&gt;<span class="w"> </span>encrypted-cbc.bmp
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>افتح الاثنتين.</strong> <code>encrypted-cbc.bmp</code> تشويش بصري. أما <code>encrypted-ecb.bmp</code> فـ <strong>لا تزال تُظهر شكل الصورة الأصلية.</strong> ضع لقطة الشاشة بجانب الأصل في ملاحظاتك.</p>
+</li>
+<li><strong>اشرح السبب، واكتبه.</strong> <strong>ECB</strong> يشفّر كل كتلة من 16 بايت <strong>باستقلال وبنفس المفتاح</strong>، فكتلتان متطابقتان من النص الصريح تنتجان كتلتين متطابقتين من النص المشفَّر — أي أن التشفير حتمي، وأي تكرار في النص الصريح يبقى ظاهراً، وهذا ما تلتقطه عينك. أما <strong>CBC</strong> فيطبّق XOR بين كل كتلة نص صريح و<strong>كتلة النص المشفَّر السابقة</strong> قبل التشفير، فتُشفَّر الكتل المتطابقة بشكل مختلف ويتدمّر النمط. <strong>ولا أحد منهما يوفر السلامة:</strong> يستطيع مهاجم قلب بتات في نص مشفَّر بـ CBC وإفساد الكتلة التالية بشكل متوقع. لهذا تستخدم الأنظمة الحديثة أنماط <strong>AEAD</strong> — AES-GCM و ChaCha20-Poly1305 — التي تشفّر <em>وتصادق</em> في الوقت نفسه.</li>
+<li><strong>اكتب القاعدة:</strong> ECB ليس "خياراً أضعف". إنه خيار <strong>مكسور</strong> لأي بيانات ذات بنية — أي كل البيانات عملياً.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong><code>openssl enc</code> ليس أداة تشفير ملفاتك.</strong> هو ممتاز للعرض التمثيلي، لكن نمطه القائم على كلمة مرور يستخدم دالة اشتقاق مفاتيح ضعيفة. لتشفير ملفات حقيقي استخدم <code>age</code> أو <code>gpg</code> أو تشفير القرص الكامل (LUKS) — مثال حي على قاعدة هذا الأسبوع: <strong>استخدم أدوات مُدقَّقة بالطريقة التي صُمّمت لتُستخدم بها.</strong></p>
+</blockquote>
+<p><strong>المخرج المطلوب:</strong> الصور الثلاث جنباً إلى جنب، وشرحك المكتوب لسبب تسريب ECB وعدم تسريب CBC، وجملة واحدة تسمّي صنف النمط الذي ستستخدمه في بيئة الإنتاج ولماذا.</p></div>
+  </div>
+</details><details class="lesson-sec" id="challenge" data-sec="challenge" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈5h · Unguided — this is where it sticks</span><span class="only-ar">≈5ساعات · بدون إرشاد — هنا يحدث التعلّم الحقيقي</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li><strong>OverTheWire Natas</strong> — continue from your current level, 3–5 new levels. Several levels are defeated by encoding tricks rather than crypto. <strong>Each time you use one, write down whether it was encoding, hashing, or encryption, and why it was not a security control.</strong> That distinction is the whole point of Lab 10.1.</li>
+<li><strong>PicoCTF — the Cryptography category.</strong> <a href="https://play.picoctf.org/practice">play.picoctf.org/practice</a> — the picoGym is free and year-round. Solve at least four beginner cryptography challenges, starting with <strong>Mod 26</strong> (a Caesar/ROT13 warm-up), then anything involving XOR, small-parameter RSA, or ECB. <strong>Write the concept each challenge taught you, not just the flag.</strong></li>
+<li><strong>TryHackMe free rooms</strong> on this week's topics. Search for <em>cryptography basics</em>, <em>hashing basics</em>, <em>public key cryptography</em>. <strong>Free-tier check:</strong> confirm the room card is not labelled Premium before starting, and log what you completed.</li>
+<li><strong>Find crypto failures in the wild — public sources only</strong> (CVE entries, vendor advisories, post-mortems). Find one real vulnerability for each of: weak or predictable randomness in a key or token; ECB mode on real user data; a hardcoded secret in a public repository; a reused nonce or IV with a stream cipher. Two sentences each.</li>
+<li><strong>Use <a href="https://gchq.github.io/CyberChef/">CyberChef</a></strong> — the browser-based "Cyber Swiss Army Knife" from GCHQ. Decode the same string as Base64, hex, URL-encoding and ROT13, then hash it with MD5 and SHA-256. Seeing every operation side by side is the fastest way to make the encoding/hashing/encryption distinction permanent — and it is a genuinely useful professional tool.</li>
+<li><strong>Explain TLS to a non-technical person in 200 words.</strong> No jargon: no "asymmetric", no "hash", no "certificate authority". Analogies only. If you cannot, you do not understand it well enough to defend it in a meeting — and defending crypto decisions to non-technical managers is a real part of this job.</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li><strong>OverTheWire Natas</strong> — تابع من مستواك الحالي، 3–5 مستويات جديدة. عدة مستويات تُهزم بحيل ترميز لا بتشفير. <strong>في كل مرة تستخدم فيها حيلة كهذه، اكتب هل كانت ترميزاً أم تجزئة أم تشفيراً، ولماذا لم تكن ضابطاً أمنياً.</strong> هذا التمييز هو جوهر المختبر 10.1 بأكمله.</li>
+<li><strong>PicoCTF — فئة التشفير.</strong> <a href="https://play.picoctf.org/practice">play.picoctf.org/practice</a> — منصة picoGym مجانية وطوال العام. حُلّ أربعة تحديات تشفير للمبتدئين على الأقل، وابدأ بـ <strong>Mod 26</strong> (تسخين على Caesar/ROT13)، ثم أي تحدٍّ يتضمن XOR أو RSA بمعاملات صغيرة أو ECB. <strong>واكتب المفهوم الذي علّمك إياه كل تحدٍّ، لا العلم (flag) وحده.</strong></li>
+<li><strong>غرف TryHackMe المجانية</strong> في موضوعات هذا الأسبوع. ابحث عن <em>cryptography basics</em> و <em>hashing basics</em> و <em>public key cryptography</em>. <strong>وتحقّق من الفئة المجانية:</strong> تأكد أن بطاقة الغرفة غير موسومة بـ Premium قبل البدء، وسجّل ما أكملته.</li>
+<li><strong>جد إخفاقات تشفير في الواقع — من مصادر عامة فقط</strong> (مدخلات CVE، تحذيرات المورّدين، تحليلات ما بعد الحوادث). جد ثغرة حقيقية واحدة لكل مما يلي: عشوائية ضعيفة أو قابلة للتوقع في مفتاح أو رمز جلسة؛ نمط ECB على بيانات مستخدمين حقيقية؛ سرّ مضمَّن في الكود داخل مستودع عام؛ إعادة استخدام nonce أو IV مع شيفرة انسيابية. جملتان لكل واحدة.</li>
+<li><strong>استخدم <a href="https://gchq.github.io/CyberChef/">CyberChef</a></strong> — "السكين السويسري السيبراني" الذي يعمل في المتصفح من GCHQ. فُكّ ترميز نفس النص كـ Base64 و hex و URL-encoding و ROT13، ثم جزّئه بـ MD5 و SHA-256. رؤية كل عملية جنباً إلى جنب هي أسرع طريقة لتثبيت التمييز بين الترميز والتجزئة والتشفير — وهي أداة مهنية مفيدة فعلاً.</li>
+<li><strong>اشرح TLS لشخص غير تقني في 200 كلمة.</strong> بلا مصطلحات: لا "غير متماثل"، ولا "تجزئة"، ولا "جهة إصدار الشهادات". تشبيهات فقط. وإن لم تستطع، فأنت لا تفهمه جيداً بما يكفي للدفاع عنه في اجتماع — والدفاع عن قرارات التشفير أمام مديرين غير تقنيين جزء حقيقي من هذه المهنة.</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="payoff" data-sec="payoff" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The security consequence</span><span class="only-ar">الأثر الأمني</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>Crypto is where security stops being a matter of opinion.</strong></p>
+<p>Everywhere else you can argue. Was that firewall rule necessary? Is that risk acceptable? Reasonable professionals disagree. Cryptography is different: either the maths holds or it does not. That is why sloppiness here is unforgivable — and why the same failures repeat decade after decade.</p>
+<h3>Failure 1: "We hashed the passwords." — the sentence that means nothing</h3>
+<p>The most common false sense of security in the industry. Hashing passwords is table stakes; it is also the <em>beginning</em> of the question, not the answer. Ask three follow-ups, in this order:</p>
+<ol>
+<li><strong>Which hash?</strong> If the answer is MD5 or SHA-1, the passwords are effectively plaintext — not because someone can reverse the hash (they cannot, and that nuance matters) but because these algorithms are <strong>designed to be fast</strong>. Lab 10.2 gave you the number yourself: billions of guesses per second.</li>
+<li><strong>Is it salted?</strong> Unsalted hashes mean every user with the same password has an identical stored value. Crack one, own them all — and a precomputed rainbow table lets you crack them before you even start. Salting does not make a weak password strong. It makes precomputation useless and makes cracking a <em>database</em> as expensive as cracking each password individually.</li>
+<li><strong>Is it slow?</strong> The correct algorithms — <strong>Argon2id</strong>, <strong>scrypt</strong>, <strong>bcrypt</strong> — are deliberately, tunably slow, and (for Argon2 and scrypt) memory-hungry. A legitimate login takes ~100 milliseconds and nobody notices; an attacker making billions of guesses takes centuries instead of seconds. OWASP currently ranks Argon2id first, scrypt second, and bcrypt as a legacy option.</li>
+</ol>
+<blockquote>
+<p><strong>The counter-intuitive lesson that takes people years to absorb: a good hash function is not a good password hash.</strong> SHA-256 is an excellent hash and a terrible password storage algorithm. Speed is a virtue for integrity checking and a catastrophe for password storage. Algorithms are not "strong" or "weak" in the abstract — they are appropriate or inappropriate for a purpose.</p>
+</blockquote>
+<h3>Failure 2: "We encrypted it." — the sentence with a missing half</h3>
+<p>Encryption without <strong>integrity</strong> is a trap. A ciphertext that can be silently modified is worse than useless, because it produces confident wrong answers instead of errors — exactly what Lab 10.5 showed you with CBC. The modern answer is <strong>authenticated encryption (AEAD)</strong>: AES-GCM and ChaCha20-Poly1305 encrypt <em>and</em> attach a tag proving the data was not altered; if the tag fails, decryption is refused. <strong>Never use a mode without authentication on data you care about — and never invent your own way of combining encryption and authentication.</strong> Experts have gotten that combination wrong repeatedly; it is not a place for improvisation.</p>
+<h3>Failure 3: the certificate error — and why everyone clicks through</h3>
+<p>Lab 10.3 had you read <code>unable to get local issuer certificate</code> and translate it. That error means one thing: <strong>the chain of trust broke</strong> — the certificate is not signed by anyone your machine trusts, or it expired, or the name does not match. In a well-run environment that means something is genuinely wrong: an expired certificate on a load balancer, a misconfiguration, or an attacker intercepting your traffic with a forged certificate.</p>
+<p>But users click through certificate warnings because <strong>warnings are noise.</strong> They have clicked through a hundred expired-certificate warnings caused by lazy server administration, so the one time it matters looks identical to the ninety-nine that did not. That is a security <strong>usability</strong> failure, not a user intelligence failure — and understanding the distinction is a mark of a professional. The defence is not "train users better"; it is <strong>HSTS</strong> (making browsers refuse plain HTTP entirely, so downgrade attacks fail) and <strong>certificate pinning</strong> in applications. When you design a system, your job is to make the secure path the easy path — because the insecure path is always the one people take at 5pm on a Friday.</p>
+<h3>Failure 4: weak randomness — the failure nobody sees coming</h3>
+<p>Every key, session token, password-reset link, and nonce depends on randomness. If the randomness is predictable, everything built on it collapses — and it collapses <strong>silently</strong>. The encryption is mathematically perfect; the key was just guessable. The pattern is always the same: someone uses a general-purpose random function, or a timestamp, or a counter, because it "looks random" and is convenient. This has caused real, high-profile breaks, including session tokens predictable by observing a previous one.</p>
+<p><strong>The rule is absolute:</strong> use a <strong>cryptographically secure</strong> random number generator (<code>/dev/urandom</code>, or the CSPRNG in your language's crypto library — <code>secrets</code> in Python, <code>crypto.randomBytes</code> in Node). Never a general-purpose random function for anything security-related. Never a timestamp. Never a counter. This is why the picoCTF challenge <em>Timestamped Secrets</em> exists: the lesson is not about the cipher at all — a perfect cipher with a predictable key is not encryption, it is obfuscation.</p>
+<h3>Failure 5: rolling your own</h3>
+<p>Every failure above happened to teams with good engineers under real deadlines. That is the entire argument.</p>
+<p>Cryptography is the one area of this field where <strong>the expert consensus is that you should not build, modify, or hand-assemble primitives — and you should be suspicious of anyone who wants to.</strong> Not because writing code that produces encrypted output is hard; that part is easy, and that is the trap. It is hard because the failures are <strong>invisible</strong>. Broken crypto looks exactly like working crypto. It passes every test where you encrypt, decrypt, and see your data. It only fails when an attacker who knows what they are doing shows up — and by then the data is gone.</p>
+<p><strong>The professional rule, which you should be able to recite:</strong> use a well-maintained, widely-audited library. Use it the way its documentation tells you to. Use it for the purpose it was designed for. Do not implement a primitive from a description. Do not invent a combination of primitives. Do not "improve" an algorithm. And if you ever think <em>"I'll just do my own version of this"</em> — stop, and read the documentation again.</p>
+<h3>At rest and in transit — both, not either</h3>
+<ul>
+<li><strong>In transit</strong> protects data moving across a network. That is TLS, and it is why HTTPS matters. Without it, anyone on the same Wi-Fi — a café, an airport, a hotel — can read and modify your traffic.</li>
+<li><strong>At rest</strong> protects data sitting on a disk. That is full-disk encryption, encrypted database columns, or encrypted backups. Without it, a stolen laptop, a discarded drive, or a misconfigured backup bucket is a full data breach.</li>
+</ul>
+<p>A system can be encrypted in transit and completely exposed at rest, or vice versa, and both count as breaches. When you assess a system, ask about both — then ask the third question most people miss: <strong>where do the keys live?</strong> Encryption with the key stored next to the data protects you from exactly nothing.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>التشفير هو النقطة التي يتوقف عندها الأمن عن كونه مسألة رأي.</strong></p>
+<p>في كل مجال آخر يمكنك أن تجادل. هل كانت قاعدة الجدار الناري تلك ضرورية؟ هل هذا الخطر مقبول؟ مهنيون عقلاء يختلفون. أما التشفير فمختلف: إما أن تصمد الرياضيات أو لا تصمد. لهذا لا يُغتفر الإهمال هنا — ولهذا تتكرر الإخفاقات نفسها عقداً بعد عقد.</p>
+<h3>الإخفاق 1: "جزّأنا كلمات المرور." — الجملة التي لا تعني شيئاً</h3>
+<p>أكثر شعور زائف بالأمان شيوعاً في المجال. تجزئة كلمات المرور هي الحد الأدنى؛ وهي أيضاً <em>بداية</em> السؤال لا جوابه. اسأل ثلاثة أسئلة متابعة، بهذا الترتيب:</p>
+<ol>
+<li><strong>أي دالة تجزئة؟</strong> إن كان الجواب MD5 أو SHA-1، فكلمات المرور عملياً نص صريح — لا لأن أحداً يستطيع عكس البصمة (لا يستطيع، وهذه الدقة مهمة) بل لأن هذه الخوارزميات <strong>مصمَّمة لتكون سريعة</strong>. المختبر 10.2 أعطاك الرقم بنفسك: مليارات التخمينات في الثانية.</li>
+<li><strong>هل هي مملَّحة؟</strong> التجزئة بلا ملح تعني أن كل مستخدم بنفس كلمة المرور لديه قيمة مخزَّنة متطابقة. اكسر واحدة تملك الجميع — وجدول قوس المطر المحسوب مسبقاً يتيح كسرها قبل أن تبدأ أصلاً. الملح لا يجعل كلمة المرور الضعيفة قوية. إنه يُبطل الحساب المسبق، ويجعل كسر <em>قاعدة بيانات</em> مكلفاً بقدر كسر كل كلمة مرور على حدة.</li>
+<li><strong>هل هي بطيئة؟</strong> الخوارزميات الصحيحة — <strong>Argon2id</strong> و <strong>scrypt</strong> و <strong>bcrypt</strong> — بطيئة عمداً وبشكل قابل للضبط، وشرهة للذاكرة (في Argon2 و scrypt). تسجيل دخول شرعي يستغرق ~100 مللي ثانية ولا يلاحظه أحد؛ أما مهاجم يجرّب مليارات التخمينات فيستغرق قروناً بدل ثوانٍ. وتصنّف OWASP حالياً Argon2id أولاً، و scrypt ثانياً، و bcrypt كخيار قديم.</li>
+</ol>
+<blockquote>
+<p><strong>الدرس المخالف للحدس الذي يستغرق الناس سنوات لاستيعابه: دالة التجزئة الجيدة ليست دالة تجزئة كلمات مرور جيدة.</strong> SHA-256 دالة تجزئة ممتازة وخوارزمية تخزين كلمات مرور كارثية. السرعة فضيلة في التحقق من السلامة وكارثة في تخزين كلمات المرور. الخوارزميات ليست "قوية" أو "ضعيفة" في المطلق — إنها مناسبة لغرض أو غير مناسبة له.</p>
+</blockquote>
+<h3>الإخفاق 2: "شفّرناها." — الجملة الناقصة النصف</h3>
+<p>التشفير بلا <strong>سلامة</strong> فخ. فالنص المشفَّر القابل للتعديل بصمت أسوأ من عديم الفائدة، لأنه ينتج أجوبة خاطئة واثقة بدل أن ينتج أخطاء — وهذا بالضبط ما أظهره لك المختبر 10.5 مع CBC. والجواب الحديث هو <strong>التشفير الموثَّق (AEAD)</strong>: AES-GCM و ChaCha20-Poly1305 يشفّران <em>ويرفقان</em> وسمة (tag) تثبت أن البيانات لم تُعدَّل؛ فإن فشلت الوسمة رُفض فك التشفير. <strong>لا تستخدم نمطاً بلا مصادقة على بيانات تهمك — ولا تخترع طريقتك الخاصة في الجمع بين التشفير والمصادقة.</strong> أخطأ الخبراء في هذه التركيبة مراراً؛ فهي ليست موضعاً للارتجال.</p>
+<h3>الإخفاق 3: خطأ الشهادة — ولماذا ينقر الجميع ويتجاوزونه</h3>
+<p>طلب منك المختبر 10.3 أن تقرأ <code>unable to get local issuer certificate</code> وتترجمها. هذا الخطأ يعني شيئاً واحداً: <strong>انكسرت سلسلة الثقة</strong> — فالشهادة ليست موقَّعة من طرف يثق به جهازك، أو انتهت صلاحيتها، أو أن الاسم لا يطابق. وفي بيئة مُدارة جيداً يعني ذلك أن هناك خللاً حقيقياً: شهادة منتهية على موازن تحميل (load balancer)، أو خطأ إعداد، أو مهاجم يعترض حركتك بشهادة مزوَّرة.</p>
+<p>لكن المستخدمين ينقرون على تحذيرات الشهادات ويتجاوزونها لأن <strong>التحذيرات صارت ضجيجاً.</strong> فقد تجاوزوا مئة تحذير شهادة منتهية سببها إهمال إداري، فباتت المرة الوحيدة التي تهم <strong>مطابقة بصرياً</strong> للتسع والتسعين التي لم تهم. <strong>هذا فشل في قابلية الاستخدام، لا فشل في ذكاء المستخدم</strong> — وإدراك هذا الفرق علامة على المهنية. والدفاع ليس "درّب المستخدمين أفضل"؛ إنه <strong>HSTS</strong> (بجعل المتصفحات ترفض HTTP الصريح تماماً فتفشل هجمات التخفيض) و<strong>التثبيت (certificate pinning)</strong> في التطبيقات. وعندما تصمّم نظاماً، فمهمتك أن تجعل المسار الآمن هو المسار السهل — لأن المسار غير الآمن هو الذي سيسلكه الناس دائماً في الخامسة مساء يوم جمعة.</p>
+<h3>الإخفاق 4: عشوائية ضعيفة — الإخفاق الذي لا يتوقعه أحد</h3>
+<p>كل مفتاح، ورمز جلسة، ورابط إعادة تعيين كلمة المرور، و nonce يعتمد على العشوائية. فإن كانت العشوائية قابلة للتوقع انهار كل ما بُني عليها — وينهار <strong>بصمت</strong>. التشفير سليم رياضياً؛ المفتاح وحده هو الذي كان قابلاً للتخمين. والنمط دائماً واحد: يستخدم أحدهم دالة عشوائية عامة الغرض، أو طابعاً زمنياً (timestamp)، أو عدّاداً، لأنها "تبدو عشوائية" ومريحة. وقد سبّبت هذه إخفاقات حقيقية بارزة، منها رموز جلسة صار يمكن توقعها بمراقبة رمز سابق.</p>
+<p><strong>والقاعدة مطلقة:</strong> استخدم مولّد أرقام عشوائية <strong>آمناً تشفيرياً</strong> (<code>/dev/urandom</code>، أو الـ CSPRNG في مكتبة التشفير الخاصة بلغتك — <code>secrets</code> في Python، و <code>crypto.randomBytes</code> في Node). ولا تستخدم دالة عشوائية عامة الغرض لأي شيء أمني أبداً. ولا طابعاً زمنياً. ولا عدّاداً. ولهذا يوجد تحدي picoCTF المسمى <em>Timestamped Secrets</em>: الدرس ليس عن الشيفرة إطلاقاً — فشيفرة مثالية بمفتاح قابل للتوقع ليست تشفيراً، بل تمويهاً.</p>
+<h3>الإخفاق 5: كتابة التشفير بنفسك</h3>
+<p>كل إخفاق سبق حدث لفرق تضم مهندسين جيدين تحت مواعيد تسليم حقيقية. وهذه هي الحجة كاملة.</p>
+<p>التشفير هو المجال الوحيد في هذا الميدان الذي <strong>يكون فيه إجماع الخبراء على أنك لا تبني العناصر التشفيرية ولا تعدّلها ولا تجمعها يدوياً — وأن تشك في كل من يريد ذلك.</strong> لا لأن كتابة كود يُنتج مخرجات مشفَّرة صعبة؛ فهذا الجزء سهل، وهنا يكمن الفخ. بل لأن الإخفاقات <strong>غير مرئية</strong>. فالتشفير المكسور يبدو تماماً كالتشفير العامل. ينجح في كل اختبار تشفّر فيه وتفكّ التشفير فترى بياناتك. ولا يفشل إلا عندما يظهر مهاجم يعرف ما يفعله — وعندها تكون البيانات قد ذهبت.</p>
+<p><strong>والقاعدة المهنية، التي يجب أن تكون قادراً على ترديدها:</strong> استخدم مكتبة مُصانة جيداً ومُدقَّقة على نطاق واسع. واستخدمها بالطريقة التي تقولها وثائقها. واستخدمها للغرض الذي صُمّمت له. لا تُنفّذ عنصراً تشفيرياً من وصف. لا تخترع تركيبة من العناصر. لا "تحسّن" خوارزمية. وإن خطر لك يوماً <em>"سأعمل نسختي الخاصة من هذا"</em> — فتوقف، واقرأ الوثائق مرة أخرى.</p>
+<h3>في التخزين وأثناء النقل — كلاهما، لا أحدهما</h3>
+<ul>
+<li><strong>أثناء النقل</strong> يحمي البيانات المنتقلة عبر الشبكة. وذلك هو TLS، ولهذا يهم HTTPS. وبدونه، يستطيع أي شخص على نفس شبكة Wi-Fi — مقهى، مطار، فندق — قراءة حركتك وتعديلها.</li>
+<li><strong>في التخزين</strong> يحمي البيانات الجاثمة على القرص. وذلك هو تشفير القرص الكامل، أو أعمدة قاعدة بيانات مشفّرة، أو نسخ احتياطية مشفّرة. وبدونه، حاسوب محمول مسروق أو قرص مُهمَل أو دلو نسخ احتياطي سيئ الإعداد يساوي اختراقاً كاملاً للبيانات.</li>
+</ul>
+<p>يمكن أن يكون النظام مشفَّراً أثناء النقل ومكشوفاً تماماً في التخزين، أو العكس، وكلاهما يُحتسب اختراقاً. وعندما تقيّم نظاماً، اسأل عن الاثنين — ثم اسأل السؤال الثالث الذي ينساه معظم الناس: <strong>أين تُخزَّن المفاتيح؟</strong> تشفير مع تخزين المفتاح بجانب البيانات = لا حماية على الإطلاق.</p></div>
+  </div>
+</details><details class="lesson-sec" id="checkpoint" data-sec="checkpoint" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4M4 4h12l-1.5 4L16 12H4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Prove it to yourself before moving on</span><span class="only-ar">أثبت لنفسك أنك أتقنت قبل المتابعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>Unassisted. No notes. Hands-on.</strong></p>
+<ul>
+<li class="task">Given a scenario, state whether hashing, encryption, or encoding is the right tool — and why the other two are wrong</li>
+<li class="task">Hash a string, change one character, re-hash, and explain the avalanche effect</li>
+<li class="task">Explain precisely why MD5 is "broken", and what it is <em>not</em> broken for</li>
+<li class="task">Describe what a salt does and which attack it defeats</li>
+<li class="task">Name the three recommended password storage algorithms in order, and say what makes them unlike SHA-256</li>
+<li class="task">Decrypt a file with a symmetric key, and articulate what problem this creates at scale</li>
+<li class="task">Sign a file, verify it, tamper with it, and explain the failure</li>
+<li class="task">Decode a real certificate's issuer, subject, SAN, validity dates and key algorithm — and trace its chain to a root CA</li>
+<li class="task">Explain what TLS uses symmetric crypto for, what it uses asymmetric crypto for, and why it needs both</li>
+<li class="task">State the rule about writing your own crypto, and defend it with two failures from this week</li>
+<li class="task">Complete 4 picoCTF cryptography challenges, with the concept written up for each</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>بلا مساعدة. بلا ملاحظات. تطبيق عملي.</strong></p>
+<ul>
+<li class="task">أمامك سيناريو: حدّد هل التجزئة أم التشفير أم الترميز هو الأداة الصحيحة — ولماذا الاثنان الآخران خطأ</li>
+<li class="task">جزّئ نصاً، وغيّر حرفاً واحداً، وأعد التجزئة، واشرح تأثير الانهيار</li>
+<li class="task">اشرح بدقة لماذا MD5 "مكسورة"، وما الذي <em>لم</em> تُكسر من أجله</li>
+<li class="task">صِف ما يفعله الملح، وأي هجوم يُبطله</li>
+<li class="task">سمِّ خوارزميات تخزين كلمات المرور الثلاث الموصى بها بالترتيب، واذكر ما يجعلها مختلفة عن SHA-256</li>
+<li class="task">فُكّ تشفير ملف بمفتاح متماثل، وصِغ المشكلة التي يخلقها ذلك على نطاق واسع</li>
+<li class="task">وقّع ملفاً، وتحقق منه، وعبث به، واشرح سبب الفشل</li>
+<li class="task">فُكّ ترميز شهادة حقيقية: جهة الإصدار، والموضوع، و SAN، وتواريخ الصلاحية، وخوارزمية المفتاح — وتتبّع سلسلتها إلى شهادة جذرية</li>
+<li class="task">اشرح ما يستخدمه TLS للتشفير المتماثل، وما يستخدمه للتشفير غير المتماثل، ولماذا يحتاج الاثنين</li>
+<li class="task">اذكر القاعدة المتعلقة بكتابة تشفيرك بنفسك، ودافع عنها بإخفاقين من هذا الأسبوع</li>
+<li class="task">أكمل 4 تحديات تشفير من picoCTF، مع كتابة المفهوم لكل واحد منها</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec only-ar" id="notes" data-sec="notes" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 0-9-9"/><path d="M12 7v5l3 2M3 21l3-3"/></svg></span>
+    <span class="lesson-titles">
+      <h2>ملاحظات مفاهيمية موسّعة</h2>
+      <span class="lesson-sub"><span>شرح إضافي موسّع</span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose" dir="rtl" lang="ar"><h3>الترميز والتجزئة والتشفير — ثلاثة أشياء مختلفة تماماً</h3>
+<p>أخطر التباس في المجال كله. المبتدئ يرى نصاً مشوّهاً فيظنه "مشفّراً"، بينما هو مجرد <strong>ترميز</strong> لا يحمي شيئاً:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>الترميز (Encoding)</th>
+<th>التجزئة (Hashing)</th>
+<th>التشفير (Encryption)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>الهدف</strong></td>
+<td>تمثيل البيانات بشكل آخر</td>
+<td>السلامة + تخزين كلمات المرور</td>
+<td><strong>السرية</strong></td>
+</tr>
+<tr>
+<td><strong>قابل للعكس؟</strong></td>
+<td>✅ نعم، لأي شخص</td>
+<td>❌ لا، أبداً</td>
+<td>✅ نعم، <strong>لمن يملك المفتاح</strong></td>
+</tr>
+<tr>
+<td><strong>يحتاج مفتاحاً؟</strong></td>
+<td>❌ لا</td>
+<td>❌ لا</td>
+<td>✅ نعم</td>
+</tr>
+<tr>
+<td><strong>هل هو إجراء أمني؟</strong></td>
+<td>❌ <strong>لا إطلاقاً</strong></td>
+<td>✅ للتخزين، لا للسرية</td>
+<td>✅ نعم</td>
+</tr>
+<tr>
+<td><strong>أمثلة</strong></td>
+<td>Base64 · Hex · URL</td>
+<td>SHA-256 · MD5 · bcrypt</td>
+<td>AES · RSA · ChaCha20</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>التشبيهات التي تحسم الأمر:</strong></p>
+<p><strong>1. الترميز = كتابة العربية بحروف إنجليزية (Arabizi).</strong> لو كتبت "مرحبا" هكذا <code>marhaba</code> — هل أخفيت المعنى؟ <strong>لا.</strong> غيّرت طريقة الكتابة فقط، وأي شخص يعرف القاعدة يقرؤها فوراً. الترميز ليس أماناً، بل وسيلة لنقل البيانات عبر أنظمة لا تقبل بعض الرموز. عندما ترى <code>SGVsbG8=</code> وتظن أنك "شفّرت" شيئاً — فأنت لم تفعل. هذه Base64، وعكسها متاح للجميع.</p>
+<p><strong>2. التجزئة = بصمة الإصبع أو عصر الفاكهة.</strong> لو أعطيتك بصمة إصبع، هل تستطيع إعادة بناء الشخص منها؟ <strong>لا.</strong> هذه هي التجزئة: اتجاه واحد.</p>
+<ul>
+<li><strong>عصير الفاكهة:</strong> لا يمكنك استرجاع التفاحة من العصير. لكن <strong>نفس التفاحة تُنتج دائماً نفس العصير</strong> — وهذا بالضبط ما يجعل التجزئة بلا "ملح" خطيرة.</li>
+<li><strong>بصمة الإصبع:</strong> ثابتة للشخص نفسه، وقصيرة جداً مقارنة بحجمه. كذلك التجزئة: ثابتة الطول (64 حرفاً في SHA-256) مهما كان حجم المدخل.</li>
+</ul>
+<p><strong>3. التشفير = خزنة بمفتاح.</strong> المحتوى موجود بالكامل لكنه مقفل. <strong>من يملك المفتاح يراه، ومن لا يملكه لا يراه.</strong> وهو الإجراء الوحيد من الثلاثة الذي يحقق <strong>السرية</strong>.</p>
+<blockquote>
+<p><strong>قاعدة تذكّرها دائماً:</strong> إذا استطاع أي شخص عكس العملية <strong>بدون مفتاح</strong> — فهو <strong>ترميز</strong> وليس تشفيراً. وإذا لم يكن هناك عكس <strong>إطلاقاً</strong> — فهي <strong>تجزئة</strong>. وإذا تطلّب العكس <strong>مفتاحاً</strong> — فهذا <strong>تشفير</strong>.</p>
+</blockquote>
+<h3>التشفير المتماثل وغير المتماثل — مفتاح واحد أم مفتاحان؟</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>المتماثل (Symmetric)</th>
+<th>غير المتماثل (Asymmetric)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>عدد المفاتيح</strong></td>
+<td>مفتاح واحد</td>
+<td>مفتاحان: <strong>عام</strong> و<strong>خاص</strong></td>
+</tr>
+<tr>
+<td><strong>السرعة</strong></td>
+<td>سريع جداً</td>
+<td>بطيء (أبطأ بمئات المرات)</td>
+</tr>
+<tr>
+<td><strong>أمثلة</strong></td>
+<td>AES · ChaCha20</td>
+<td>RSA · ECC</td>
+</tr>
+<tr>
+<td><strong>المشكلة الأساسية</strong></td>
+<td><strong>توزيع المفتاح</strong></td>
+<td>بطء شديد للبيانات الكبيرة</td>
+</tr>
+<tr>
+<td><strong>الاستخدام الفعلي</strong></td>
+<td>تشفير البيانات نفسها</td>
+<td>تبادل المفاتيح · التوقيعات · الشهادات</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>مشكلة توزيع المفتاح، بمثال ملموس:</strong> أنت وأحمد تريدان التواصل سراً. التشفير المتماثل يحتاج أن <strong>كليكما يملك نفس المفتاح</strong>. حسناً — <strong>كيف تُوصل المفتاح لأحمد؟</strong> إن أرسلته في رسالة فقد يقرؤه من يعترضها، وعندها انتهى كل شيء. وإن كان لديكما قناة آمنة أصلاً لتوصيل المفتاح — فلماذا تحتاج التشفير من الأساس؟ <strong>هذه حلقة مفرغة حقيقية.</strong></p>
+<p><strong>الحل — تشبيه صندوق البريد:</strong> أي شخص في المدينة يستطيع إلقاء رسالة في الفتحة (<strong>المفتاح العام</strong> — منشور للجميع). لكن <strong>مفتاح فتح الصندوق</strong> لا يملكه إلا صاحب الصندوق (<strong>المفتاح الخاص</strong> — سرّي دائماً). الآن يستطيع أحمد أن يرسل لك سراً دون أن تلتقيا مسبقاً ودون تبادل أي سر. <strong>هذا هو حل مشكلة توزيع المفتاح.</strong></p>
+<p><strong>كيف يعمل TLS بالاثنين معاً؟</strong> أهم نقطة في الأسبوع: (1) <strong>غير المتماثل</strong> في البداية فقط — للتحقق من هوية الخادم عبر الشهادة وتبادل <strong>مفتاح جلسة</strong> جديد. (2) <strong>المتماثل</strong> (AES) لتشفير <strong>كل البيانات الفعلية</strong> — لأنه أسرع بمئات المرات.</p>
+<blockquote>
+<p><strong>الخلاصة:</strong> غير المتماثل يحل <strong>توزيع المفتاح</strong> لكنه بطيء؛ المتماثل سريع لكنه يحتاج مفتاحاً مشتركاً. <strong>TLS يجمع الاثنين:</strong> غير متماثل مرة واحدة في البداية، ثم متماثل لكل ما بعده. هذا التصميم الذكي هو ما يجعل الإنترنت ممكناً.</p>
+</blockquote>
+<h3>التجزئة بعمق: SHA-256 و MD5 وكيف "تُكسر" الدوال</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الخاصية</th>
+<th>المعنى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>أحادية الاتجاه</strong></td>
+<td>لا يمكن استرجاع المدخل من المخرج</td>
+</tr>
+<tr>
+<td><strong>ثابتة الطول</strong></td>
+<td>أي مدخل → مخرج بطول ثابت (SHA-256 = 256 بت)</td>
+</tr>
+<tr>
+<td><strong>حساسية فائقة</strong> (Avalanche)</td>
+<td>تغيير حرف واحد يغيّر <strong>نصف</strong> البتات</td>
+</tr>
+<tr>
+<td><strong>حتمية</strong></td>
+<td>نفس المدخل → نفس المخرج دائماً</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>ما معنى أن MD5 "مكسورة" بالضبط؟</strong> هنا دقة ضرورية:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المفهوم</th>
+<th>المعنى</th>
+<th>حالة MD5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>مقاومة ما قبل الصورة</strong> (Preimage)</td>
+<td>إيجاد <strong>مدخل</strong> من مخرجه</td>
+<td>⚠️ لم تُكسر عملياً</td>
+</tr>
+<tr>
+<td><strong>مقاومة التصادم</strong> (Collision)</td>
+<td>إيجاد <strong>مدخلين مختلفين</strong> بنفس المخرج</td>
+<td>❌ <strong>مكسورة تماماً</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>الترجمة العملية:</strong> لا تستطيع أن تأخذ بصمة MD5 وتستعيد كلمة المرور منها. لكن تستطيع أن تصنع <strong>ملفين مختلفين تماماً</strong> لهما نفس البصمة — وقد حدث هذا فعلاً واستُخدم في هجمات حقيقية. <strong>لماذا لا تزال MD5 في كل مكان؟</strong> التوافق مع أنظمة قديمة عمرها 20 سنة · استخدامات غير أمنية (كشف تلف قرص عارض، حيث MD5 كافٍ) · <strong>الجهل</strong> — وهو السبب الأكثر شيوعاً.</p>
+<blockquote>
+<p><strong>لكن السبب الأهم لتجنّب MD5 و SHA-1 في كلمات المرور ليس التصادم — بل السرعة.</strong> فهما <strong>مصمَّمتان لتكونا سريعتين</strong>، والسرعة عدوّ كلمات المرور. لهذا نستخدم دوال <strong>مصمَّمة لتكون بطيئة</strong>: bcrypt · scrypt · Argon2.</p>
+</blockquote>
+<h3>الملح (Salt) — لماذا التجزئة بلا ملح كارثة</h3>
+<p><strong>الملح</strong> = قيمة عشوائية فريدة تُضاف لكل كلمة مرور <strong>قبل</strong> تجزئتها، وتُخزَّن بجانب البصمة. <strong>الملح ليس سراً</strong> — وظيفته ليست السرية. بدونه، أحمد وسارة بكلمة المرور <code>password123</code> لهما <strong>نفس البصمة تماماً</strong>: اكسر واحدة تكسر الاثنتين. <strong>ماذا يمنع الملح؟</strong> <strong>جداول قوس المطر (Rainbow Tables)</strong> — جداول جاهزة بملايين البصمات المحسوبة مسبقاً تصبح كلها بلا قيمة — و<strong>الهجمات الجماعية</strong>، إذ يصبح كسر كل كلمة مرور جهداً مستقلاً.</p>
+<blockquote>
+<p>⚠️ <strong>وماذا لا يمنع؟ الملح لا يجعل كلمة مرور ضعيفة قوية.</strong> إذا كانت كلمة المرور <code>123456</code> فستُكسر حتى مع الملح. الملح يمنع <strong>إعادة الاستخدام</strong>، ولا يعوّض عن <strong>ضعف كلمة المرور</strong> ولا عن <strong>خوارزمية بطيئة</strong>.</p>
+</blockquote>
+<h3>تخزين كلمات المرور: الصواب مقابل الخطأ</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>❌ خطأ فادح</th>
+<th>⚠️ مقبول بشروط</th>
+<th>✅ الصحيح</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>نص صريح (plaintext)</td>
+<td>SHA-256/SHA-512 + ملح</td>
+<td><strong>Argon2id</strong> (الخيار الأول)</td>
+</tr>
+<tr>
+<td>MD5 (بملح أو بدونه)</td>
+<td>PBKDF2 (عند اشتراط FIPS)</td>
+<td><strong>scrypt</strong> (البديل الأول)</td>
+</tr>
+<tr>
+<td>SHA-1 · SHA-256 <strong>بلا</strong> ملح</td>
+<td>bcrypt (للأنظمة القديمة، بمعامل عمل ≥ 10)</td>
+<td><strong>bcrypt</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>لماذا هذه الثلاثة بالذات؟</strong> لأنها <strong>مصمَّمة لتكون بطيئة ومكلفة</strong>، وبطؤها قابل للضبط: <strong>Argon2</strong> تستهلك <strong>ذاكرة</strong> كبيرة + تمريرات + توازٍ (فائزة مسابقة تجزئة كلمات المرور 2015) · <strong>scrypt</strong> ذاكرة (N) + حجم كتلة (r) + توازٍ (p) · <strong>bcrypt</strong> معامل العمل، وكل زيادة تضاعف الزمن (<strong>أقصى طول مدخل 72 بايت</strong>).</p>
+<blockquote>
+<p><strong>النتيجة:</strong> تسجيل دخول شرعي يأخذ 100 مللي ثانية — لا يلاحظه أحد. المهاجم يحاول <strong>مليارات</strong> التخمينات — فيستغرق <strong>قروناً</strong> بدل ثوانٍ. <strong>البطء هنا ليس عيباً، بل هو الميزة كلها.</strong></p>
+</blockquote>
+<h3>التوقيعات الرقمية وشهادات PKI</h3>
+<p><strong>التوقيع الرقمي</strong> = تجزئة الملف + تشفير تلك التجزئة <strong>بالمفتاح الخاص</strong>. للتحقق يفكّ الجميع التجزئة بالمفتاح العام ويقارنونها. <strong>يثبت:</strong> ✅ <strong>السلامة</strong> (لم يُعدَّل الملف بحرف) · ✅ <strong>الأصالة</strong> (صادر من مالك المفتاح الخاص) · ✅ <strong>عدم الإنكار</strong>.</p>
+<p><strong>دقة ضرورية:</strong> عدم الإنكار خاصية <strong>المفتاح</strong>، لا <strong>الشخص</strong>. إذا سُرِق المفتاح الخاص أو شاركه صاحبه أو وُلِّد على جهاز مخترَق — <strong>ينهار عدم الإنكار بالكامل</strong>. التشفير يثبت <strong>حيازة مفتاح</strong>، لا <strong>من كان أمام الشاشة</strong>.</p>
+<p><strong>سلسلة الثقة:</strong> <strong>الشهادة الجذرية (Root CA)</strong> — مخزّنة مسبقاً في نظامك وموثوقة ضمنياً → توقّع → <strong>الشهادة الوسيطة (Intermediate CA)</strong> → توقّع → <strong>شهادة الموقع (Leaf)</strong>.</p>
+<p><strong>كيف يتحقق المتصفح؟</strong> يصعد في السلسلة حتى يصل إلى شهادة جذرية <strong>موجودة في مخزنه</strong>. إن وصل ✅، وإن لم يصل → <strong>تحذير</strong>. ويسأل أربعة أسئلة: (1) هل تنتهي السلسلة إلى جذر موثوق؟ → وإلا <code>unable to get local issuer certificate</code> · (2) هل التاريخ داخل فترة الصلاحية؟ → وإلا <strong>"الشهادة منتهية"</strong> · (3) هل اسم النطاق مطابق لـ <strong>SAN</strong>؟ (المتصفحات الحديثة <strong>تتجاهل CN تماماً</strong>) → وإلا <strong>"عدم تطابق الاسم"</strong> · (4) هل الشهادة مُبطَلة (OCSP / CRL)؟</p>
+<p><strong>لماذا ينقر المستخدمون على التحذير ويتجاوزونه؟</strong> لأن التحذيرات صارت <strong>ضجيجاً</strong>: شهادات منتهية بسبب إهمال إداري تتكرر مئات المرات، فيصبح التحذير الذي يهم فعلاً <strong>مطابقاً بصرياً</strong> لمئة تحذير لا تهم. <strong>هذا فشل في تصميم قابلية الاستخدام، لا فشل في ذكاء المستخدم.</strong> والحلول الحقيقية هي <strong>HSTS</strong> (يمنع المتصفح من الاتصال بـ HTTP أصلاً فتفشل هجمات التخفيض) و<strong>التثبيت (Pinning)</strong>.</p>
+<h3>الأخطاء الشائعة، والتشفير أثناء النقل مقابل في التخزين</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>أثناء النقل (In Transit)</th>
+<th>في التخزين (At Rest)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>يحمي من</strong></td>
+<td>اعتراض الشبكة (واي فاي عام، مهاجم على نفس الشبكة)</td>
+<td>سرقة الجهاز، قرص مُهمَل، نسخة احتياطية مكشوفة</td>
+</tr>
+<tr>
+<td><strong>التقنية</strong></td>
+<td>TLS</td>
+<td>تشفير القرص الكامل · أعمدة قاعدة بيانات مشفّرة · نسخ احتياطية مشفّرة</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>سؤال ثالث ينساه الجميع: أين تُخزَّن المفاتيح؟</strong> تشفير مع تخزين المفتاح بجانب البيانات = <strong>لا حماية على الإطلاق</strong>.</p>
+<p><strong>القانون المقدّس:</strong> استخدم مكتبة موثوقة ومُدقَّقة، بالطريقة التي تقولها وثائقها، للغرض الذي صُمّمت له. <strong>لا تُنفّذ خوارزمية من وصف قرأته. لا تخترع تركيبة. لا "تحسّن" خوارزمية. ولا تقل أبداً: "سأعمل نسختي الخاصة".</strong></p>
+</blockquote></div></div>
+</details><details class="lesson-sec" id="terms" data-sec="terms" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Keep these in English</span><span class="only-ar">احتفظ بها بالإنجليزية</span></span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>العربية</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encoding</td>
+<td>الترميز</td>
+<td>عكسه متاح للجميع — ليس أماناً</td>
+</tr>
+<tr>
+<td>Hashing</td>
+<td>التجزئة</td>
+<td>اتجاه واحد، بلا مفتاح</td>
+</tr>
+<tr>
+<td>Encryption</td>
+<td>التشفير</td>
+<td>عكسه يحتاج مفتاحاً</td>
+</tr>
+<tr>
+<td>Plaintext / Ciphertext</td>
+<td>النص الصريح / المشفَّر</td>
+<td>قبل وبعد التشفير</td>
+</tr>
+<tr>
+<td>Symmetric / Asymmetric</td>
+<td>متماثل / غير متماثل</td>
+<td>مفتاح واحد (AES) / مفتاحان (RSA · ECC)</td>
+</tr>
+<tr>
+<td>Public / Private Key</td>
+<td>المفتاح العام / الخاص</td>
+<td>العام يُنشر، الخاص يُخفى</td>
+</tr>
+<tr>
+<td>Salt</td>
+<td>الملح</td>
+<td>قيمة عشوائية لكل كلمة مرور</td>
+</tr>
+<tr>
+<td>Rainbow Table</td>
+<td>جدول قوس المطر</td>
+<td>بصمات محسوبة مسبقاً — يُبطلها الملح</td>
+</tr>
+<tr>
+<td>Avalanche Effect</td>
+<td>تأثير الانهيار</td>
+<td>تغيير حرف يغيّر نصف البتات</td>
+</tr>
+<tr>
+<td>Collision</td>
+<td>التصادم</td>
+<td>مدخلان بنفس البصمة</td>
+</tr>
+<tr>
+<td>Key Distribution</td>
+<td>توزيع المفتاح</td>
+<td>المشكلة التي حلّها التشفير غير المتماثل</td>
+</tr>
+<tr>
+<td>Digital Signature</td>
+<td>التوقيع الرقمي</td>
+<td>سلامة + أصالة + عدم إنكار</td>
+</tr>
+<tr>
+<td>Non-Repudiation</td>
+<td>عدم الإنكار</td>
+<td>خاصية <strong>المفتاح</strong> لا الشخص</td>
+</tr>
+<tr>
+<td>PKI</td>
+<td>البنية التحتية للمفاتيح العامة</td>
+<td>نظام الشهادات والجهات الموثوقة</td>
+</tr>
+<tr>
+<td>Certificate Chain</td>
+<td>سلسلة الثقة</td>
+<td>جذر → وسيطة → شهادة الموقع</td>
+</tr>
+<tr>
+<td>SAN</td>
+<td>الاسم البديل للموضوع</td>
+<td>المتصفحات تطابق عليه لا على CN</td>
+</tr>
+<tr>
+<td>TLS</td>
+<td>طبقة النقل الآمنة</td>
+<td>غير متماثل للتبادل + متماثل للبيانات</td>
+</tr>
+<tr>
+<td>AEAD</td>
+<td>تشفير ومصادقة معاً</td>
+<td>AES-GCM · ChaCha20-Poly1305</td>
+</tr>
+<tr>
+<td>ECB</td>
+<td>نمط كتلة ضعيف</td>
+<td>يسرّب الأنماط — لا يُستخدم أبداً</td>
+</tr>
+<tr>
+<td>CSPRNG</td>
+<td>مولّد عشوائي آمن تشفيرياً</td>
+<td>لا تستخدم عشوائية عادية للأمان</td>
+</tr>
+</tbody>
+</table></div></div></div>
+</details>
+</div>
+<nav class="weeknav"><a class="prev" href="week-09.html"><span class="dir"><span class="only-en">← Previous</span><span class="only-ar">→ السابق</span></span><span class="ttl"><span class="only-en">Security Core: Risk, Threat Modeling, Access Control</span><span class="only-ar" dir="rtl" lang="ar">أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول</span></span></a><a class="next" href="week-11.html"><span class="dir"><span class="only-en">Next →</span><span class="only-ar">← التالي</span></span><span class="ttl"><span class="only-en">Defensive Taster: Hardening, Detection, Incident Response</span><span class="only-ar" dir="rtl" lang="ar">جولة دفاعية: التقوية والكشف والاستجابة للحوادث</span></span></a></nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+<script id="pc-data" type="application/json">{"weeks": [{"n": 1, "en": "Terminal From Zero & Build Your Lab", "ar": "Terminal من الصفر وبناء مختبرك", "desc_en": "Start from absolute zero: learn what a terminal is, why almost all security work happens there, and build your own practice lab.", "desc_ar": "ابدأ من الصفر التام: تعلّم ما هو Terminal، ولماذا يحدث العمل الأمني كله تقريباً فيها، وابنِ مختبر تدريب خاصاً بك.", "stage": 1, "difficulty": "beginner", "load": "~18h", "prereq": null, "prereqKind": "", "url": "week-01.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Terminal", "Shell", "Kernel", "Linux", "Filesystem", "Directory"], "objectives": ["Explain what an operating system, a shell, and a filesystem are, in their own words", "Navigate the filesystem confidently: pwd, ls, cd, absolute vs relative paths", "Create, read, move, copy, and delete files and directories", "Use man and --help to teach themselves a command they've never seen", "Explain what a virtual machine is and why we use one instead of our real computer"]}, {"n": 2, "en": "Linux: Filesystem, Users, Permissions, Processes", "ar": "لينكس: نظام الملفات والمستخدمون والصلاحيات والعمليات", "desc_en": "Learn how Linux organises files and decides who may touch them — and why one wrong permission can hand over a whole system.", "desc_ar": "تعرّف على كيفية تنظيم Linux للملفات وتحديد من يحق له الوصول إليها — ولماذا خطأ صلاحيات واحد قد يسلّم النظام بالكامل.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 1, "prereqKind": "gate", "url": "week-02.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation", "Least Privilege", "Process ID (PID)"], "objectives": ["Explain the Linux permission model: owner / group / other, read / write / execute", "Read and set permissions in both symbolic (rwxr-xr-x) and numeric (755) notation", "Explain what chmod, chown, umask do and when each is used", "Create users and groups; explain why privilege separation matters", "Use sudo correctly and explain why running as root permanently is dangerous"]}, {"n": 3, "en": "Linux: Services, Logs, and Bash Scripting", "ar": "لينكس: الخدمات والسجلات وكتابة سكربتات Bash", "desc_en": "See what runs in the background, how logs record nearly everything, and how to automate repetitive work instead of repeating it.", "desc_ar": "اكتشف ما يعمل في الخلفية، وكيف تسجّل السجلات كل شيء تقريباً، وكيف تُؤتمت المهام المتكررة بدل تكرارها يدوياً.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 2, "prereqKind": "checkpoint", "url": "week-03.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Service / Daemon", "systemd", "Log", "journalctl", "cron", "Persistence"], "objectives": ["Explain what a service (daemon) is and how systemd manages it", "Start, stop, enable, disable, and inspect services with systemctl", "Read and interpret journalctl output", "Locate and read the key log files in /var/log and explain what each records", "Write a Bash script with variables, conditionals, loops, and arguments"]}, {"n": 4, "en": "Networking I: Models, Addressing, How Packets Move", "ar": "الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم", "desc_en": "Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.", "desc_ar": "افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 3, "prereqKind": "checkpoint", "url": "week-04.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask", "CIDR", "Broadcast"], "objectives": ["Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent", "Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer", "Convert between decimal and binary octets by hand, without a calculator", "Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges", "Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range"]}, {"n": 5, "en": "Networking II: TCP, Ports, DNS, DHCP + Wireshark", "ar": "الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark", "desc_en": "Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.", "desc_ar": "شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 4, "prereqKind": "checkpoint", "url": "week-05.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST", "Teardown", "Ephemeral Port"], "objectives": ["Describe the TCP three-way handshake and name the flag and sequence number in each packet", "Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals", "Contrast TCP and UDP and choose correctly between them for a given use case", "State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory", "Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)"]}, {"n": 6, "en": "Networking III: TLS, Firewalls, NAT + Nmap", "ar": "الشبكات ٣: TLS والجدران النارية وNAT مع Nmap", "desc_en": "Learn how connections are encrypted and filtered, then scan a network the way a security professional does — and find your own scan in the logs.", "desc_ar": "تعلّم كيف تُشفَّر الاتصالات وتُفلتر، ثم امسح شبكة كما يفعل محترف الأمن — وابحث عن أثر مسحتك أنت في السجلات.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 5, "prereqKind": "checkpoint", "url": "week-06.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust", "SNI", "Firewall"], "objectives": ["Explain what TLS protects and what it does not protect (hint: the endpoints are still endpoints)", "Describe the TLS handshake at a high level and explain the role of the certificate and the CA chain", "Inspect a live certificate with openssl s_client and read its subject, issuer, validity, and SANs", "Contrast stateless and stateful firewalls, and explain what connection tracking buys you", "Write, order, verify, and delete ufw rules, and read a firewall block in the logs"]}, {"n": 7, "en": "Web I: HTTP Deep, Cookies, Sessions, Browsers", "ar": "الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات", "desc_en": "Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.", "desc_ar": "تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 6, "prereqKind": "checkpoint", "url": "week-07.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Request / Response", "HTTP Header", "Method", "Status Code", "Stateless", "Cookie"], "objectives": ["Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page", "Use GET, POST, PUT, DELETE deliberately and explain when a server should use each", "Classify any status code by its class (1xx–5xx) and explain what the class means", "Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers", "Explain why HTTP is stateless, and how cookies and sessions restore state on top of it"]}, {"n": 8, "en": "Web II: Architecture, Databases, APIs + OWASP Top 10", "ar": "الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10", "desc_en": "See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.", "desc_ar": "تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 7, "prereqKind": "checkpoint", "url": "week-08.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Database", "SQL", "Query", "Injection", "SQL Injection", "Prepared Statement"], "objectives": ["Describe a three-tier web architecture and identify the trust boundary between each tier", "Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN", "Explain how application code builds a query and sends it to a database", "Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header", "Name the OWASP Top 10 categories and place a given vulnerability into the right one"]}, {"n": 9, "en": "Security Core: Risk, Threat Modeling, Access Control", "ar": "أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول", "desc_en": "Learn the words the profession runs on — threat, vulnerability, risk — and how to describe a problem precisely enough to fix it.", "desc_ar": "تعلّم الكلمات التي تقوم عليها المهنة — التهديد والثغرة والخطر — وكيف تصف مشكلة بدقة تكفي لحلّها.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 8, "prereqKind": "checkpoint", "url": "week-09.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Confidentiality", "Integrity", "Availability", "Authentication", "Authorization", "DAC / MAC / RBAC / ABAC"], "objectives": ["Explain the CIA triad and give a concrete, real failure of each of the three properties", "Distinguish authentication from authorization, and explain how conflating them produces breaches", "Compare the four access control models — DAC, MAC, RBAC, ABAC — and say when each is used", "Apply least privilege and separation of duties to a real scenario", "Define asset, threat, vulnerability, exploit, and risk — and never confuse them again"]}, {"n": 10, "en": "Applied Cryptography", "ar": "التشفير التطبيقي", "desc_en": "Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.", "desc_ar": "افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 9, "prereqKind": "checkpoint", "url": "week-10.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext", "Symmetric / Asymmetric", "Public / Private Key"], "objectives": ["Distinguish hashing, encryption, and encoding — and say what each is actually for", "Explain why MD5 is broken, what \"broken\" precisely means, and why it still appears everywhere", "Explain salting, and demonstrate why an unsalted password hash is catastrophic", "Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)", "Explain symmetric encryption, and articulate the key distribution problem it creates"]}, {"n": 11, "en": "Defensive Taster: Hardening, Detection, Incident Response", "ar": "جولة دفاعية: التقوية والكشف والاستجابة للحوادث", "desc_en": "Play defence: lock down a system, collect its logs, then attack your own machine and detect yourself in a SIEM.", "desc_ar": "العب دور الدفاع: قوِّ نظاماً، واجمع سجلاته، ثم اهجم على جهازك أنت واكتشف هجومك في نظام SIEM.", "stage": 6, "difficulty": "intermediate", "load": "~18h", "prereq": 10, "prereqKind": "checkpoint", "url": "week-11.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark", "Prevention / Detection / Response", "Log Aggregation"], "objectives": ["Explain system hardening and what a CIS Benchmark actually is", "Reduce attack surface on a real Ubuntu VM: services, ports, packages, config", "Explain why prevention alone always eventually fails, and what detection adds", "Explain what a log is, what log aggregation solves, and why central collection matters", "Describe what a SIEM is, what it correlates, and why it exists"]}, {"n": 12, "en": "Offensive Taster: Methodology, Recon, Exploitation, Reporting", "ar": "جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير", "desc_en": "Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.", "desc_ar": "تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.", "stage": 6, "difficulty": "advanced", "load": "~18h", "prereq": 11, "prereqKind": "checkpoint", "url": "week-12.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)", "Penetration Test", "Vulnerability Assessment"], "objectives": ["Explain authorization, scope, and rules of engagement — and why all three are written, not spoken", "Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime", "Describe the PTES phases and where OWASP WSTG fits for web applications", "Perform passive reconnaissance using only public sources", "Perform active enumeration against your own lab target"]}, {"n": 13, "en": "Capstone: Attack/Defend Exercise & Specialization Decision", "ar": "مشروع الختام: تمرين هجوم/دفاع وقرار التخصص", "desc_en": "Put it all together in a two-team exercise, then choose the direction you will specialise in — based on what you actually did, not what sounded impressive.", "desc_ar": "اجمع كل شيء في تمرين بفريقين، ثم اختر الاتجاه الذي ستتخصص فيه — بناءً على ما فعلته فعلاً، لا على ما بدا مثيراً.", "stage": 7, "difficulty": "advanced", "load": "~18h", "prereq": 12, "prereqKind": "checkpoint", "url": "week-13.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "brief", "en": "The Scenario", "ar": "سيناريو التمرين", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "structure", "en": "Exercise Structure", "ar": "هيكل التمرين", "hours": null, "counts": true}, {"key": "rubric", "en": "How You'll Be Assessed", "ar": "كيف ستُقيَّم", "hours": null, "counts": false}, {"key": "deliverables", "en": "What You Must Deliver", "ar": "ما يجب أن تسلّمه", "hours": null, "counts": true}, {"key": "debrief", "en": "Structured Debrief", "ar": "المراجعة المنظّمة", "hours": null, "counts": false}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "decision", "en": "Choosing Your Direction", "ar": "اختيار مسارك", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "limits", "en": "What You Still Don't Know", "ar": "ما لا تعرفه بعد", "hours": null, "counts": false}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Capstone", "Attack/Defend Exercise", "Red Team / Blue Team", "Purple Team", "White Cell", "Rules of Engagement"], "objectives": ["Plan and execute a team engagement under a written scope and rules of engagement", "Defend a live Ubuntu target: hardening, monitoring, triage, containment, and reporting", "Attack a live Ubuntu target: reconnaissance, enumeration, verified exploitation, and reporting", "Keep an accurate, timestamped operational log throughout an engagement", "Produce a professional incident report (defenders) or penetration test report (attackers)"]}], "stages": [{"n": 1, "en": "Start Here — Computer & Terminal Basics", "ar": "ابدأ من هنا — أساسيات الحاسوب و Terminal", "weeks": [1], "desc_en": "What a terminal is, how a computer organises files, and how to build a safe lab you can break and rebuild without risking anything real.", "desc_ar": "ما هو Terminal، وكيف ينظّم الحاسوب ملفاته، وكيف تبني مختبراً آمناً تكسره وتعيد بناءه دون أي خطر على أجهزتك الحقيقية.", "out_en": "You have your own isolated lab and can move around a system from the command line.", "out_ar": "تملك مختبراً معزولاً خاصاً بك، وتستطيع التنقل في النظام من سطر الأوامر.", "icon": "terminal"}, {"n": 2, "en": "Linux Fundamentals", "ar": "أساسيات Linux", "weeks": [2, 3], "desc_en": "How Linux stores files, who is allowed to touch them, what runs in the background — and how intruders stay on a machine once they are in.", "desc_ar": "كيف يخزّن Linux الملفات، ومن يُسمح له بالوصول إليها، وما يعمل في الخلفية — وكيف يبقى المهاجم على الجهاز بعد دخوله.", "out_en": "You can navigate, inspect and script a Linux system — and spot the misconfigurations that give it away.", "out_ar": "تستطيع التنقل في نظام Linux وفحصه وكتابة سكربتات له — وملاحظة الأخطاء الإعدادية التي تسلّمه.", "icon": "terminal"}, {"n": 3, "en": "Networking", "ar": "الشبكات", "weeks": [4, 5, 6], "desc_en": "How machines find each other, how data actually travels, and how to watch that traffic — the skill most attacks and defences are built on.", "desc_ar": "كيف تجد الأجهزة بعضها، وكيف تنتقل البيانات فعلاً، وكيف تراقب هذه الحركة — المهارة التي يُبنى عليها معظم الهجوم والدفاع.", "out_en": "You can read a packet capture, explain what you see, and scan a network you are authorised to test.", "out_ar": "تستطيع قراءة تحليل حزم الشبكة، وشرح ما تراه، ومسح شبكة مصرَّح لك باختبارها.", "icon": "network"}, {"n": 4, "en": "Web Security", "ar": "أمن الويب", "weeks": [7, 8], "desc_en": "How a website really works — requests, cookies, sessions, databases — and where those pieces break when user input is trusted.", "desc_ar": "كيف يعمل موقع الويب فعلاً — الطلبات والكوكيز والجلسات وقواعد البيانات — وأين تنكسر هذه الأجزاء عند الثقة بمدخلات المستخدم.", "out_en": "You can follow a web request end to end, and name the flaw behind a broken page.", "out_ar": "تستطيع تتبّع طلب ويب من البداية للنهاية، وتسمية الثغرة وراء أي خلل.", "icon": "globe"}, {"n": 5, "en": "Cybersecurity Fundamentals", "ar": "أساسيات الأمن السيبراني", "weeks": [9, 10], "desc_en": "The vocabulary the whole profession runs on: threat, vulnerability, risk, the CIA Triad, authentication — plus what hashing and encryption actually do.", "desc_ar": "المفردات التي تقوم عليها المهنة كلها: التهديد والثغرة والخطر وثلاثي CIA والمصادقة — إضافة إلى ما تفعله التجزئة والتشفير فعلاً.", "out_en": "You can describe a risk precisely, using the same words a security team uses.", "out_ar": "تستطيع وصف أي خطر بدقة، بالكلمات نفسها التي يستخدمها فريق الأمن.", "icon": "shield"}, {"n": 6, "en": "Practical Security", "ar": "الأمن التطبيقي", "weeks": [11, 12], "desc_en": "Both sides of the job: harden and monitor a system, then run a real assessment against a target you are authorised to test — and write it up.", "desc_ar": "وجها العمل: تقوية نظام ومراقبته، ثم تنفيذ تقييم حقيقي على هدف مصرَّح لك باختباره — وكتابة تقريره.", "out_en": "You have done both defence and offence, under scope, and documented the result.", "out_ar": "نفّذت الدفاع والهجوم معاً، ضمن نطاق محدد، ووثّقت النتيجة.", "icon": "target"}, {"n": 7, "en": "Choose Your Direction", "ar": "اختر مسارك", "weeks": [13], "desc_en": "A team attack/defend exercise, then an evidence-based decision about which specialisation fits you — not a guess made in week one.", "desc_ar": "تمرين هجوم/دفاع بفريقين، ثم قرار مبني على دليل حول التخصص الذي يناسبك — لا تخمين في الأسبوع الأول.", "out_en": "You know which direction you are heading, and why.", "out_ar": "تعرف إلى أين تتجه، ولماذا.", "icon": "compass"}], "practice": [{"wk": 1, "id": "w1-build-the-lab", "en": "Build the lab", "ar": "Build the lab", "goal_en": "A working host + Ubuntu + Kali setup.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-terminal-survival-kit", "en": "Terminal survival kit", "ar": "Terminal survival kit", "goal_en": "Fluency with the 20 commands that cover 90% of daily work.", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-bandit-levels-0-10", "en": "Bandit levels 0-10", "ar": "Bandit levels 0-10", "goal_en": "Apply the survival kit to real problems.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 2, "id": "w2-the-permission-model-by-hand", "en": "The permission model by hand", "ar": "The permission model by hand", "goal_en": "Build intuition for permissions by creating every combination.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-users-groups-and-sudo", "en": "Users, groups, and sudo", "ar": "Users, groups, and sudo", "goal_en": "Notes explaining why limited sudo is better than full sudo, with reference to a real-world scenario.", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-processes-and-signals", "en": "Processes and signals", "ar": "Processes and signals", "goal_en": "", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-finding-suid-binaries", "en": "Finding SUID binaries", "ar": "Finding SUID binaries", "goal_en": "The first genuinely security-flavored lab.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 3, "id": "w3-services-and-systemd", "en": "Services and systemd", "ar": "Services and systemd", "goal_en": "Your working unit file plus an explanation of the difference between stop/disable and start/enable.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-reading-the-logs", "en": "Reading the logs", "ar": "Reading the logs", "goal_en": "The output of step 4 (you'll need to generate failures from at least two different source IPs, or simulate it), plus a written explanation of the pipeline.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-bash-scripting", "en": "Bash scripting", "ar": "Bash scripting", "goal_en": "", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 4, "id": "w4-subnetting-drills-by-hand", "en": "Subnetting drills, by hand", "ar": "Subnetting drills, by hand", "goal_en": "Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-map-your-own-lab-network", "en": "Map your own lab network", "ar": "Map your own lab network", "goal_en": "Read the network your own machine lives on, from the command line only.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-build-a-three-machine-network-on-an-internal-net", "en": "Build a three-machine network on an Internal Network", "ar": "Build a three-machine network on an Internal Network", "goal_en": "Build a switched network with no router and no DHCP. You assign every address by hand. This is where addressing stops being theory.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-enumerate-the-lab-with-arp-scan", "en": "Enumerate the lab with `arp-scan`", "ar": "Enumerate the lab with `arp-scan`", "goal_en": "Discover every host on a network without asking a single one of them for permission — using only ARP.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 5, "id": "w5-dissect-a-tcp-handshake", "en": "Dissect a TCP handshake", "ar": "Dissect a TCP handshake", "goal_en": "Stop reading about the handshake and watch it happen.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-a-login-in-plaintext", "en": "Capture a login in plaintext", "ar": "Capture a login in plaintext", "goal_en": "Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-follow-a-dns-resolution", "en": "Follow a DNS resolution", "ar": "Follow a DNS resolution", "goal_en": "See the exact packets behind \"typing a name into a browser\".", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-dhcp-dora-and-analyse-a-pcap", "en": "Capture DHCP DORA and analyse a pcap", "ar": "Capture DHCP DORA and analyse a pcap", "goal_en": "See how a machine gets an address, then analyse traffic you did not generate.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 6, "id": "w6-firewalls-with-ufw-and-reading-the-blocks", "en": "Firewalls with `ufw`, and reading the blocks", "ar": "Firewalls with `ufw`, and reading the blocks", "goal_en": "Write firewall rules, verify them from the outside, and find the denied traffic in the logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-tls-inspect-a-real-certificate", "en": "TLS: inspect a real certificate", "ar": "TLS: inspect a real certificate", "goal_en": "See the trust chain, not just the padlock.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-nmap-from-discovery-to-service-identification", "en": "Nmap: from discovery to service identification", "ar": "Nmap: from discovery to service identification", "goal_en": "Scan your own lab every way Nmap allows, and understand what each scan type actually sends.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-services-versions-nse-and-the-defender-s-view", "en": "Services, versions, NSE, and the defender's view", "ar": "Services, versions, NSE, and the defender's view", "goal_en": "Go from \"port 22 is open\" to \"this is OpenSSH version X on Ubuntu\" — then watch yourself get caught.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 7, "id": "w7-read-the-wire-with-devtools", "en": "Read the wire with DevTools", "ar": "Read the wire with DevTools", "goal_en": "See that a web page is not a thing — it is a transcript.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-the-same-requests-by-hand-with-curl", "en": "The same requests, by hand, with curl", "ar": "The same requests, by hand, with curl", "goal_en": "Prove that the browser is a convenience, not a requirement.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-your-own-web-server-and-its-access-log", "en": "Your own web server and its access log", "ar": "Your own web server and its access log", "goal_en": "Own both ends of the conversation.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-burp-suite-as-a-proxy-and-breaking-a-cookie", "en": "Burp Suite as a proxy, and breaking a cookie", "ar": "Burp Suite as a proxy, and breaking a cookie", "goal_en": "Put yourself between the browser and the server — then prove why cookie flags exist.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 8, "id": "w8-stand-up-a-deliberately-vulnerable-app", "en": "Stand up a deliberately vulnerable app", "ar": "Stand up a deliberately vulnerable app", "goal_en": "A target you are unambiguously authorized to attack, running in your own lab.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-sql-by-hand-on-your-own-data", "en": "SQL by hand, on your own data", "ar": "SQL by hand, on your own data", "goal_en": "Understand injection by first understanding the language being injected into.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-portswigger-academy-sql-injection", "en": "PortSwigger Academy: SQL injection", "ar": "PortSwigger Academy: SQL injection", "goal_en": "Your first real exploitation, on a target that is built to be exploited.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-access-control-and-finding-the-attack-in-the-log", "en": "Access control, and finding the attack in the log", "ar": "Access control, and finding the attack in the log", "goal_en": "The second root-cause pattern, then close the loop back to Week 3's logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 9, "id": "w9-threat-model-your-own-lab-with-stride", "en": "Threat model your own lab with STRIDE", "ar": "Threat model your own lab with STRIDE", "goal_en": "Produce a data-flow diagram and a complete STRIDE analysis of the lab you built in Weeks 1–8. You are attacking your own creation, on paper.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-risk-assessment-likelihood-impact", "en": "Risk assessment: likelihood × impact", "ar": "Risk assessment: likelihood × impact", "goal_en": "Turn the threat list from Lab 9.1 into a prioritised, defensible risk register.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-design-an-rbac-scheme-for-a-small-company", "en": "Design an RBAC scheme for a small company", "ar": "Design an RBAC scheme for a small company", "goal_en": "Design access control from scratch for a realistic business, and defend every permission.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-find-a-real-misconfiguration-and-write-it-up-as-", "en": "Find a real misconfiguration and write it up as a finding", "ar": "Find a real misconfiguration and write it up as a finding", "goal_en": "Produce a professional-grade vulnerability finding about your own environment, with evidence and a risk rating.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-analyse-a-published-cve-writeup-and-classify-it", "en": "Analyse a published CVE writeup and classify it", "ar": "Analyse a published CVE writeup and classify it", "goal_en": "Read a real vulnerability the way a professional does, and place it inside this week's framework.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 10, "id": "w10-hashing-is-not-encryption", "en": "Hashing is not encryption", "ar": "Hashing is not encryption", "goal_en": "Feel, not read, the difference between a hash and a cipher.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-crack-your-own-hashes-and-learn-why-password-pol", "en": "Crack your own hashes, and learn why password policy exists", "ar": "Crack your own hashes, and learn why password policy exists", "goal_en": "Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-inspect-a-real-tls-certificate-and-decode-every-", "en": "Inspect a real TLS certificate and decode every field", "ar": "Inspect a real TLS certificate and decode every field", "goal_en": "Stop treating the padlock as magic.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-generate-a-keypair-sign-a-file-and-break-the-sig", "en": "Generate a keypair, sign a file, and break the signature", "ar": "Generate a keypair, sign a file, and break the signature", "goal_en": "Prove a digital signature is bound to a specific file.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-watch-ecb-mode-leak-a-picture", "en": "Watch ECB mode leak a picture", "ar": "Watch ECB mode leak a picture", "goal_en": "See why ECB is the textbook example of a mode you must never use.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 11, "id": "w11-harden-your-ubuntu-vm", "en": "Harden your Ubuntu VM", "ar": "Harden your Ubuntu VM", "goal_en": "Take a machine from default-install to a documented, defensible baseline.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-stand-up-a-siem-and-ship-logs-into-it", "en": "Stand up a SIEM and ship logs into it", "ar": "Stand up a SIEM and ship logs into it", "goal_en": "A working Wazuh deployment receiving logs from your Ubuntu VM.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-the-full-loop-attack-it-then-detect-it", "en": "The full loop: attack it, then detect it", "ar": "The full loop: attack it, then detect it", "goal_en": "Generate a real brute-force against your own target and catch it in the SIEM. This is the single most important lab of the week.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-write-a-sigma-rule", "en": "Write a Sigma rule", "ar": "Write a Sigma rule", "goal_en": "Describe a behaviour in a vendor-neutral way.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-incident-timeline-and-att-ck-mapping", "en": "Incident timeline and ATT&CK mapping", "ar": "Incident timeline and ATT&CK mapping", "goal_en": "Turn scattered alerts into a story.", "goal_ar": "", "hours": 0.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-paperwork-first", "en": "Write the paperwork first", "ar": "Write the paperwork first", "goal_en": "Produce a real scope and rules-of-engagement document before you produce a single packet.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-passive-reconnaissance", "en": "Passive reconnaissance", "ar": "Passive reconnaissance", "goal_en": "Learn how much is knowable about a target without ever touching its infrastructure.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-scan-and-enumerate-metasploitable2", "en": "Scan and enumerate Metasploitable2", "ar": "Scan and enumerate Metasploitable2", "goal_en": "Take a deliberately vulnerable machine from \"unknown host\" to \"mapped attack surface.\"", "goal_ar": "", "hours": 2.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-verify-don-t-trust", "en": "Verify, don't trust", "ar": "Verify, don't trust", "goal_en": "Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-finding", "en": "Write the finding", "ar": "Write the finding", "goal_en": "Produce the actual deliverable of a penetration test.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}], "totalLessons": 53}</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

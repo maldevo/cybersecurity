@@ -1,0 +1,1451 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 12 — Offensive Taster: Methodology, Recon, Exploitation, Reporting | Pre Cybersecurity 0.1</title>
+<meta name="description" content="Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body data-week="12">
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html" aria-current="page"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <a href="path.html#stage-06"><span class="only-en">Practical Security</span><span class="only-ar">الأمن التطبيقي</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span><span class="only-en">Week 12</span><span class="only-ar">الأسبوع 12</span></span>
+  </nav>
+  <!-- Names the same stage the learning path names, so the number in the corner of
+       the page matches the dot the student clicked to get here. -->
+  <span class="eyebrow" style="margin-top:14px"><span class="only-en">Stage 06 of 07 · Month 3</span><span class="only-ar">المرحلة 6 من 7 · الشهر الثالث</span></span>
+  <h1><span class="only-en">Offensive Taster: Methodology, Recon, Exploitation, Reporting</span><span class="only-ar" dir="rtl" lang="ar">جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير</span></h1>
+  <p class="lede"><span class="only-en">Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.</span><span class="only-ar" dir="rtl" lang="ar">تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.</span></p>
+  <div class="meta-strip">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Advanced</span><span class="only-ar">متقدّم</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="only-en">~18h estimated</span><span class="only-ar">~18h تقديرياً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>5 <span class="only-en">lessons</span><span class="only-ar">درساً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><a href="week-11.html"><span class="only-en">Week 11 checkpoint</span><span class="only-ar">الأسبوع 11 — نقطة تحقّق</span></a></span>
+  </div>
+  <div class="card-pad" style="margin-top:20px;padding:0">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="eyebrow"><span class="only-en">Your progress in this course</span><span class="only-ar">تقدّمك في هذا المسار</span></span>
+      <div id="pc-weekbar" style="flex:1 1 200px;min-width:140px"></div>
+      <span id="pc-weekbar-label" dir="ltr" style="font-weight:700;font-size:.86rem;color:var(--accent);font-variant-numeric:tabular-nums"></span>
+    </div>
+  </div>
+  </div>
+</header>
+
+<div class="section" style="padding-top:0;border-bottom:0">
+  <div class="container">
+  <div class="grid grid-2">
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><h2><span class="only-en">What you'll learn</span><span class="only-ar">ما ستتعلّمه</span></h2></div>
+  <div class="card-pad">
+    <ul class="outcomes only-en"><li>Explain authorization, scope, and rules of engagement — and why all three are written, not spoken</li><li>Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime</li><li>Describe the PTES phases and where OWASP WSTG fits for web applications</li><li>Perform passive reconnaissance using only public sources</li><li>Perform active enumeration against your own lab target</li></ul>
+    <ul class="outcomes only-ar" dir="rtl" lang="ar"><li>يشرح التصريح والنطاق وقواعد الاشتباك — ولماذا الثلاثة مكتوبة لا شفهية</li><li>يفرّق بين اختبار الاختراق وتقييم الثغرات ومهمة الفريق الأحمر والجريمة</li><li>يصف مراحل PTES وموقع OWASP WSTG منها في تطبيقات الويب</li><li>ينفّذ استطلاعاً سلبياً باستخدام مصادر عامة فقط</li><li>ينفّذ استعراضاً (enumeration) نشطاً على هدف مختبره الخاص</li></ul>
+    <a class="card-more" href="#objectives"><span class="only-en">All 12 objectives, with a checklist to tick off ↓</span><span class="only-ar" dir="rtl" lang="ar">كل الأهداف (12) مع قائمة تُعلّم عليها ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><h2><span class="only-en">Terms you'll meet this week</span><span class="only-ar">مصطلحات ستقابلها هذا الأسبوع</span></h2></div>
+  <div class="card-pad">
+    <div class="chips"><span class="chip chip-accent">Authorization</span><span class="chip chip-accent">Scope</span><span class="chip chip-accent">Rules of Engagement (RoE)</span><span class="chip chip-accent">Statement of Work (SoW)</span><span class="chip chip-accent">Penetration Test</span><span class="chip chip-accent">Vulnerability Assessment</span></div>
+    <p class="hint"><span class="only-en">These stay in English on purpose. They are the words you will meet in the tools, the documentation and the interview.</span><span class="only-ar" dir="rtl" lang="ar">تبقى هذه المصطلحات بالإنجليزية عمداً. فهي الكلمات التي ستقابلها في الأدوات والوثائق والمقابلات.</span></p>
+    <a class="card-more" href="#terms"><span class="only-en">What each one means ↓</span><span class="only-ar" dir="rtl" lang="ar">ما معنى كل مصطلح ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+<nav class="wk-rail" aria-label="Sections / الأقسام"><div class="wk-rail-in"><div class="wk-rail-links"><a href="#objectives"><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></a><a href="#legal"><span class="only-en">Legal &amp; Authorization</span><span class="only-ar">الجانب القانوني والتصريح</span></a><a href="#theory"><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></a><a href="#lab"><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></a><a href="#challenge"><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></a><a href="#payoff"><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></a><a href="#checkpoint"><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></a><a href="#notes"><span class="only-en">Concept Notes</span><span class="only-ar">ملاحظات مفاهيمية موسّعة</span></a><a href="#terms"><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></a></div><button type="button" id="pc-collapse" aria-pressed="false"><span class="only-en">Collapse all</span><span class="only-ar">اطوِ الكل</span></button></div></nav>
+<div class="container">
+<div class="flow">
+<details class="lesson-sec" id="objectives" data-sec="objectives" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The goals for this week</span><span class="only-ar">أهداف هذا الأسبوع</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Explain authorization, scope, and rules of engagement — and why all three are written, not spoken</li>
+<li class="task">Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime</li>
+<li class="task">Describe the PTES phases and where OWASP WSTG fits for web applications</li>
+<li class="task">Perform passive reconnaissance using only public sources</li>
+<li class="task">Perform active enumeration against your own lab target</li>
+<li class="task">Explain why scanner output is not a finding until a human verifies it</li>
+<li class="task">Manually verify one vulnerability rather than trusting a tool</li>
+<li class="task">Explain the difference between an exploit and a payload</li>
+<li class="task">Describe post-exploitation concepts at a high level: privesc, lateral movement, persistence, exfiltration</li>
+<li class="task">Write a professional finding with severity, impact, reproduction steps, and remediation</li>
+<li class="task">Rate severity with CVSS v3.1 base metrics</li>
+<li class="task">Explain a technical finding to a non-technical stakeholder in two minutes</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">يشرح التصريح والنطاق وقواعد الاشتباك — ولماذا الثلاثة مكتوبة لا شفهية</li>
+<li class="task">يفرّق بين اختبار الاختراق وتقييم الثغرات ومهمة الفريق الأحمر والجريمة</li>
+<li class="task">يصف مراحل PTES وموقع OWASP WSTG منها في تطبيقات الويب</li>
+<li class="task">ينفّذ استطلاعاً سلبياً باستخدام مصادر عامة فقط</li>
+<li class="task">ينفّذ استعراضاً (enumeration) نشطاً على هدف مختبره الخاص</li>
+<li class="task">يشرح لماذا مخرجات السكانر ليست "نتيجة" حتى يتحقق منها إنسان</li>
+<li class="task">يتحقق يدوياً من ثغرة واحدة بدلاً من الثقة بأداة</li>
+<li class="task">يشرح الفرق بين الاستغلال (exploit) والحمولة (payload)</li>
+<li class="task">يصف مفاهيم ما بعد الاستغلال بمستوى عام: تصعيد الصلاحيات (privesc)، والحركة الجانبية، والاستمرارية، والتسريب</li>
+<li class="task">يكتب نتيجة (finding) احترافية بالخطورة والأثر وخطوات إعادة الإنتاج والمعالجة</li>
+<li class="task">يقيّم الخطورة بمعايير CVSS v3.1 الأساسية</li>
+<li class="task">يشرح نتيجة تقنية لصاحب مصلحة غير تقني في دقيقتين</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="legal" data-sec="legal" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Legal &amp; Authorization</span><span class="only-ar">الجانب القانوني والتصريح</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Read before any technique</span><span class="only-ar">اقرأ قبل أي تقنية</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>Nothing in this week may be practised against anything you do not own.</strong> Every command in Labs 12.2–12.5 is executed against one of exactly three things: (1) <strong>Metasploitable2</strong> running in your own VirtualBox on your own NAT Network, (2) <strong>DVWA</strong> or <strong>OWASP Juice Shop</strong> in your own lab, (3) a platform whose published rules explicitly authorize it — <a href="https://tryhackme.com/">TryHackMe</a>, <a href="https://portswigger.net/web-security">PortSwigger Web Security Academy</a>, <a href="https://www.vulnhub.com/">VulnHub</a> boxes you download, or <a href="https://overthewire.org/wargames/bandit/">OverTheWire</a>.</p>
+<h3>Unauthorized testing is a criminal offence</h3>
+<p>This is not a grey area and it is not softened by intent, curiosity, or skill level.</p>
+<ul>
+<li>Almost every jurisdiction criminalizes accessing a computer system without authorization. Accessing a system <strong>outside your scope</strong> is the same offence as accessing one you never discussed.</li>
+<li>"I was just testing" is not a defence. It has never been a defence. In several well-documented cases, security researchers who tested without written permission were prosecuted — the intent to help is irrelevant to the statute.</li>
+<li>"It was only a scan" is not a defence either. Port scanning a system you do not own has been treated as unauthorized access in multiple jurisdictions.</li>
+<li>Penalties in the region are severe. Egypt's Anti-Cyber and Information Technology Crimes Law (Law No. 175 of 2018), Saudi Arabia's Anti-Cyber Crime Law, the UAE's Federal Decree-Law on Combating Cybercrimes, and Jordan's Cybercrime Law all criminalize unauthorized access, and they carry imprisonment as well as fines. <strong>Look up your own country's statute and read it yourself</strong> — this week, as an assignment. You cannot claim ignorance of a law you were told to read.</li>
+<li>In the West, the equivalents are the Computer Fraud and Abuse Act (US), the Computer Misuse Act 1990 (UK), and similar instruments across the EU.</li>
+</ul>
+<p><strong>The professional's defining characteristic is not skill. It is that they never test without written authorization.</strong> You will meet people in this field who are technically brilliant and unemployable because of one unauthorized test. Hiring managers ask about it. It follows you.</p>
+<h3>The four things people confuse</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>What it is</th>
+<th>Who authorizes</th>
+<th>What you deliver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Vulnerability Assessment</strong></td>
+<td>Broad, shallow, prioritized list of weaknesses. Often largely automated.</td>
+<td>System owner</td>
+<td>A list of findings with severity</td>
+</tr>
+<tr>
+<td><strong>Penetration Test</strong></td>
+<td>Goal-oriented: prove which vulnerabilities are actually exploitable and what impact that has. Manual, verified.</td>
+<td>System owner, in writing, with a scope</td>
+<td>A report with verified findings, evidence, and impact</td>
+</tr>
+<tr>
+<td><strong>Red Team Engagement</strong></td>
+<td>Adversary simulation. Tests the <em>detection and response</em> capability, not the vulnerability list. Stealth, objectives, often months.</td>
+<td>Executive sponsor, with strict rules of engagement</td>
+<td>Objectives achieved, plus how the defenders performed</td>
+</tr>
+<tr>
+<td><strong>Criminal activity</strong></td>
+<td>Same tools, no permission</td>
+<td>Nobody</td>
+<td>A criminal record</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>The technical actions can be identical.</strong> The difference between a penetration test and a crime is a signed document and a defined boundary. That is the entire difference. Sit with that for a moment — it is the most important thing you will learn this week.</p>
+</blockquote>
+<h3>What authorization actually looks like</h3>
+<p><strong>Authorization is written, specific, and time-boxed.</strong> Verbal permission from someone who cannot grant it is worthless. The elements:</p>
+<p><strong>1. Scope document</strong> — the boundary. It must state:</p>
+<ul>
+<li><strong>In scope:</strong> exact IP ranges, hostnames, domains, applications, and the environments (production? staging? both?)</li>
+<li><strong>Out of scope:</strong> explicitly — third-party hosted services, other subsidiaries, production databases, denial-of-service, social engineering of specific staff, anything not listed</li>
+<li><strong>Source IPs:</strong> which addresses you will test <em>from</em> (so the defenders don't treat you as an intruder)</li>
+<li><strong>Time window:</strong> start and end date, plus permitted testing hours</li>
+<li><strong>Authorized signatory:</strong> name, title, and signature of someone with the authority to grant permission</li>
+</ul>
+<p><strong>2. Rules of Engagement (RoE)</strong> — the behaviour rules inside that scope:</p>
+<ul>
+<li>What techniques are permitted and prohibited (e.g. no DoS, no data exfiltration of real records, no physical entry)</li>
+<li>Escalation contact and how to reach them, 24/7</li>
+<li>The <strong>stop condition</strong> — who can halt testing and how that signal is given</li>
+<li>How discovered sensitive data is handled (usually: stop, document, don't copy)</li>
+<li>Emergency contacts for both sides</li>
+</ul>
+<p><strong>3. Statement of Work (SoW)</strong> — the commercial contract that contains or references all of the above. Typically includes: parties, objectives, scope summary, deliverables, timeline and milestones, testing windows, fees and payment terms, assumptions and constraints, roles and contacts, acceptance criteria, confidentiality terms, and signature blocks.</p>
+<blockquote>
+<p><strong>If it is not in the scope document, it is out of scope.</strong> Not "probably fine." Out of scope. When a client says "while you're in there, can you also check our billing system?" the answer is: <em>"Happy to — I'll send an updated scope for signature first."</em> Saying that out loud, calmly, is what seniority sounds like.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>لا يجوز تطبيق أي شيء في هذا الأسبوع على أي نظام لا تملكه.</strong> كل أمر في المختبرات 12.2–12.5 يُنفَّذ على واحد من ثلاثة أشياء فقط: (1) <strong>Metasploitable2</strong> يعمل داخل VirtualBox الخاص بك على شبكة NAT Network الخاصة بك، (2) <strong>DVWA</strong> أو <strong>OWASP Juice Shop</strong> في مختبرك، (3) منصة تُصرّح قواعدها المنشورة بذلك صراحةً — <a href="https://tryhackme.com/">TryHackMe</a>، أو <a href="https://portswigger.net/web-security">PortSwigger Web Security Academy</a>، أو أجهزة <a href="https://www.vulnhub.com/">VulnHub</a> التي تنزّلها، أو <a href="https://overthewire.org/wargames/bandit/">OverTheWire</a>.</p>
+<h3>الاختبار غير المصرح به جريمة جنائية</h3>
+<p>هذه ليست منطقة رمادية، ولا تخففها النية ولا الفضول ولا مستوى المهارة.</p>
+<ul>
+<li>كل تشريع تقريباً يجرّم الوصول إلى نظام حاسوبي بدون تصريح. والوصول إلى نظام <strong>خارج نطاقك</strong> هو الجريمة نفسها التي ترتكبها بالوصول إلى نظام لم تتحدث عنه أصلاً.</li>
+<li>"كنت أختبر فقط" ليست دفاعاً. ولم تكن دفاعاً يوماً. وفي عدة قضايا موثّقة جيداً، حُوكم باحثون أمنيون اختبروا بدون تصريح مكتوب — والنية في المساعدة لا قيمة لها أمام نص القانون.</li>
+<li>"كان مجرد فحص" ليست دفاعاً هي الأخرى. فحص المنافذ على نظام لا تملكه عُدّ في عدة دول وصولاً غير مصرح به.</li>
+<li>العقوبات في المنطقة شديدة. قانون مكافحة جرائم تقنية المعلومات في مصر (رقم 175 لسنة 2018)، ونظام مكافحة الجرائم المعلوماتية في السعودية، والمرسوم بقانون اتحادي في شأن مكافحة الجرائم الإلكترونية في الإمارات، وقانون الجرائم الإلكترونية في الأردن — كلها تجرّم الوصول غير المصرح، وتفرض الحبس إضافة إلى الغرامة. <strong>ابحث عن نص القانون في بلدك واقرأه بنفسك</strong> — هذا الأسبوع، كتكليف. لا يمكنك الاحتجاج بجهلك بقانون طُلب منك قراءته.</li>
+<li>وفي الغرب، المكافئ هو Computer Fraud and Abuse Act في الولايات المتحدة، و Computer Misuse Act 1990 في المملكة المتحدة، وأدوات مشابهة في أنحاء الاتحاد الأوروبي.</li>
+</ul>
+<p><strong>الصفة التي تميّز المحترف ليست المهارة، بل أنه لا يختبر أبداً بدون تصريح مكتوب.</strong> ستقابل في هذا المجال من هو عبقري تقنياً وغير قابل للتوظيف بسبب اختبار واحد غير مصرح به. ومديرو التوظيف يسألون عن ذلك. الأمر يلاحقك.</p>
+<h3>أربعة أشياء يخلط الناس بينها</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>ما هو</th>
+<th>من يُصرّح</th>
+<th>ما تُسلّمه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>تقييم الثغرات (Vulnerability Assessment)</strong></td>
+<td>قائمة عريضة سطحية بالأخطاء مرتبة حسب الخطورة. غالباً آلية إلى حد كبير.</td>
+<td>مالك النظام</td>
+<td>قائمة نتائج مع الخطورة</td>
+</tr>
+<tr>
+<td><strong>اختبار الاختراق (Penetration Test)</strong></td>
+<td>موجّه بهدف: إثبات أي الثغرات <strong>قابلة فعلاً للاستغلال</strong> وما أثر ذلك. يدوي ومُتحقَّق منه.</td>
+<td>مالك النظام، كتابةً، وبنطاق محدد</td>
+<td>تقرير بنتائج مؤكدة وأدلة وأثر</td>
+</tr>
+<tr>
+<td><strong>مهمة الفريق الأحمر (Red Team)</strong></td>
+<td>محاكاة خصم حقيقي. تختبر قدرة <strong>الكشف والاستجابة</strong>، لا قائمة الثغرات. تخفٍّ وأهداف محددة، وغالباً تمتد شهوراً.</td>
+<td>رعاية تنفيذية مع قواعد اشتباك صارمة</td>
+<td>الأهداف المتحققة، إضافة إلى تقييم أداء المدافعين</td>
+</tr>
+<tr>
+<td><strong>نشاط جنائي</strong></td>
+<td>نفس الأدوات، بلا تصريح</td>
+<td>لا أحد</td>
+<td>سجل جنائي</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>الأفعال التقنية قد تكون متطابقة تماماً.</strong> الفرق بين اختبار اختراق وبين جريمة هو ورقة موقّعة وحد معلن. هذا هو الفرق كله. تأمّل هذه الجملة لحظة — إنها أهم ما ستتعلمه هذا الأسبوع.</p>
+</blockquote>
+<h3>كيف يبدو التصريح فعلاً</h3>
+<p><strong>التصريح مكتوب، ومحدد، ومحدد زمنياً.</strong> الإذن الشفهي من شخص لا يملك منحه لا قيمة له. وعناصره:</p>
+<p><strong>1. وثيقة النطاق (Scope)</strong> — الحدود. يجب أن تنص على:</p>
+<ul>
+<li><strong>داخل النطاق:</strong> نطاقات IP محددة بالضبط، وأسماء المضيفين، والنطاقات، والتطبيقات، والبيئات (الإنتاج؟ التجريبية؟ كلتاهما؟)</li>
+<li><strong>خارج النطاق:</strong> صراحةً — الخدمات المستضافة عند طرف ثالث، والشركات الشقيقة الأخرى، وقواعد بيانات الإنتاج، وهجمات حجب الخدمة، والهندسة الاجتماعية لموظفين محددين، وأي شيء غير مذكور</li>
+<li><strong>عناوين المصدر (Source IPs):</strong> من أي عناوين ستنفّذ الاختبار <em>منها</em> (حتى لا يعاملك الفريق الدفاعي كمهاجم مقتحم)</li>
+<li><strong>النافذة الزمنية:</strong> تاريخ البداية والنهاية، إضافة إلى ساعات الاختبار المسموحة</li>
+<li><strong>المُوقّع المُخوَّل:</strong> اسم ومسمى وتوقيع شخص <strong>يملك صلاحية</strong> منح التصريح</li>
+</ul>
+<p><strong>2. قواعد الاشتباك (RoE)</strong> — قواعد السلوك داخل ذلك النطاق:</p>
+<ul>
+<li>ما التقنيات المسموحة والممنوعة (مثلاً: لا DoS، ولا تسريب لسجلات حقيقية، ولا دخول فيزيائي)</li>
+<li>جهة اتصال التصعيد وكيفية الوصول إليها على مدار الساعة</li>
+<li><strong>شرط التوقف</strong> — من يستطيع إيقاف الاختبار وبأي إشارة يُعطى ذلك</li>
+<li>كيفية التعامل مع البيانات الحساسة المكتشفة (عادةً: توقّف، وثّق، لا تنسخ)</li>
+<li>جهات اتصال الطوارئ للطرفين</li>
+</ul>
+<p><strong>3. بيان العمل (SoW)</strong> — العقد التجاري الذي يحتوي كل ما سبق أو يشير إليه. ويشمل عادةً: الأطراف، والأهداف، وملخص النطاق، والمخرجات، والجدول الزمني والمراحل، ونوافذ الاختبار، والأتعاب وشروط الدفع، والافتراضات والقيود، والأدوار وجهات الاتصال، ومعايير القبول، وشروط السرية، وخانات التوقيع.</p>
+<blockquote>
+<p><strong>ما ليس في وثيقة النطاق فهو خارج النطاق.</strong> ليس "غالباً مقبولاً"، بل خارج النطاق. وعندما يقول لك العميل: "بما أنك بالداخل، هل يمكنك فحص نظام الفواتير لدينا أيضاً؟" فالجواب: <em>"بكل سرور — سأرسل نطاقاً محدّثاً للتوقيع أولاً."</em> قول هذه الجملة بهدوء هو ما يبدو عليه الاحتراف.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="theory" data-sec="theory" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈4h · Read and take notes</span><span class="only-ar">≈4ساعات · اقرأ ودوّن الملاحظات</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Topic</th>
+<th>Resource</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Penetration testing methodology (PTES phases)</td>
+<td><a href="http://www.pentest-standard.org/index.php/Main_Page">PTES — The Penetration Testing Execution Standard</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Web-specific methodology (OWASP WSTG)</td>
+<td><a href="https://wstg.owasp.org/v4.2/">OWASP Web Security Testing Guide</a></td>
+<td>40m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Reconnaissance: passive vs active, OSINT</td>
+<td><a href="https://osintframework.com/">OSINT Framework</a> — browse the tree, don't complete it</td>
+<td>40m</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Vulnerability identification: scanning vs verification</td>
+<td><a href="https://csrc.nist.gov/pubs/sp/800/115/final">NIST SP 800-115 — Technical Guide to Security Testing</a> (Sec. 5–6)</td>
+<td>35m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Exploitation: exploits, payloads, and what "verified" means</td>
+<td><a href="https://www.offsec.com/metasploit-unleashed/">Metasploit Unleashed</a> (read the Introduction and Exploitation chapters only)</td>
+<td>40m</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Severity rating with CVSS</td>
+<td><a href="https://www.first.org/cvss/">FIRST — CVSS</a> and the <a href="https://www.first.org/cvss/calculator/3.1">v3.1 Calculator</a></td>
+<td>40m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Arabic supplement:</strong> <a href="https://www.youtube.com/@NakerahNetwork">Nakerah Network — ناكراه</a> for Arabic offensive-security and OSCP-oriented content, and <a href="https://www.youtube.com/@NetridersAcad">Netriders Academy</a> for Arabic coverage of the methodology and reporting side.</p>
+<blockquote>
+<p><strong>Read the legal section again before Lab 12.3.</strong> Every lab this week has a target line stating exactly what you may touch. Read it every time. The habit of confirming the target before running a command is the habit that keeps you employable.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الموضوع</th>
+<th>المصدر</th>
+<th>الوقت</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>منهجية اختبار الاختراق (مراحل PTES)</td>
+<td><a href="http://www.pentest-standard.org/index.php/Main_Page">PTES — معيار تنفيذ اختبار الاختراق</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>2</td>
+<td>المنهجية الخاصة بالويب (OWASP WSTG)</td>
+<td><a href="https://wstg.owasp.org/v4.2/">OWASP Web Security Testing Guide</a></td>
+<td>40 دقيقة</td>
+</tr>
+<tr>
+<td>3</td>
+<td>الاستطلاع: سلبي مقابل نشط، و OSINT</td>
+<td><a href="https://osintframework.com/">OSINT Framework</a> — تصفّح الشجرة، ولا تُكملها</td>
+<td>40 دقيقة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>تحديد الثغرات: الفحص مقابل التحقق</td>
+<td><a href="https://csrc.nist.gov/pubs/sp/800/115/final">NIST SP 800-115 — Technical Guide to Security Testing</a> (الأقسام 5–6)</td>
+<td>35 دقيقة</td>
+</tr>
+<tr>
+<td>5</td>
+<td>الاستغلال: الاستغلالات والحمولات ومعنى "مُتحقَّق منه"</td>
+<td><a href="https://www.offsec.com/metasploit-unleashed/">Metasploit Unleashed</a> (اقرأ فصلي المقدمة والاستغلال فقط)</td>
+<td>40 دقيقة</td>
+</tr>
+<tr>
+<td>6</td>
+<td>تقييم الخطورة بـ CVSS</td>
+<td><a href="https://www.first.org/cvss/">FIRST — CVSS</a> و <a href="https://www.first.org/cvss/calculator/3.1">حاسبة v3.1</a></td>
+<td>40 دقيقة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>ملحق بالعربية:</strong> <a href="https://www.youtube.com/@NakerahNetwork">Nakerah Network — ناكراه</a> لمحتوى الأمن الهجومي الموجَّه نحو OSCP، و <a href="https://www.youtube.com/@NetridersAcad">Netriders Academy</a> لتغطية الجانب المنهجي والتقاريري بالعربية.</p>
+<blockquote>
+<p><strong>أعد قراءة القسم القانوني قبل المختبر 12.3.</strong> كل مختبر هذا الأسبوع فيه سطر هدف يحدد بالضبط ما يجوز لك لمسه. اقرأه في كل مرة. عادة تأكيد الهدف قبل تشغيل أي أمر هي العادة التي تُبقيك قابلاً للتوظيف.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="lab" data-sec="lab" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈7h · Step by step, with expected results</span><span class="only-ar">≈7ساعات · خطوة بخطوة مع النتائج المتوقعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><h3>Lab 12.1 — Write the paperwork first (1h)</h3>
+<p><strong>Goal:</strong> Produce a real scope and rules-of-engagement document before you produce a single packet.</p>
+<p><strong>Scenario:</strong> <em>TechNile</em> is a fictional Egyptian retail company. They have asked you to test their public web application and their internal staff portal. They have three production web servers, a staging environment, and a single office network. They are nervous about downtime and their payment provider is a third party.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Write <code>~/lab/week12/scope-and-roe.md</code> for this engagement. It must contain: engagement type, in-scope and out-of-scope lists (be specific — name what's excluded and <em>why</em>), source IPs, testing window, permitted and prohibited techniques, escalation contacts, the stop condition, and the signature block.</li>
+<li>Write a one-page SoW outline covering: parties, objectives, deliverables, timeline, assumptions, and acceptance criteria.</li>
+<li><strong>Deliberately include a trap for yourself:</strong> put one asset in the "out of scope" list that would be tempting to test anyway (the payment provider's portal). Write one sentence explaining what you would do if you found a critical vulnerability in it by accident.</li>
+<li>Answer: who at TechNile is allowed to authorize this test, and who is <em>not</em>?</li>
+</ol>
+<p><strong>Deliverable:</strong> <code>scope-and-roe.md</code> plus the SoW outline. <strong>This document is a checkpoint item.</strong> You will be asked to defend it verbally.</p>
+<h3>Lab 12.2 — Passive reconnaissance (1.5h)</h3>
+<p><strong>Goal:</strong> Learn how much is knowable about a target without ever touching its infrastructure.</p>
+<p><strong>Rule for this lab:</strong> use <strong>only public sources</strong>. Do not send a single packet to the target's systems. No port scans, no directory brute-forcing, no direct connections. If a tool would connect to the target, it does not belong in this lab.</p>
+<p><strong>Target:</strong> a domain <strong>you own</strong>, or a large public organization's main domain. (Do not do this on a small local business — the same techniques applied to a small target can look like targeting a private individual.)</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><strong>WHOIS and registration data.</strong> Look up the domain's registration record. Note registrar, creation date, name servers, and registrant organization. Explain in your notes what has been redacted since GDPR-era privacy rules, and why that changed OSINT.</li>
+<li><strong>DNS records.</strong> Query public resolvers for <code>A</code>, <code>MX</code>, <code>TXT</code>, <code>NS</code>, and <code>CNAME</code> records. What do the <code>MX</code> records tell you about their mail provider? What do <code>TXT</code> records reveal (SPF, DKIM, verification tokens for third-party services)?</li>
+<li><strong>Certificate transparency.</strong> Use <a href="https://crt.sh/">crt.sh</a> to search the domain. Certificate logs are public by design and frequently reveal subdomains nobody meant to publish. <strong>Record every subdomain you find.</strong> This is one of the highest-value passive techniques in existence.</li>
+<li><strong>Search engine intelligence.</strong> Run <code>theHarvester</code> in passive mode against the domain (it is in Kali) to gather emails, hosts, and employee names from public sources. Then try three manual search-engine operators: <code>site:</code>, <code>filetype:</code>, and <code>inurl:</code>. What did each surface?</li>
+<li><strong>Third-party exposure.</strong> Check <a href="https://www.shodan.io/">Shodan</a> for the organization's netblocks — what services are publicly visible? This is passive: you are reading someone else's scan results, not scanning.</li>
+<li><strong>Build a target profile.</strong> One page: the organization, its technology stack as inferable from public data, its subdomains, its mail provider, its cloud provider, and its likely employees. <strong>Then answer: what would you do with this if you were an attacker, and which of these facts should the organization fix or hide?</strong></li>
+</ol>
+<p><strong>Deliverable:</strong> <code>~/lab/week12/osint-profile.md</code> — the profile, the exact source for each fact, and the "what would an attacker do" analysis.</p>
+<blockquote>
+<p><strong>The lesson:</strong> none of this required a single packet to the target. Most breaches start here. The organization's exposure to passive recon is mostly <em>permanent</em> — you cannot un-publish a certificate.</p>
+</blockquote>
+<h3>Lab 12.3 — Scan and enumerate Metasploitable2 (2h)</h3>
+<p><strong>Goal:</strong> Take a deliberately vulnerable machine from "unknown host" to "mapped attack surface."</p>
+<p><strong>Setup:</strong></p>
+<ol>
+<li>Download <strong>Metasploitable2</strong> from the <a href="https://sourceforge.net/projects/metasploitable/">official SourceForge project</a>. It is distributed as a VM image you create a VirtualBox VM around.</li>
+<li>Create the VM: <strong>1 GB RAM, 1 vCPU</strong>, and set the network adapter to your <strong>NAT Network</strong> — the same one Kali and Ubuntu are on.</li>
+<li>Boot it and log in with the standard documented default credentials (<code>msfadmin</code> / <code>msfadmin</code>).</li>
+<li>Find its IP: <code>ifconfig</code> inside the VM. Verify from Kali with <code>ping</code>.</li>
+<li><strong>Snapshot it</strong> (<code>Metasploitable-Clean</code>). You will break this VM repeatedly and want a cheap rollback.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong>Target: your own Metasploitable2 VM only.</strong> Never expose this VM to a bridged or public network — it is intentionally full of holes.</p>
+</blockquote>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><strong>Host discovery.</strong> <code>nmap -sn &lt;nat-network-range&gt;</code> from Kali. Confirm you see all your lab VMs. Note which one you did <em>not</em> expect.</li>
+<li><strong>Full TCP port scan.</strong> <code>nmap -p- &lt;target&gt;</code>. This is slow — let it finish. <strong>How many ports are open?</strong> Write the number down; compare it to your hardened Ubuntu VM from Week 11.</li>
+<li><strong>Service and version detection.</strong> <code>nmap -sV -sC -p &lt;open-ports&gt; &lt;target&gt;</code>. Read the output carefully. For every service: name, version, and whether it looks current. <strong>The versions are the whole point</strong> — a version number is the difference between "a port is open" and "a specific known weakness may apply."</li>
+<li><strong>Web enumeration.</strong> Point a browser at the target's web port. Use <code>whatweb</code> and <code>nikto</code> against it. Then use <code>dirb</code> or <code>gobuster</code> with a standard wordlist to find directories. Note every application you find.</li>
+<li><strong>Service-specific enumeration.</strong> Depending on what step 3 found, enumerate the file-sharing, database, and remote-access services with the appropriate Kali tools (<code>enum4linux</code>, <code>smbclient</code>, <code>mysql</code> client, and so on). <strong>Record the exact command and the exact output for each.</strong></li>
+<li><strong>Build the attack surface map.</strong> A table: <code>port | service | version | what it exposes | what an attacker would try first</code>.</li>
+</ol>
+<p><strong>Deliverable:</strong> <code>~/lab/week12/attack-surface.md</code> — the table, the raw nmap command you used, and a count of open ports.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metasploitable2 won't get an IP</td>
+<td>Adapter set to NAT instead of NAT Network — same trap as Week 1</td>
+</tr>
+<tr>
+<td><code>nmap -p-</code> takes forever</td>
+<td>Normal for a full range. Add <code>-T4</code> and be patient; do not run it on anything but your lab</td>
+</tr>
+<tr>
+<td>No version info returned</td>
+<td>The scan was not privileged. Prefix with <code>sudo</code> for SYN and OS detection</td>
+</tr>
+<tr>
+<td>Nikto output is enormous and alarming</td>
+<td>It reports <em>potential</em> issues and false positives. <strong>This is the lab's lesson — see 12.4</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 12.4 — Verify, don't trust (1.5h)</h3>
+<p><strong>Goal:</strong> Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Pick <strong>one</strong> item from your Nikto or scanner output. Ideally one flagged as severe.</li>
+<li><strong>Test the claim manually.</strong> Not with the scanner — with a browser, <code>curl</code>, or the service's own client. Example: if the scanner claims directory listing is enabled, navigate to the directory and look. If it claims a default credential works, log in. If it claims a file is exposed, fetch the file.</li>
+<li><strong>Record the raw evidence.</strong> For a web finding that is the exact HTTP request and the exact response. For a service finding, the exact command and output. <strong>Copy it verbatim — "it looked vulnerable" is not evidence.</strong></li>
+<li><strong>Classify the result:</strong></li>
+</ol>
+<ul>
+<li><strong>Confirmed</strong> — you reproduced it, and you have the evidence</li>
+<li><strong>False positive</strong> — the scanner was wrong; explain <em>why</em> it was wrong</li>
+<li><strong>Unverified</strong> — you could not confirm or deny it; state exactly what would be needed</li>
+</ul>
+<ol start="5">
+<li><strong>Repeat for a second item</strong> — one that you expect to turn out to be a false positive. <strong>Finding out that a scary-looking alert was nothing is a real result, not a failure.</strong> Reporting a false positive as a confirmed finding destroys your credibility with the client permanently.</li>
+<li><strong>Establish impact.</strong> For the confirmed finding, answer explicitly: <em>what can an attacker actually do with this?</em> Not "the version is old" — but "an attacker on the same network can run commands as the web server user, which gives them read access to the application's configuration, which contains the database password."</li>
+</ol>
+<p><strong>Deliverable:</strong> A verification log for two items, each with raw evidence, a classification, and an impact statement.</p>
+<blockquote>
+<p><strong>This lab is the most important one this week.</strong> A scanner runs in four minutes and knows nothing. You now know something the scanner cannot tell you: whether it is <em>true</em>.</p>
+</blockquote>
+<h3>Lab 12.5 — Write the finding (1h)</h3>
+<p><strong>Goal:</strong> Produce the actual deliverable of a penetration test.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Take your confirmed finding from Lab 12.4 and write it up in <code>~/lab/week12/findings/</code>, using this exact structure:</li>
+</ol>
+<ul>
+<li><strong>Title</strong> — specific and factual. <em>"Default Credentials on the Tomcat Manager Interface"</em>, not <em>"Weak Password"</em>.</li>
+<li><strong>Severity</strong> — CVSS v3.1 base score and the full vector string, plus your own severity band.</li>
+<li><strong>Affected asset(s)</strong> — hostname/IP, port, service, path.</li>
+<li><strong>Description</strong> — what the weakness is, in neutral technical language, in 2–4 sentences.</li>
+<li><strong>Impact</strong> — what an attacker gains and what the business consequence is. This is the section executives read.</li>
+<li><strong>Reproduction steps</strong> — numbered, exact, and complete. Someone with no context must be able to reproduce it from these steps alone.</li>
+<li><strong>Evidence</strong> — the verbatim request/response or command/output.</li>
+<li><strong>Remediation</strong> — a specific, actionable fix, plus a short-term mitigation. "Patch it" is not remediation.</li>
+<li><strong>References</strong> — vendor advisory, CVE if one exists, relevant standard.</li>
+</ul>
+<ol start="2">
+<li><strong>Score it properly.</strong> Use the <a href="https://www.first.org/cvss/calculator/3.1">CVSS v3.1 calculator</a>. Justify each base metric in a sentence. The band comes from the score: <strong>None 0.0 · Low 0.1–3.9 · Medium 4.0–6.9 · High 7.0–8.9 · Critical 9.0–10.0</strong>.</li>
+<li><strong>Write the executive summary.</strong> Half a page, no jargon, no tool names, no CVSS vectors. What is the risk, how bad is it, what should they do, and in what order. <strong>Assume the reader is a busy non-technical director who will read only this.</strong></li>
+<li><strong>The two-minute drill.</strong> Explain your finding out loud to someone who is not technical — a friend, a family member, a mentor playing the role of the client's CFO. No jargon. You have two minutes. If they cannot explain the risk back to you afterwards, you have not finished writing it.</li>
+</ol>
+<p><strong>Deliverable:</strong> The full finding document plus the executive summary, plus one paragraph on what changed in your explanation between the technical version and the two-minute version.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><h3>المختبر 12.1 — اكتب الأوراق أولاً (ساعة واحدة)</h3>
+<p><strong>الهدف:</strong> إنتاج وثيقة نطاق وقواعد اشتباك حقيقية قبل أن تُنتج حزمة واحدة.</p>
+<p><strong>السيناريو:</strong> <em>TechNile</em> شركة تجزئة مصرية خيالية. طلبت منك اختبار تطبيق الويب العام لديها وبوابة الموظفين الداخلية. ولديها ثلاثة خوادم ويب إنتاجية، وبيئة تجريبية، وشبكة مكتب واحدة. وهي قلقة من التوقف، ومزوّد الدفع لديها طرف ثالث.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>اكتب <code>~/lab/week12/scope-and-roe.md</code> لهذه المهمة. يجب أن يحتوي على: نوع المهمة، وقائمتي ما هو داخل النطاق وما هو خارجه (كن محدداً — سمِّ ما استُثني و<em>لماذا</em>)، وعناوين المصدر، والنافذة الزمنية، والتقنيات المسموحة والممنوعة، وجهات اتصال التصعيد، وشرط التوقف، وخانة التوقيع.</li>
+<li>اكتب مخططاً لبيان العمل (SoW) في صفحة واحدة يغطي: الأطراف، والأهداف، والمخرجات، والجدول الزمني، والافتراضات، ومعايير القبول.</li>
+<li><strong>ضع فخاً لنفسك عمداً:</strong> ضع أصلاً واحداً في قائمة "خارج النطاق" يكون مغرياً باختباره على أي حال (بوابة مزوّد الدفع). واكتب جملة واحدة تشرح ما ستفعله لو وجدت فيها ثغرة حرجة بالخطأ.</li>
+<li>أجب: من في TechNile يُسمح له بالتصريح بهذا الاختبار، ومن <em>لا</em> يُسمح له؟</li>
+</ol>
+<p><strong>المخرج:</strong> <code>scope-and-roe.md</code> إضافة إلى مخطط بيان العمل. <strong>هذه الوثيقة بند في نقطة التحقق.</strong> سيُطلب منك الدفاع عنها شفهياً.</p>
+<h3>المختبر 12.2 — الاستطلاع السلبي (ساعة ونصف)</h3>
+<p><strong>الهدف:</strong> أن تعرف كم يمكن معرفته عن هدف دون لمس بنيته التحتية إطلاقاً.</p>
+<p><strong>قاعدة هذا المختبر:</strong> استخدم <strong>مصادر عامة فقط</strong>. لا ترسل حزمة واحدة إلى أنظمة الهدف. لا فحص منافذ، ولا تخمين قسري للمجلدات، ولا اتصالات مباشرة. أي أداة ستتصل بالهدف لا مكان لها في هذا المختبر.</p>
+<p><strong>الهدف (Target):</strong> نطاق <strong>تملكه أنت</strong>، أو النطاق الرئيسي لمؤسسة عامة كبيرة. (لا تفعل هذا على شركة محلية صغيرة — فالتقنيات نفسها مطبَّقة على هدف صغير قد تبدو كاستهداف لشخص بعينه.)</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li><strong>بيانات WHOIS والتسجيل.</strong> ابحث عن سجل تسجيل النطاق. ودوّن المسجِّل (registrar)، وتاريخ الإنشاء، وخوادم الأسماء (name servers)، والمنظمة المسجِّلة. واشرح في ملاحظاتك ما الذي حُجب منذ قواعد الخصوصية في عهد GDPR، ولماذا غيّر ذلك ممارسة OSINT.</li>
+<li><strong>سجلات DNS.</strong> استعلم من خوادم حل عامة عن سجلات <code>A</code> و <code>MX</code> و <code>TXT</code> و <code>NS</code> و <code>CNAME</code>. ماذا تخبرك سجلات <code>MX</code> عن مزوّد البريد لديهم؟ وماذا تكشف سجلات <code>TXT</code> (SPF، DKIM، رموز التحقق الخاصة بخدمات طرف ثالث)؟</li>
+<li><strong>شفافية الشهادات (Certificate transparency).</strong> استخدم <a href="https://crt.sh/">crt.sh</a> للبحث عن النطاق. سجلات الشهادات عامة <strong>بحكم التصميم</strong>، وغالباً تكشف نطاقات فرعية لم يقصد أحد نشرها. <strong>سجّل كل نطاق فرعي تجده.</strong> هذه واحدة من أعلى التقنيات السلبية قيمةً على الإطلاق.</li>
+<li><strong>الاستخبارات من محركات البحث.</strong> شغّل <code>theHarvester</code> في الوضع السلبي على النطاق (موجود في Kali) لجمع رسائل البريد والمضيفين وأسماء الموظفين من مصادر عامة. ثم جرّب ثلاثة معاملات بحث يدوية: <code>site:</code> و <code>filetype:</code> و <code>inurl:</code>. ما الذي أظهره كل واحد منها؟</li>
+<li><strong>الانكشاف عبر أطراف ثالثة.</strong> افحص <a href="https://www.shodan.io/">Shodan</a> بحثاً عن نطاقات عناوين المؤسسة — ما الخدمات المرئية علناً؟ هذا استطلاع سلبي: أنت تقرأ نتائج فحص شخص آخر، ولا تفحص أنت.</li>
+<li><strong>ابنِ ملف تعريف للهدف.</strong> صفحة واحدة: المؤسسة، وحزمتها التقنية كما يمكن استنتاجها من البيانات العامة، ونطاقاتها الفرعية، ومزوّد بريدها، ومزوّد السحابة لديها، والموظفون المحتملون. <strong>ثم أجب: ماذا ستفعل بهذا لو كنت مهاجماً، وأي من هذه الحقائق ينبغي للمؤسسة إصلاحه أو إخفاؤه؟</strong></li>
+</ol>
+<p><strong>المخرج:</strong> <code>~/lab/week12/osint-profile.md</code> — ملف التعريف، والمصدر الدقيق لكل حقيقة، وتحليل "ماذا سيفعل المهاجم".</p>
+<blockquote>
+<p><strong>الدرس:</strong> لا شيء من هذا تطلّب إرسال حزمة واحدة إلى الهدف. ومعظم الاختراقات تبدأ من هنا. وانكشاف المؤسسة أمام الاستطلاع السلبي <em>دائم</em> في معظمه — فلا يمكنك "إلغاء نشر" شهادة.</p>
+</blockquote>
+<h3>المختبر 12.3 — افحص واستعرض Metasploitable2 (ساعتان)</h3>
+<p><strong>الهدف:</strong> أن تنقل جهازاً ضعيفاً عن قصد من "مضيف مجهول" إلى "سطح هجوم مرسوم".</p>
+<p><strong>الإعداد:</strong></p>
+<ol>
+<li>نزّل <strong>Metasploitable2</strong> من <a href="https://sourceforge.net/projects/metasploitable/">مشروع SourceForge الرسمي</a>. يُوزَّع كصورة آلة وهمية تُنشئ حولها جهازاً في VirtualBox.</li>
+<li>أنشئ الجهاز الوهمي: <strong>ذاكرة 1 GB، ومعالج واحد (1 vCPU)</strong>، واضبط محوّل الشبكة على <strong>NAT Network</strong> الخاصة بك — نفس الشبكة التي عليها Kali و Ubuntu.</li>
+<li>أقلعه، ثم سجّل الدخول ببيانات الاعتماد الافتراضية الموثّقة (<code>msfadmin</code> / <code>msfadmin</code>).</li>
+<li>اعرف عنوان IP الخاص به: <code>ifconfig</code> داخل الجهاز الوهمي. وتحقق منه من Kali بـ <code>ping</code>.</li>
+<li><strong>خُذ لقطة (snapshot) له</strong> (<code>Metasploitable-Clean</code>). ستُعطِّب هذا الجهاز مراراً وستحتاج تراجعاً رخيصاً.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong>الهدف: جهاز Metasploitable2 الخاص بك فقط.</strong> لا تعرّض هذا الجهاز أبداً لشبكة جسرية (bridged) أو شبكة عامة — فهو مليء بالثغرات عن قصد.</p>
+</blockquote>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li><strong>اكتشاف المضيفين.</strong> <code>nmap -sn &lt;nat-network-range&gt;</code> من Kali. تأكد من أنك ترى كل أجهزة مختبرك. ودوّن الجهاز الذي لم تكن <em>تتوقعه</em>.</li>
+<li><strong>فحص كامل لمنافذ TCP.</strong> <code>nmap -p- &lt;target&gt;</code>. هذا بطيء — دعه يكتمل. <strong>كم منفذاً مفتوح؟</strong> اكتب الرقم؛ وقارنه بجهاز Ubuntu المُقوّى لديك من الأسبوع 11.</li>
+<li><strong>كشف الخدمات والإصدارات.</strong> <code>nmap -sV -sC -p &lt;open-ports&gt; &lt;target&gt;</code>. اقرأ المخرجات بعناية. ولكل خدمة: الاسم، والإصدار، وهل يبدو محدَّثاً. <strong>الإصدارات هي بيت القصيد</strong> — فرقم الإصدار هو الفرق بين "منفذ مفتوح" و"قد ينطبق ضعف معروف بعينه".</li>
+<li><strong>استعراض الويب.</strong> وجّه متصفحاً إلى منفذ الويب في الهدف. واستخدم <code>whatweb</code> و <code>nikto</code> عليه. ثم استخدم <code>dirb</code> أو <code>gobuster</code> مع قائمة كلمات قياسية لإيجاد المجلدات. ودوّن كل تطبيق تجده.</li>
+<li><strong>الاستعراض الخاص بكل خدمة.</strong> حسب ما وجدته في الخطوة 3، استعرض خدمات مشاركة الملفات وقواعد البيانات والوصول عن بُعد بالأدوات المناسبة في Kali (<code>enum4linux</code>، <code>smbclient</code>، عميل <code>mysql</code>، وما إلى ذلك). <strong>سجّل الأمر الدقيق والمخرجات الدقيقة لكل واحدة.</strong></li>
+<li><strong>ابنِ خريطة سطح الهجوم.</strong> جدول: <code>port | service | version | what it exposes | what an attacker would try first</code>.</li>
+</ol>
+<p><strong>المخرج:</strong> <code>~/lab/week12/attack-surface.md</code> — الجدول، وأمر nmap الخام الذي استخدمته، وعدد المنافذ المفتوحة.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>لا يحصل Metasploitable2 على عنوان IP</td>
+<td>المحوّل مضبوط على NAT بدلاً من NAT Network — نفس الفخ الذي في الأسبوع 1</td>
+</tr>
+<tr>
+<td><code>nmap -p-</code> يستغرق وقتاً لا ينتهي</td>
+<td>طبيعي لنطاق كامل. أضف <code>-T4</code> وتحمّل؛ ولا تشغّله على أي شيء غير مختبرك</td>
+</tr>
+<tr>
+<td>لا تُعاد معلومات الإصدار</td>
+<td>الفحص لم يكن بصلاحيات مرتفعة. سبقه بـ <code>sudo</code> لكشف SYN ونظام التشغيل</td>
+</tr>
+<tr>
+<td>مخرجات Nikto ضخمة ومقلقة</td>
+<td>إنها تبلّغ عن مشاكل <em>محتملة</em> وإيجابيات كاذبة. <strong>هذا هو درس المختبر — انظر 12.4</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 12.4 — تحقّق، لا تثق (ساعة ونصف)</h3>
+<p><strong>الهدف:</strong> تحويل مخرجات أداة خام إلى نتيجة حقيقية مُتحقَّق منها. هذا هو المختبر الذي يفصل المحترف عن مشغّل السكربتات.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>اختر <strong>بنداً واحداً</strong> من مخرجات Nikto أو مخرجات السكانر. ويُفضّل بنداً مُعلَّماً بأنه شديد.</li>
+<li><strong>اختبر الادعاء يدوياً.</strong> لا بالسكانر — بل بمتصفح، أو <code>curl</code>، أو عميل الخدمة نفسه. مثال: إن ادّعى السكانر أن سرد المجلدات (directory listing) مُفعَّل، فانتقل إلى المجلد وانظر. وإن ادّعى أن بيانات اعتماد افتراضية تعمل، فسجّل الدخول. وإن ادّعى أن ملفاً مكشوف، فاجلب الملف.</li>
+<li><strong>سجّل الدليل الخام.</strong> في نتيجة ويب يكون الدليل هو طلب HTTP الدقيق والاستجابة الدقيقة. وفي نتيجة خدمة يكون الأمر الدقيق والمخرجات. <strong>انسخه حرفياً — "بدا ضعيفاً" ليس دليلاً.</strong></li>
+<li><strong>صنّف النتيجة:</strong></li>
+</ol>
+<ul>
+<li><strong>مؤكَّد (Confirmed)</strong> — أعدت إنتاجه، ولديك الدليل</li>
+<li><strong>إيجابية كاذبة (False positive)</strong> — كان السكانر مخطئاً؛ واشرح <em>لماذا</em> أخطأ</li>
+<li><strong>غير مُتحقَّق (Unverified)</strong> — لم تستطع التأكيد ولا النفي؛ وحدّد بالضبط ما يلزم للحسم</li>
+</ul>
+<ol start="5">
+<li><strong>أعد العمل على بند ثانٍ</strong> — بند تتوقع أن يكون إيجابية كاذبة. <strong>اكتشاف أن تنبيهاً مخيفاً لا شيء — نتيجة حقيقية وليست فشلاً.</strong> والإبلاغ عن إيجابية كاذبة كنتيجة مؤكدة يُدمّر سمعتك عند العميل بشكل دائم.</li>
+<li><strong>أثبت الأثر.</strong> في النتيجة المؤكدة، أجب صراحةً: <em>ما الذي يستطيع مهاجم فعله بهذا حقاً؟</em> ليس "الإصدار قديم" — بل "يستطيع مهاجم على نفس الشبكة تنفيذ أوامر باسم مستخدم خادم الويب، وهذا يمنحه وصولاً للقراءة إلى إعدادات التطبيق، التي تحتوي كلمة مرور قاعدة البيانات."</li>
+</ol>
+<p><strong>المخرج:</strong> سجل تحقق لبندين، لكل منهما دليل خام وتصنيف وبيان أثر.</p>
+<blockquote>
+<p><strong>هذا المختبر هو الأهم هذا الأسبوع.</strong> السكانر يعمل في أربع دقائق ولا يعرف شيئاً. وأنت الآن تعرف شيئاً لا يستطيع السكانر إخبارك به: هل هذا <em>صحيح</em>.</p>
+</blockquote>
+<h3>المختبر 12.5 — اكتب النتيجة (ساعة واحدة)</h3>
+<p><strong>الهدف:</strong> إنتاج المخرج الفعلي لاختبار الاختراق.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>خذ نتيجتك المؤكدة من المختبر 12.4 واكتبها في <code>~/lab/week12/findings/</code>، بهذه البنية الدقيقة:</li>
+</ol>
+<ul>
+<li><strong>العنوان (Title)</strong> — محدد وواقعي. <em>"بيانات اعتماد افتراضية على واجهة إدارة Tomcat"</em>، لا <em>"كلمة مرور ضعيفة"</em>.</li>
+<li><strong>الخطورة (Severity)</strong> — درجة CVSS v3.1 الأساسية ونص المتجه الكامل، إضافة إلى تصنيفك الخاص للخطورة.</li>
+<li><strong>الأصل المتأثر (Affected asset)</strong> — اسم المضيف أو عنوان IP، والمنفذ، والخدمة، والمسار.</li>
+<li><strong>الوصف (Description)</strong> — ما هي نقطة الضعف، بلغة تقنية محايدة، في 2–4 جمل.</li>
+<li><strong>الأثر (Impact)</strong> — ماذا يكسب المهاجم وما النتيجة على العمل. هذا هو القسم الذي يقرأه المدراء التنفيذيون.</li>
+<li><strong>خطوات إعادة الإنتاج</strong> — مرقّمة ودقيقة وكاملة. يجب أن يستطيع شخص بلا أي سياق إعادة إنتاجها من هذه الخطوات وحدها.</li>
+<li><strong>الأدلة (Evidence)</strong> — الطلب والاستجابة كما هما، أو الأمر والمخرجات.</li>
+<li><strong>المعالجة (Remediation)</strong> — إصلاح محدد وقابل للتنفيذ، إضافة إلى حل مؤقت قصير المدى. "حدّثه" ليست معالجة.</li>
+<li><strong>المراجع (References)</strong> — إرشاد المورّد، ورقم CVE إن وُجد، والمعيار ذو الصلة.</li>
+</ul>
+<ol start="2">
+<li><strong>قيّمها كما ينبغي.</strong> استخدم <a href="https://www.first.org/cvss/calculator/3.1">حاسبة CVSS v3.1</a>. وبرّر كل معيار أساسي بجملة. والنطاق يأتي من الدرجة: <strong>لا شيء 0.0 · منخفضة 0.1–3.9 · متوسطة 4.0–6.9 · عالية 7.0–8.9 · حرجة 9.0–10.0</strong>.</li>
+<li><strong>اكتب الملخص التنفيذي.</strong> نصف صفحة، بلا مصطلحات، بلا أسماء أدوات، بلا متجهات CVSS. ما هو الخطر، وما مدى سوئه، وما الذي ينبغي عليهم فعله، وبأي ترتيب. <strong>افترض أن القارئ مدير مشغول غير تقني لن يقرأ إلا هذا.</strong></li>
+<li><strong>تمرين الدقيقتين.</strong> اشرح نتيجتك بصوت مسموع لشخص غير تقني — صديق، أو فرد من العائلة، أو مرشد يلعب دور المدير المالي للعميل. بلا مصطلحات. لديك دقيقتان. وإن لم يستطع شرح الخطر لك بعدها، فلم تنتهِ من كتابتها بعد.</li>
+</ol>
+<p><strong>المخرج:</strong> وثيقة النتيجة كاملة، إضافة إلى الملخص التنفيذي، وفقرة واحدة عن ما تغيّر في شرحك بين النسخة التقنية ونسخة الدقيقتين.</p></div>
+  </div>
+</details><details class="lesson-sec" id="challenge" data-sec="challenge" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈5h · Unguided — this is where it sticks</span><span class="only-ar">≈5ساعات · بدون إرشاد — هنا يحدث التعلّم الحقيقي</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li><strong>Full engagement on a VulnHub box.</strong> Download a beginner-rated box from <a href="https://www.vulnhub.com/">VulnHub</a>, run it in your lab, and take it from recon to a written report. <strong>The report is the deliverable — the shell is not.</strong> Include at least three findings written in the Lab 12.5 format, with CVSS vectors.</li>
+<li><strong>PortSwigger Web Security Academy and TryHackMe.</strong> Complete the free <a href="https://portswigger.net/web-security/sql-injection">SQL injection</a> and <a href="https://portswigger.net/web-security/access-control">access control</a> labs, then work the free offensive-path rooms on <a href="https://tryhackme.com/">TryHackMe</a>. Both are explicitly authorized for practice. Write up one lab as a finding.</li>
+<li><strong>CVSS practice on real vulnerabilities.</strong> Pick three real published CVEs from <a href="https://nvd.nist.gov/">NVD</a> with different severity bands. Read the description <em>only</em> — then score each yourself before looking at the published score. Compare. Explain every metric you got wrong.</li>
+<li><strong>Build a findings tracker.</strong> A spreadsheet with columns: ID, title, asset, severity, CVSS vector, status, owner, due date, retest result. This is what clients actually track remediation in, and knowing its shape makes you look like someone who has done this before.</li>
+<li><strong>Write the remediation section for a finding you did not exploit.</strong> Choose something your scan revealed but you chose not to verify. Write the remediation guidance anyway. Then explain what you would need in order to responsibly claim it is real.</li>
+<li><strong>The scope-violation thought experiment.</strong> Someone offers you £500 cash to "just check one thing" on a live production server, no paperwork, "it'll take five minutes." Write down, in full sentences, exactly what you say and why. Keep it. You will be offered this.</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li><strong>مهمة كاملة على جهاز VulnHub.</strong> نزّل جهازاً بتقييم مبتدئ من <a href="https://www.vulnhub.com/">VulnHub</a>، وشغّله في مختبرك، وخذه من الاستطلاع إلى تقرير مكتوب. <strong>التقرير هو المخرج — لا الـ shell.</strong> وضمّن ثلاثة نتائج على الأقل مكتوبة ببنية المختبر 12.5، مع متجهات CVSS.</li>
+<li><strong>PortSwigger Web Security Academy و TryHackMe.</strong> أكمل مختبرات <a href="https://portswigger.net/web-security/sql-injection">حقن SQL</a> و <a href="https://portswigger.net/web-security/access-control">التحكم بالوصول</a> المجانية، ثم اعمل على غرف المسار الهجومي المجانية في <a href="https://tryhackme.com/">TryHackMe</a>. وكلاهما مصرّح به صراحةً للتدريب. واكتب مختبراً واحداً في صورة نتيجة (finding).</li>
+<li><strong>تدريب على CVSS بثغرات حقيقية.</strong> اختر ثلاث ثغرات CVE حقيقية منشورة من <a href="https://nvd.nist.gov/">NVD</a> بنطاقات خطورة مختلفة. واقرأ الوصف <em>فقط</em> — ثم قيّم كل واحدة بنفسك قبل النظر إلى الدرجة المنشورة. قارن. واشرح كل معيار أخطأت فيه.</li>
+<li><strong>ابنِ متتبّع نتائج (findings tracker).</strong> جدول بيانات بأعمدة: المعرّف، والعنوان، والأصل، والخطورة، ومتجه CVSS، والحالة، والمسؤول، وتاريخ الاستحقاق، ونتيجة إعادة الاختبار. هذا ما يتتبّع به العملاء المعالجة فعلاً، ومعرفة شكله تجعلك تبدو كمن فعل هذا من قبل.</li>
+<li><strong>اكتب قسم المعالجة لنتيجة لم تستغلّها.</strong> اختر شيئاً كشفه فحصك لكنك اخترت ألا تتحقق منه. واكتب إرشاد المعالجة على أي حال. ثم اشرح ما تحتاجه لتزعم أنها حقيقية بمسؤولية.</li>
+<li><strong>التجربة الذهنية في خرق النطاق.</strong> يعرض عليك شخص 500 جنيه إسترليني نقداً لتـ"تفحص شيئاً واحداً فقط" على خادم إنتاج حيّ، بلا أوراق، و"لن يستغرق خمس دقائق". اكتب بجمل كاملة ما ستقوله بالضبط ولماذا. واحتفظ به. سيُعرض عليك هذا فعلاً.</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="payoff" data-sec="payoff" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The security consequence</span><span class="only-ar">الأثر الأمني</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>This is the week you find out if you're an attacker.</strong></p>
+<p>Be honest about what attracts you here. The appeal is real and worth naming out loud, because unexamined attraction is what gets people into trouble:</p>
+<ol>
+<li>
+<p><strong>The work is genuinely creative.</strong> There is no script that works on every target. You read a system you have never seen, form a hypothesis about where it is weak, and test it. It is closer to puzzle-solving than to engineering — and for some people that is the most satisfying work they will ever do.</p>
+</li>
+<li>
+<p><strong>The feedback is immediate and unambiguous.</strong> A shell is a shell. After weeks of ambiguous problems in other domains, the clarity of "it worked" is addictive.</p>
+</li>
+<li>
+<p><strong>You see the system as it really is, not as its documentation claims.</strong> Every pentester has the same formative moment: a client insists the system is locked down, and twenty minutes later you are reading their database. That gap between the claimed and the actual is the entire discipline.</p>
+</li>
+</ol>
+<p><strong>And now the responsibility.</strong></p>
+<ul>
+<li><strong>The job is the report, not the shell.</strong> A shell you cannot explain is worth nothing. Your employer is not paying for a shell — they are paying for a document that lets them fix the problem and prove to a regulator or a board that they did. An engagement with twelve findings and a bad report failed. An engagement with one finding, proven and clearly explained, succeeded.</li>
+<li><strong>You are trusted with someone's worst day.</strong> During a real engagement you will see data that would ruin people's lives if it leaked. You will see the internal network of an organization that believes it is secure. That trust is the entire basis of the profession, and it is fragile.</li>
+<li><strong>You are on the record.</strong> Your name is on a signed document. If you stray outside scope, even accidentally, everything that follows is on you and on the client's signature — and no client forgives that.</li>
+<li><strong>Being excellent at offense makes you dangerous, and that is a permanent condition.</strong> The skill does not expire. People who find this work easy and have no discipline end up in a very specific kind of trouble. The discipline is learned now, while the stakes are a lab VM.</li>
+</ul>
+<p><strong>Ask yourself honestly:</strong> do you like this because it is a puzzle, or because it is a thrill? The puzzle-solvers last twenty years. The thrill-seekers burn out, or worse.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>هذا هو الأسبوع الذي تكتشف فيه إن كنت مهاجماً.</strong></p>
+<p>كن صادقاً بشأن ما يجذبك إلى هنا. فالجذب حقيقي ويستحق أن يُقال بصوت مسموع، لأن الجذب غير المفحوص هو ما يوقع الناس في المشاكل:</p>
+<ol>
+<li>
+<p><strong>العمل إبداعي فعلاً.</strong> لا يوجد سكربت يعمل على كل هدف. أنت تقرأ نظاماً لم تره من قبل، وتصوغ فرضية عن موضع ضعفه، وتختبرها. وهو أقرب إلى حل الألغاز منه إلى الهندسة — ولدى بعض الناس هذا هو أكثر عمل مُرضٍ سيقومون به في حياتهم.</p>
+</li>
+<li>
+<p><strong>الاستجابة فورية ولا لبس فيها.</strong> الـ shell هو shell. وبعد أسابيع من مشاكل غامضة في مجالات أخرى، يصبح وضوح "لقد نجح" شيئاً يُدمن.</p>
+</li>
+<li>
+<p><strong>ترى النظام كما هو فعلاً، لا كما تدّعي وثائقه.</strong> ولكل مختبر اختراق اللحظة التكوينية نفسها: عميل يصرّ على أن النظام مُحكَم الإغلاق، وبعد عشرين دقيقة تكون تقرأ قاعدة بياناته. تلك الفجوة بين المُدّعى والواقعي هي المهنة كلها.</p>
+</li>
+</ol>
+<p><strong>والآن المسؤولية.</strong></p>
+<ul>
+<li><strong>العمل هو التقرير، لا الـ shell.</strong> و shell لا تستطيع شرحه لا قيمة له. صاحب العمل لا يدفع مقابل shell — بل يدفع مقابل وثيقة تمكّنه من إصلاح المشكلة وإثبات أنه فعل ذلك لجهة تنظيمية أو لمجلس إدارة. مهمة فيها اثنتا عشرة نتيجة وتقرير سيئ = فاشلة. ومهمة فيها نتيجة واحدة مثبتة ومشروحة بوضوح = ناجحة.</li>
+<li><strong>يُؤتمنك الناس على أسوأ أيامهم.</strong> خلال مهمة حقيقية سترى بيانات كان تسريبها سيدمّر حياة أصحابها. وسترى الشبكة الداخلية لمؤسسة تعتقد أنها آمنة. وتلك الثقة هي أساس المهنة كله، وهي هشّة.</li>
+<li><strong>أنت على السجل.</strong> اسمك على وثيقة موقّعة. وإن خرجت عن النطاق، ولو بالخطأ، فكل ما يتبع يقع عليك وعلى توقيع العميل — ولا عميل يغفر ذلك.</li>
+<li><strong>التميّز في الهجوم يجعلك خطيراً، وهذه حالة دائمة.</strong> المهارة لا تنتهي صلاحيتها. ومن يجد هذا العمل سهلاً وليس لديه انضباط ينتهي به الأمر في نوع محدد جداً من المتاعب. والانضباط يُتعلَّم الآن، حيث الثمن مجرد جهاز وهمي في مختبر.</li>
+</ul>
+<p><strong>اسأل نفسك بصدق:</strong> هل تحب هذا لأنه لغز، أم لأنه إثارة؟ من يحلّون الألغاز يصمدون عشرين سنة. ومن يبحثون عن الإثارة يحترقون، أو أسوأ.</p></div>
+  </div>
+</details><details class="lesson-sec" id="checkpoint" data-sec="checkpoint" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4M4 4h12l-1.5 4L16 12H4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Prove it to yourself before moving on</span><span class="only-ar">أثبت لنفسك أنك أتقنت قبل المتابعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Present your scope and RoE document and defend it verbally — including who is authorized to sign</li>
+<li class="task">State the difference between a pentest, a vulnerability assessment, and a red team — and where the line to criminality sits</li>
+<li class="task">Walk through your OSINT profile and name the exact public source for each fact</li>
+<li class="task">Show your Metasploitable2 attack surface map and explain every service on it</li>
+<li class="task">Defend a classification: confirmed, false positive, or unverified — with raw evidence</li>
+<li class="task">Explain the difference between an exploit and a payload</li>
+<li class="task">Explain why scanner output is not a finding</li>
+<li class="task">Name the PTES phases in order</li>
+<li class="task">Produce a complete finding with a justified CVSS vector, and explain it in two minutes without jargon</li>
+<li class="task">State the first three words of your answer when someone asks you to test something out of scope</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">يعرض وثيقة النطاق وقواعد الاشتباك ويدافع عنها شفهياً — بما في ذلك من يُصرّح له بالتوقيع</li>
+<li class="task">يذكر الفرق بين اختبار الاختراق وتقييم الثغرات والفريق الأحمر — وأين يقع الخط الفاصل مع التجريم</li>
+<li class="task">يستعرض ملف OSINT الخاص به ويسمّي المصدر العام الدقيق لكل حقيقة</li>
+<li class="task">يعرض خريطة سطح الهجوم لـ Metasploitable2 ويشرح كل خدمة عليها</li>
+<li class="task">يدافع عن تصنيف: مؤكَّد، أو إيجابية كاذبة، أو غير مُتحقَّق — بدليل خام</li>
+<li class="task">يشرح الفرق بين الاستغلال والحمولة</li>
+<li class="task">يشرح لماذا مخرجات السكانر ليست نتيجة</li>
+<li class="task">يسمّي مراحل PTES بالترتيب</li>
+<li class="task">ينتج نتيجة كاملة بمتجه CVSS مبرَّر، ويشرحها في دقيقتين بلا مصطلحات</li>
+<li class="task">يذكر أول ثلاث كلمات من جوابه عندما يطلب منه أحد اختبار شيء خارج النطاق</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec only-ar" id="notes" data-sec="notes" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 0-9-9"/><path d="M12 7v5l3 2M3 21l3-3"/></svg></span>
+    <span class="lesson-titles">
+      <h2>ملاحظات مفاهيمية موسّعة</h2>
+      <span class="lesson-sub"><span>شرح إضافي موسّع</span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose" dir="rtl" lang="ar"><h3>القانون أولاً — التصريح (Authorization)</h3>
+<p>هذا القسم هو أهم ما في هذا الأسبوع كله. <strong>اقرأه قبل أن تشغّل أي أداة.</strong></p>
+<p><strong>الحقيقة التي يجب أن تستقر في عقلك:</strong></p>
+<blockquote>
+<p><strong>الفارق الوحيد بين اختبار اختراق وبين جريمة هو ورقة موقّعة وحدود مُعلنة.</strong> الأدوات نفسها، والأوامر نفسها، والنتائج نفسها. الورقة هي كل الفرق.</p>
+</blockquote>
+<p><strong>ما هي الجريمة تحديداً؟</strong> الوصول إلى نظام حاسوبي <strong>بدون تصريح</strong>. لا يهم:</p>
+<ul>
+<li>❌ "كنت أختبر فقط" — ليست دفاعاً قانونياً في أي تشريع تقريباً.</li>
+<li>❌ "أردت مساعدتهم" — النية لا تغيّر الوصف القانوني.</li>
+<li>❌ "عملت فحص منافذ بسيط" — فحص المنافذ على نظام لا تملكه عُدّ في عدة دول وصولاً غير مصرح به.</li>
+<li>❌ "الأمر لا يضر" — الضرر ليس عنصراً في الجريمة أصلاً.</li>
+</ul>
+<p><strong>القوانين في المنطقة</strong> — كلها تمنع الوصول غير المصرح وتفرض عقوبات تشمل الحبس والغرامة:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الدولة</th>
+<th>القانون</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>مصر</td>
+<td>قانون مكافحة جرائم تقنية المعلومات رقم 175 لسنة 2018</td>
+</tr>
+<tr>
+<td>السعودية</td>
+<td>نظام مكافحة الجرائم المعلوماتية</td>
+</tr>
+<tr>
+<td>الإمارات</td>
+<td>المرسوم بقانون اتحادي في شأن مكافحة الجرائم الإلكترونية</td>
+</tr>
+<tr>
+<td>الأردن</td>
+<td>قانون الجرائم الإلكترونية</td>
+</tr>
+<tr>
+<td>الولايات المتحدة</td>
+<td>Computer Fraud and Abuse Act (CFAA)</td>
+</tr>
+<tr>
+<td>المملكة المتحدة</td>
+<td>Computer Misuse Act 1990</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>واجب عليك هذا الأسبوع:</strong> ابحث عن نص القانون في بلدك واقرأه بنفسك. لا يمكنك الاحتجاج بجهلك بقانون طُلب منك قراءته.</p>
+</blockquote>
+<p><strong>الصفة التي تميّز المحترف ليست المهارة التقنية — بل أنه لا يختبر شيئاً بدون تصريح مكتوب.</strong> ستقابل في هذا المجال من هو عبقري تقنياً وغير قابل للتوظيف بسبب اختبار واحد غير مصرح به. الأمر يلاحقك.</p>
+<h3>الوثائق الثلاث التي يجب أن تفهمها</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الوثيقة</th>
+<th>وظيفتها</th>
+<th>لماذا لا يكفي الكلام الشفهي؟</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>نطاق العمل (Scope)</strong></td>
+<td><strong>الحدود</strong>: ما هو داخل النطاق وما هو خارجه</td>
+<td>لأن "ظننت أنه داخل النطاق" ليست حجة</td>
+</tr>
+<tr>
+<td><strong>قواعد الاشتباك (Rules of Engagement)</strong></td>
+<td><strong>السلوك</strong>: ما يُسمح وما يُمنع داخل النطاق</td>
+<td>لأن الاختراق التقني قد يكون قانونياً والتوقف عن العمل واجباً</td>
+</tr>
+<tr>
+<td><strong>بيان العمل (Statement of Work)</strong></td>
+<td><strong>العقد</strong>: الأطراف، المخرجات، الجدول الزمني، الأتعاب</td>
+<td>لأنه يحمي الطرفين عند الخلاف</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>النطاق (Scope) يجب أن يحدد بدقة:</strong></p>
+<ul>
+<li>✅ <strong>داخل النطاق:</strong> عناوين IP محددة، أسماء نطاقات، تطبيقات، بيئات (إنتاج؟ تجريبية؟)</li>
+<li>🚫 <strong>خارج النطاق:</strong> صراحةً — خدمات طرف ثالث، أنظمة شركات شقيقة، هجمات حجب الخدمة، هندسة اجتماعية لأشخاص محددين</li>
+<li>📍 <strong>عناوين المصدر:</strong> من أي عناوين IP ستُختبر، حتى لا يعتبرك الفريق الدفاعي مهاجماً حقيقياً</li>
+<li>⏰ <strong>النافذة الزمنية:</strong> تاريخ البداية والنهاية وساعات العمل المسموحة</li>
+<li>✍️ <strong>المُوقّع المُخوَّل:</strong> شخص <strong>يملك صلاحية</strong> منح التصريح — وليس أي موظف</li>
+</ul>
+<p><strong>قواعد الاشتباك (RoE)</strong> تضيف: التقنيات المسموحة والممنوعة، جهة الاتصال للطوارئ على مدار الساعة، <strong>شرط التوقف</strong> (من يستطيع إيقاف الاختبار وبأي إشارة)، وكيفية التعامل مع البيانات الحساسة المكتشفة.</p>
+<blockquote>
+<p><strong>القاعدة الحاسمة: ما ليس في وثيقة النطاق فهو خارج النطاق.</strong> ليس "غالباً مقبول" — بل <strong>خارج النطاق</strong>. عندما يقول لك العميل: "بما أنك بالداخل، افحص نظام الفواتير أيضاً"، فالجواب: <em>"بكل سرور — سأرسل نطاقاً محدّثاً للتوقيع أولاً."</em> قول هذه الجملة بهدوء هو ما يبدو عليه الاحتراف.</p>
+</blockquote>
+<h3>تصنيف الأعمال الأمنية — أربعة أشياء يخلط بينها المبتدئون</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>النوع</th>
+<th>ما هو</th>
+<th>من يُصرّح</th>
+<th>المُخرَج</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>تقييم الثغرات</strong></td>
+<td>قائمة عريضة سطحية بالأخطاء مرتبة حسب الخطورة، غالباً آلية</td>
+<td>مالك النظام</td>
+<td>قائمة نتائج</td>
+</tr>
+<tr>
+<td><strong>اختبار اختراق</strong></td>
+<td>إثبات أي الثغرات <strong>قابلة فعلاً للاستغلال</strong> وما أثرها. يدوي ومُتحقَّق منه</td>
+<td>مالك النظام، كتابةً، بنطاق محدد</td>
+<td>تقرير بنتائج مؤكدة وأدلة</td>
+</tr>
+<tr>
+<td><strong>فريق أحمر (Red Team)</strong></td>
+<td>محاكاة خصم حقيقي. يختبر <strong>قدرة الكشف والاستجابة</strong>، لا قائمة الثغرات</td>
+<td>رعاية تنفيذية مع قواعد اشتباك صارمة</td>
+<td>الأهداف المتحققة + تقييم أداء المدافعين</td>
+</tr>
+<tr>
+<td><strong>جريمة</strong></td>
+<td>نفس الأدوات بدون تصريح</td>
+<td>لا أحد</td>
+<td>سجل جنائي</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المنهجية — كيف يعمل المحترف فعلاً؟</h3>
+<p><strong>الفرق بين المبتدئ والمحترف ليس الأدوات — بل المنهجية.</strong> المبتدئ يفتح أداة ويرى ماذا يحدث. المحترف يتبع عملية مرتّبة.</p>
+<p><strong>مراحل PTES السبع:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>المرحلة</th>
+<th>بالعربية</th>
+<th>ماذا تفعل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Pre-engagement Interactions</td>
+<td>التفاعل المسبق</td>
+<td>تحديد النطاق، قواعد الاشتباك، التوقيع. <strong>ما قبل أي أمر</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Intelligence Gathering</td>
+<td>جمع المعلومات</td>
+<td>الاستطلاع السلبي والنشط</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Threat Modeling</td>
+<td>نمذجة التهديد</td>
+<td>تحديد الأصول الأهم وأساليب الهجوم المرجّحة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Vulnerability Analysis</td>
+<td>تحليل الثغرات</td>
+<td>تحديد نقاط الضعف وترتيبها</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Exploitation</td>
+<td>الاستغلال</td>
+<td>إثبات أن الثغرة قابلة للاستغلال فعلاً</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Post Exploitation</td>
+<td>ما بعد الاستغلال</td>
+<td>قياس الأثر الحقيقي: إلى أين وصلنا؟</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Reporting</td>
+<td>التقرير</td>
+<td><strong>المُخرَج النهائي</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>للتطبيقات الويب منهجية متخصصة تُسمى OWASP WSTG</strong> (<a href="https://wstg.owasp.org/v4.2/">الرابط</a>) — وهي أعمق من PTES في جانب الويب: جمع المعلومات، إعدادات الخادم، إدارة الهوية، المصادقة، التخويل، إدارة الجلسات، التحقق من المدخلات، معالجة الأخطاء، التشفير، منطق الأعمال، جانب العميل.</p>
+</blockquote>
+<h3>الاستطلاع (Reconnaissance) — سلبي مقابل نشط</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>الاستطلاع السلبي</th>
+<th>الاستطلاع النشط</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>هل تلمس الهدف؟</strong></td>
+<td><strong>لا</strong> — مصادر عامة فقط</td>
+<td><strong>نعم</strong> — ترسل حزماً إليه</td>
+</tr>
+<tr>
+<td><strong>أمثلة</strong></td>
+<td>WHOIS، سجلات DNS العامة، سجلات الشهادات، محركات البحث، Shodan</td>
+<td>فحص المنافذ، الزحف على الموقع، جلب البانرات</td>
+</tr>
+<tr>
+<td><strong>هل يترك أثراً؟</strong></td>
+<td><strong>لا</strong> — لا يعلم الهدف أنك تبحث</td>
+<td><strong>نعم</strong> — تظهر في سجلاته وقد يكتشفك</td>
+</tr>
+<tr>
+<td><strong>الحكمي القانوني</strong></td>
+<td>غالباً قانوني — لكن انتبه للخصوصية</td>
+<td><strong>يحتاج تصريحاً</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>أدوات ومصادر سلبية عالية القيمة:</strong></p>
+<ul>
+<li><strong>سجلات الشهادات (<a href="https://crt.sh/">crt.sh</a>)</strong> — الشهادات الرقمية تُسجَّل علناً <strong>بحكم التصميم</strong>، وغالباً تكشف نطاقات فرعية لم يقصد أحد نشرها. <strong>من أقوى التقنيات السلبية على الإطلاق</strong> — ولا يمكن للضحية "إلغاء نشرها".</li>
+<li><strong>سجلات DNS العامة</strong> — سجلات <code>MX</code> تكشف مزوّد البريد، وسجلات <code>TXT</code> قد تكشف خدمات طرف ثالث (وعناوين التحقق).</li>
+<li><strong>WHOIS</strong> — من سجّل النطاق ومتى. <strong>ملاحظة مهمة:</strong> قوانين حماية البيانات جعلت معظم بيانات المُسجِّل محجوبة اليوم — وهذا مثال جيد على كيف غيّرت السياسة ممارسة الاستطلاع.</li>
+</ul>
+<blockquote>
+<p><strong>الدرس المهم:</strong> كل ما تجمعه في هذا المعمل لم يتطلب إرسال حزمة واحدة إلى الهدف. <strong>معظم الاختراقات تبدأ من هنا.</strong></p>
+</blockquote>
+<h3>الثغرة ليست ما يقوله السكانر</h3>
+<p><strong>أخطر عادة عند المبتدئين:</strong> تصدير مخرجات أداة فحص وإرسالها للعميل كما هي.</p>
+<p><strong>لماذا هذا خطأ مهني؟</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المشكلة</th>
+<th>الشرح</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>إيجابيات كاذبة</strong></td>
+<td>الأداة تُبلّغ عن مشاكل "محتملة" فقط. بعضها ليس موجوداً أصلاً</td>
+</tr>
+<tr>
+<td><strong>بلا سياق</strong></td>
+<td>"نسخة قديمة" ليس ثغرة حتى تثبت أن هناك استغلالاً يعمل فعلاً</td>
+</tr>
+<tr>
+<td><strong>بلا أثر</strong></td>
+<td>الأداة لا تعرف ما الذي يعنيه هذا العمل للعميل</td>
+</tr>
+<tr>
+<td><strong>تُفقد الثقة</strong></td>
+<td>تقرير مليء بالإيجابيات الكاذبة يجعل العميل يتجاهل التقرير بالكامل — <strong>بما فيه النتائج الحقيقية</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>التصنيف الصحيح لأي بند في مخرجات أداة:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>التصنيف</th>
+<th>المعنى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>مؤكَّد (Confirmed)</strong></td>
+<td>أعدت إنتاجه بنفسي ولديّ الدليل الخام</td>
+</tr>
+<tr>
+<td><strong>إيجابية كاذبة (False Positive)</strong></td>
+<td>الأداة أخطأت — وأشرح <strong>لماذا</strong> أخطأت</td>
+</tr>
+<tr>
+<td><strong>غير مُتحقَّق (Unverified)</strong></td>
+<td>لم أستطع التأكيد ولا النفي — وأحدد بالضبط ما يلزم للحسم</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>اكتشاف أن تنبيهاً مخيفاً لا شيء — نتيجة حقيقية وليست فشلاً.</strong> بل إن الإبلاغ عن إيجابية كاذبة كنتيجة مؤكدة يُدمّر سمعتك بشكل دائم.</p>
+</blockquote>
+<h3>الاستغلال: الاستغلال مقابل الحمولة</h3>
+<p>خلط شائع جداً، والتفريق بينهما أساسي:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المصطلح</th>
+<th>معناه</th>
+<th>مثال توضيحي</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>الاستغلال (Exploit)</strong></td>
+<td>الكود أو الأسلوب الذي <strong>يستغل الثغرة</strong> لتحقيق تأثير</td>
+<td>المفتاح الذي يفتح الباب</td>
+</tr>
+<tr>
+<td><strong>الحمولة (Payload)</strong></td>
+<td>ما <strong>يُنفَّذ بعد</strong> نجاح الاستغلال</td>
+<td>ما تحمله معك بعد فتح الباب</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>نفس الاستغلال، حمولات مختلفة.</strong> قد تكون الحمولة: تنفيذ أمر واحد، أو جلسة أوامر تفاعلية، أو إضافة مستخدم، أو تحميل برمجية إضافية.</p>
+<blockquote>
+<p><strong>مفهوم مهم آخر في هذه المرحلة:</strong> <strong>التحقق (Verification)</strong>. الاستغلال غير المتحقق منه لا قيمة له في التقرير. ومن الاستغلال البسيط والآمن (قراءة ملف، تنفيذ <code>whoami</code>) لا يُقفز مباشرة إلى "سرقة قاعدة البيانات" — <strong>حتى لو كان ممكناً، فإن الوصول لما هو أبعد من الحاجة يأخذك خارج النطاق، وقد يدخلك في مسؤولية قانونية.</strong> اكتفِ بإثبات ما يلزم لإثبات الأثر.</p>
+</blockquote>
+<h3>ما بعد الاستغلال — مفاهيم عامة فقط</h3>
+<p>هذه المهارات تُبنى في الأشهر اللاحقة، والفهم المفاهيمي هنا كافٍ:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المفهوم</th>
+<th>معناه</th>
+<th>لماذا يهم</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>تصعيد الصلاحيات (Privilege Escalation)</strong></td>
+<td>الانتقال من مستخدم عادي إلى مدير (root)</td>
+<td>ما تعلمته في الأسبوع الثاني عن SUID والإعدادات الخاطئة</td>
+</tr>
+<tr>
+<td><strong>الحركة الجانبية (Lateral Movement)</strong></td>
+<td>الانتقال من جهاز مخترق إلى أجهزة أخرى</td>
+<td>الجهاز الأول غالباً ليس الهدف — بل الطريق إليه</td>
+</tr>
+<tr>
+<td><strong>الاستمرارية (Persistence)</strong></td>
+<td>ضمان العودة بعد إعادة التشغيل</td>
+<td>الخدمات ومهام cron من الأسبوع الثالث</td>
+</tr>
+<tr>
+<td><strong>التسريب (Exfiltration)</strong></td>
+<td>إخراج البيانات من الشبكة</td>
+<td>هنا يتحول الاختراق التقني إلى خسارة مالية</td>
+</tr>
+</tbody>
+</table></div>
+<h3>التقرير — المنتج الحقيقي</h3>
+<p><strong>هذه هي الحقيقة التي تفصل المحترف عن الهواة: أنت لا تُدفع مقابل الاختراق — أنت تُدفع مقابل التقرير.</strong></p>
+<p>اختراق لا تستطيع شرحه = قيمة صفر. العميل لا يدفع مقابل shell، بل مقابل وثيقة تمكّنه من الإصلاح وإثبات الامتثال لجهة تنظيمية.</p>
+<p><strong>بنية النتيجة (Finding) الاحترافية:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>القسم</th>
+<th>ماذا يكتب فيه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>العنوان (Title)</strong></td>
+<td>محدد وواقعي: "بيانات اعتماد افتراضية على واجهة إدارة Tomcat" — لا "كلمة مرور ضعيفة"</td>
+</tr>
+<tr>
+<td><strong>الخطورة (Severity)</strong></td>
+<td>درجة CVSS v3.1 + متجهها الكامل + تصنيفك الخاص</td>
+</tr>
+<tr>
+<td><strong>الأصل المتأثر (Affected Asset)</strong></td>
+<td>المضيف، المنفذ، الخدمة، المسار</td>
+</tr>
+<tr>
+<td><strong>الوصف (Description)</strong></td>
+<td>ما هي نقطة الضعف، بلغة تقنية محايدة</td>
+</tr>
+<tr>
+<td><strong>الأثر (Impact)</strong></td>
+<td>ماذا يكسب المهاجم وما النتيجة على العمل — <strong>هذا هو القسم الذي يقرأه المدراء</strong></td>
+</tr>
+<tr>
+<td><strong>خطوات إعادة الإنتاج</strong></td>
+<td>مرقّمة ودقيقة وكاملة — يجب أن يستطيع شخص بلا خلفية إعادة إنتاجها</td>
+</tr>
+<tr>
+<td><strong>الأدلة (Evidence)</strong></td>
+<td>الطلب والاستجابة كما هما، أو الأمر والمخرجات — <strong>حرفياً</strong></td>
+</tr>
+<tr>
+<td><strong>المعالجة (Remediation)</strong></td>
+<td>إصلاح محدد وقابل للتنفيذ + حل مؤقت. <strong>"حدّث النظام" ليست معالجة</strong></td>
+</tr>
+<tr>
+<td><strong>المراجع (References)</strong></td>
+<td>إرشاد المورّد، رقم CVE إن وُجد، المعيار ذو الصلة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>تقييم الخطورة بـ CVSS v3.1 — المعايير الأساسية:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المعيار</th>
+<th>القيم الممكنة</th>
+<th>السؤال</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AV</strong> — متجه الهجوم</td>
+<td>Network / Adjacent / Local / Physical</td>
+<td>من أين يُستغل؟</td>
+</tr>
+<tr>
+<td><strong>AC</strong> — تعقيد الهجوم</td>
+<td>Low / High</td>
+<td>هل يحتاج ظروفاً خاصة؟</td>
+</tr>
+<tr>
+<td><strong>PR</strong> — الصلاحيات المطلوبة</td>
+<td>None / Low / High</td>
+<td>هل يحتاج حساباً؟</td>
+</tr>
+<tr>
+<td><strong>UI</strong> — تفاعل المستخدم</td>
+<td>None / Required</td>
+<td>هل يحتاج أن ينقر الضحية؟</td>
+</tr>
+<tr>
+<td><strong>S</strong> — النطاق</td>
+<td>Unchanged / Changed</td>
+<td>هل يتأثر مكوّن آخر؟</td>
+</tr>
+<tr>
+<td><strong>C / I / A</strong></td>
+<td>None / Low / High</td>
+<td>ما الأثر على السرية والنزاهة والتوافر؟</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>نطاقات التصنيف:</strong> <code>0.0</code> لا شيء · <code>0.1–3.9</code> منخفضة · <code>4.0–6.9</code> متوسطة · <code>7.0–8.9</code> عالية · <code>9.0–10.0</code> حرجة.</p>
+<blockquote>
+<p><strong>المهم ليس الرقم — بل تبرير كل معيار.</strong> العميل يسألك: "لماذا اعتبرت هذا حرجاً؟" إن لم تستطع تبرير كل مقياس بجملة، فأنت تخمّن لا تقيّم.</p>
+</blockquote></div></div>
+</details><details class="lesson-sec" id="terms" data-sec="terms" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Keep these in English</span><span class="only-ar">احتفظ بها بالإنجليزية</span></span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>العربية</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authorization</td>
+<td>التصريح</td>
+<td>إذن مكتوب ومحدد زمنياً</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>النطاق</td>
+<td>ما يُسمح باختباره — وما لا يُسمح</td>
+</tr>
+<tr>
+<td>Rules of Engagement (RoE)</td>
+<td>قواعد الاشتباك</td>
+<td>قواعد السلوك داخل النطاق</td>
+</tr>
+<tr>
+<td>Statement of Work (SoW)</td>
+<td>بيان العمل</td>
+<td>العقد التجاري</td>
+</tr>
+<tr>
+<td>Penetration Test</td>
+<td>اختبار اختراق</td>
+<td>إثبات الاستغلال بأثر مقيَّم</td>
+</tr>
+<tr>
+<td>Vulnerability Assessment</td>
+<td>تقييم ثغرات</td>
+<td>قائمة عريضة سطحية</td>
+</tr>
+<tr>
+<td>Red Team</td>
+<td>الفريق الأحمر</td>
+<td>محاكاة خصم — يختبر الكشف والاستجابة</td>
+</tr>
+<tr>
+<td>Reconnaissance</td>
+<td>الاستطلاع</td>
+<td>جمع المعلومات</td>
+</tr>
+<tr>
+<td>Passive / Active Recon</td>
+<td>استطلاع سلبي / نشط</td>
+<td>بلا لمس / بلمس الهدف</td>
+</tr>
+<tr>
+<td>OSINT</td>
+<td>الاستخبارات مفتوحة المصدر</td>
+<td>من مصادر عامة متاحة للجميع</td>
+</tr>
+<tr>
+<td>Footprinting</td>
+<td>رسم بصمة الهدف</td>
+<td>بناء صورة كاملة عن الهدف</td>
+</tr>
+<tr>
+<td>Enumeration</td>
+<td>الاستعراض / التعداد</td>
+<td>استخراج تفاصيل من خدمة مفتوحة</td>
+</tr>
+<tr>
+<td>Exploit</td>
+<td>الاستغلال</td>
+<td>الكود الذي يستغل الثغرة</td>
+</tr>
+<tr>
+<td>Payload</td>
+<td>الحمولة</td>
+<td>ما يُنفَّذ بعد نجاح الاستغلال</td>
+</tr>
+<tr>
+<td>False Positive</td>
+<td>إيجابية كاذبة</td>
+<td>إنذار على شيء سليم</td>
+</tr>
+<tr>
+<td>Post Exploitation</td>
+<td>ما بعد الاستغلال</td>
+<td>تصعيد، حركة جانبية، استمرارية، تسريب</td>
+</tr>
+<tr>
+<td>Privilege Escalation</td>
+<td>تصعيد الصلاحيات</td>
+<td>من مستخدم عادي إلى root</td>
+</tr>
+<tr>
+<td>Lateral Movement</td>
+<td>الحركة الجانبية</td>
+<td>الانتقال بين الأجهزة</td>
+</tr>
+<tr>
+<td>CVSS</td>
+<td>النظام العام لتقييم خطورة الثغرات</td>
+<td>معيار قياسي للخطورة</td>
+</tr>
+<tr>
+<td>Finding</td>
+<td>النتيجة / الملاحظة</td>
+<td>وحدة التقرير الأساسية</td>
+</tr>
+<tr>
+<td>Remediation</td>
+<td>المعالجة</td>
+<td>الإصلاح المحدد القابل للتنفيذ</td>
+</tr>
+<tr>
+<td>Retest</td>
+<td>إعادة الاختبار</td>
+<td>التحقق من نجاح الإصلاح</td>
+</tr>
+</tbody>
+</table></div></div></div>
+</details>
+</div>
+<nav class="weeknav"><a class="prev" href="week-11.html"><span class="dir"><span class="only-en">← Previous</span><span class="only-ar">→ السابق</span></span><span class="ttl"><span class="only-en">Defensive Taster: Hardening, Detection, Incident Response</span><span class="only-ar" dir="rtl" lang="ar">جولة دفاعية: التقوية والكشف والاستجابة للحوادث</span></span></a><a class="next" href="week-13.html"><span class="dir"><span class="only-en">Next →</span><span class="only-ar">← التالي</span></span><span class="ttl"><span class="only-en">Capstone: Attack/Defend Exercise &amp; Specialization Decision</span><span class="only-ar" dir="rtl" lang="ar">مشروع الختام: تمرين هجوم/دفاع وقرار التخصص</span></span></a></nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+<script id="pc-data" type="application/json">{"weeks": [{"n": 1, "en": "Terminal From Zero & Build Your Lab", "ar": "Terminal من الصفر وبناء مختبرك", "desc_en": "Start from absolute zero: learn what a terminal is, why almost all security work happens there, and build your own practice lab.", "desc_ar": "ابدأ من الصفر التام: تعلّم ما هو Terminal، ولماذا يحدث العمل الأمني كله تقريباً فيها، وابنِ مختبر تدريب خاصاً بك.", "stage": 1, "difficulty": "beginner", "load": "~18h", "prereq": null, "prereqKind": "", "url": "week-01.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Terminal", "Shell", "Kernel", "Linux", "Filesystem", "Directory"], "objectives": ["Explain what an operating system, a shell, and a filesystem are, in their own words", "Navigate the filesystem confidently: pwd, ls, cd, absolute vs relative paths", "Create, read, move, copy, and delete files and directories", "Use man and --help to teach themselves a command they've never seen", "Explain what a virtual machine is and why we use one instead of our real computer"]}, {"n": 2, "en": "Linux: Filesystem, Users, Permissions, Processes", "ar": "لينكس: نظام الملفات والمستخدمون والصلاحيات والعمليات", "desc_en": "Learn how Linux organises files and decides who may touch them — and why one wrong permission can hand over a whole system.", "desc_ar": "تعرّف على كيفية تنظيم Linux للملفات وتحديد من يحق له الوصول إليها — ولماذا خطأ صلاحيات واحد قد يسلّم النظام بالكامل.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 1, "prereqKind": "gate", "url": "week-02.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation", "Least Privilege", "Process ID (PID)"], "objectives": ["Explain the Linux permission model: owner / group / other, read / write / execute", "Read and set permissions in both symbolic (rwxr-xr-x) and numeric (755) notation", "Explain what chmod, chown, umask do and when each is used", "Create users and groups; explain why privilege separation matters", "Use sudo correctly and explain why running as root permanently is dangerous"]}, {"n": 3, "en": "Linux: Services, Logs, and Bash Scripting", "ar": "لينكس: الخدمات والسجلات وكتابة سكربتات Bash", "desc_en": "See what runs in the background, how logs record nearly everything, and how to automate repetitive work instead of repeating it.", "desc_ar": "اكتشف ما يعمل في الخلفية، وكيف تسجّل السجلات كل شيء تقريباً، وكيف تُؤتمت المهام المتكررة بدل تكرارها يدوياً.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 2, "prereqKind": "checkpoint", "url": "week-03.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Service / Daemon", "systemd", "Log", "journalctl", "cron", "Persistence"], "objectives": ["Explain what a service (daemon) is and how systemd manages it", "Start, stop, enable, disable, and inspect services with systemctl", "Read and interpret journalctl output", "Locate and read the key log files in /var/log and explain what each records", "Write a Bash script with variables, conditionals, loops, and arguments"]}, {"n": 4, "en": "Networking I: Models, Addressing, How Packets Move", "ar": "الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم", "desc_en": "Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.", "desc_ar": "افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 3, "prereqKind": "checkpoint", "url": "week-04.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask", "CIDR", "Broadcast"], "objectives": ["Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent", "Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer", "Convert between decimal and binary octets by hand, without a calculator", "Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges", "Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range"]}, {"n": 5, "en": "Networking II: TCP, Ports, DNS, DHCP + Wireshark", "ar": "الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark", "desc_en": "Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.", "desc_ar": "شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 4, "prereqKind": "checkpoint", "url": "week-05.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST", "Teardown", "Ephemeral Port"], "objectives": ["Describe the TCP three-way handshake and name the flag and sequence number in each packet", "Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals", "Contrast TCP and UDP and choose correctly between them for a given use case", "State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory", "Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)"]}, {"n": 6, "en": "Networking III: TLS, Firewalls, NAT + Nmap", "ar": "الشبكات ٣: TLS والجدران النارية وNAT مع Nmap", "desc_en": "Learn how connections are encrypted and filtered, then scan a network the way a security professional does — and find your own scan in the logs.", "desc_ar": "تعلّم كيف تُشفَّر الاتصالات وتُفلتر، ثم امسح شبكة كما يفعل محترف الأمن — وابحث عن أثر مسحتك أنت في السجلات.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 5, "prereqKind": "checkpoint", "url": "week-06.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust", "SNI", "Firewall"], "objectives": ["Explain what TLS protects and what it does not protect (hint: the endpoints are still endpoints)", "Describe the TLS handshake at a high level and explain the role of the certificate and the CA chain", "Inspect a live certificate with openssl s_client and read its subject, issuer, validity, and SANs", "Contrast stateless and stateful firewalls, and explain what connection tracking buys you", "Write, order, verify, and delete ufw rules, and read a firewall block in the logs"]}, {"n": 7, "en": "Web I: HTTP Deep, Cookies, Sessions, Browsers", "ar": "الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات", "desc_en": "Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.", "desc_ar": "تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 6, "prereqKind": "checkpoint", "url": "week-07.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Request / Response", "HTTP Header", "Method", "Status Code", "Stateless", "Cookie"], "objectives": ["Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page", "Use GET, POST, PUT, DELETE deliberately and explain when a server should use each", "Classify any status code by its class (1xx–5xx) and explain what the class means", "Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers", "Explain why HTTP is stateless, and how cookies and sessions restore state on top of it"]}, {"n": 8, "en": "Web II: Architecture, Databases, APIs + OWASP Top 10", "ar": "الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10", "desc_en": "See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.", "desc_ar": "تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 7, "prereqKind": "checkpoint", "url": "week-08.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Database", "SQL", "Query", "Injection", "SQL Injection", "Prepared Statement"], "objectives": ["Describe a three-tier web architecture and identify the trust boundary between each tier", "Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN", "Explain how application code builds a query and sends it to a database", "Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header", "Name the OWASP Top 10 categories and place a given vulnerability into the right one"]}, {"n": 9, "en": "Security Core: Risk, Threat Modeling, Access Control", "ar": "أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول", "desc_en": "Learn the words the profession runs on — threat, vulnerability, risk — and how to describe a problem precisely enough to fix it.", "desc_ar": "تعلّم الكلمات التي تقوم عليها المهنة — التهديد والثغرة والخطر — وكيف تصف مشكلة بدقة تكفي لحلّها.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 8, "prereqKind": "checkpoint", "url": "week-09.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Confidentiality", "Integrity", "Availability", "Authentication", "Authorization", "DAC / MAC / RBAC / ABAC"], "objectives": ["Explain the CIA triad and give a concrete, real failure of each of the three properties", "Distinguish authentication from authorization, and explain how conflating them produces breaches", "Compare the four access control models — DAC, MAC, RBAC, ABAC — and say when each is used", "Apply least privilege and separation of duties to a real scenario", "Define asset, threat, vulnerability, exploit, and risk — and never confuse them again"]}, {"n": 10, "en": "Applied Cryptography", "ar": "التشفير التطبيقي", "desc_en": "Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.", "desc_ar": "افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 9, "prereqKind": "checkpoint", "url": "week-10.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext", "Symmetric / Asymmetric", "Public / Private Key"], "objectives": ["Distinguish hashing, encryption, and encoding — and say what each is actually for", "Explain why MD5 is broken, what \"broken\" precisely means, and why it still appears everywhere", "Explain salting, and demonstrate why an unsalted password hash is catastrophic", "Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)", "Explain symmetric encryption, and articulate the key distribution problem it creates"]}, {"n": 11, "en": "Defensive Taster: Hardening, Detection, Incident Response", "ar": "جولة دفاعية: التقوية والكشف والاستجابة للحوادث", "desc_en": "Play defence: lock down a system, collect its logs, then attack your own machine and detect yourself in a SIEM.", "desc_ar": "العب دور الدفاع: قوِّ نظاماً، واجمع سجلاته، ثم اهجم على جهازك أنت واكتشف هجومك في نظام SIEM.", "stage": 6, "difficulty": "intermediate", "load": "~18h", "prereq": 10, "prereqKind": "checkpoint", "url": "week-11.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark", "Prevention / Detection / Response", "Log Aggregation"], "objectives": ["Explain system hardening and what a CIS Benchmark actually is", "Reduce attack surface on a real Ubuntu VM: services, ports, packages, config", "Explain why prevention alone always eventually fails, and what detection adds", "Explain what a log is, what log aggregation solves, and why central collection matters", "Describe what a SIEM is, what it correlates, and why it exists"]}, {"n": 12, "en": "Offensive Taster: Methodology, Recon, Exploitation, Reporting", "ar": "جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير", "desc_en": "Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.", "desc_ar": "تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.", "stage": 6, "difficulty": "advanced", "load": "~18h", "prereq": 11, "prereqKind": "checkpoint", "url": "week-12.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)", "Penetration Test", "Vulnerability Assessment"], "objectives": ["Explain authorization, scope, and rules of engagement — and why all three are written, not spoken", "Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime", "Describe the PTES phases and where OWASP WSTG fits for web applications", "Perform passive reconnaissance using only public sources", "Perform active enumeration against your own lab target"]}, {"n": 13, "en": "Capstone: Attack/Defend Exercise & Specialization Decision", "ar": "مشروع الختام: تمرين هجوم/دفاع وقرار التخصص", "desc_en": "Put it all together in a two-team exercise, then choose the direction you will specialise in — based on what you actually did, not what sounded impressive.", "desc_ar": "اجمع كل شيء في تمرين بفريقين، ثم اختر الاتجاه الذي ستتخصص فيه — بناءً على ما فعلته فعلاً، لا على ما بدا مثيراً.", "stage": 7, "difficulty": "advanced", "load": "~18h", "prereq": 12, "prereqKind": "checkpoint", "url": "week-13.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "brief", "en": "The Scenario", "ar": "سيناريو التمرين", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "structure", "en": "Exercise Structure", "ar": "هيكل التمرين", "hours": null, "counts": true}, {"key": "rubric", "en": "How You'll Be Assessed", "ar": "كيف ستُقيَّم", "hours": null, "counts": false}, {"key": "deliverables", "en": "What You Must Deliver", "ar": "ما يجب أن تسلّمه", "hours": null, "counts": true}, {"key": "debrief", "en": "Structured Debrief", "ar": "المراجعة المنظّمة", "hours": null, "counts": false}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "decision", "en": "Choosing Your Direction", "ar": "اختيار مسارك", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "limits", "en": "What You Still Don't Know", "ar": "ما لا تعرفه بعد", "hours": null, "counts": false}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Capstone", "Attack/Defend Exercise", "Red Team / Blue Team", "Purple Team", "White Cell", "Rules of Engagement"], "objectives": ["Plan and execute a team engagement under a written scope and rules of engagement", "Defend a live Ubuntu target: hardening, monitoring, triage, containment, and reporting", "Attack a live Ubuntu target: reconnaissance, enumeration, verified exploitation, and reporting", "Keep an accurate, timestamped operational log throughout an engagement", "Produce a professional incident report (defenders) or penetration test report (attackers)"]}], "stages": [{"n": 1, "en": "Start Here — Computer & Terminal Basics", "ar": "ابدأ من هنا — أساسيات الحاسوب و Terminal", "weeks": [1], "desc_en": "What a terminal is, how a computer organises files, and how to build a safe lab you can break and rebuild without risking anything real.", "desc_ar": "ما هو Terminal، وكيف ينظّم الحاسوب ملفاته، وكيف تبني مختبراً آمناً تكسره وتعيد بناءه دون أي خطر على أجهزتك الحقيقية.", "out_en": "You have your own isolated lab and can move around a system from the command line.", "out_ar": "تملك مختبراً معزولاً خاصاً بك، وتستطيع التنقل في النظام من سطر الأوامر.", "icon": "terminal"}, {"n": 2, "en": "Linux Fundamentals", "ar": "أساسيات Linux", "weeks": [2, 3], "desc_en": "How Linux stores files, who is allowed to touch them, what runs in the background — and how intruders stay on a machine once they are in.", "desc_ar": "كيف يخزّن Linux الملفات، ومن يُسمح له بالوصول إليها، وما يعمل في الخلفية — وكيف يبقى المهاجم على الجهاز بعد دخوله.", "out_en": "You can navigate, inspect and script a Linux system — and spot the misconfigurations that give it away.", "out_ar": "تستطيع التنقل في نظام Linux وفحصه وكتابة سكربتات له — وملاحظة الأخطاء الإعدادية التي تسلّمه.", "icon": "terminal"}, {"n": 3, "en": "Networking", "ar": "الشبكات", "weeks": [4, 5, 6], "desc_en": "How machines find each other, how data actually travels, and how to watch that traffic — the skill most attacks and defences are built on.", "desc_ar": "كيف تجد الأجهزة بعضها، وكيف تنتقل البيانات فعلاً، وكيف تراقب هذه الحركة — المهارة التي يُبنى عليها معظم الهجوم والدفاع.", "out_en": "You can read a packet capture, explain what you see, and scan a network you are authorised to test.", "out_ar": "تستطيع قراءة تحليل حزم الشبكة، وشرح ما تراه، ومسح شبكة مصرَّح لك باختبارها.", "icon": "network"}, {"n": 4, "en": "Web Security", "ar": "أمن الويب", "weeks": [7, 8], "desc_en": "How a website really works — requests, cookies, sessions, databases — and where those pieces break when user input is trusted.", "desc_ar": "كيف يعمل موقع الويب فعلاً — الطلبات والكوكيز والجلسات وقواعد البيانات — وأين تنكسر هذه الأجزاء عند الثقة بمدخلات المستخدم.", "out_en": "You can follow a web request end to end, and name the flaw behind a broken page.", "out_ar": "تستطيع تتبّع طلب ويب من البداية للنهاية، وتسمية الثغرة وراء أي خلل.", "icon": "globe"}, {"n": 5, "en": "Cybersecurity Fundamentals", "ar": "أساسيات الأمن السيبراني", "weeks": [9, 10], "desc_en": "The vocabulary the whole profession runs on: threat, vulnerability, risk, the CIA Triad, authentication — plus what hashing and encryption actually do.", "desc_ar": "المفردات التي تقوم عليها المهنة كلها: التهديد والثغرة والخطر وثلاثي CIA والمصادقة — إضافة إلى ما تفعله التجزئة والتشفير فعلاً.", "out_en": "You can describe a risk precisely, using the same words a security team uses.", "out_ar": "تستطيع وصف أي خطر بدقة، بالكلمات نفسها التي يستخدمها فريق الأمن.", "icon": "shield"}, {"n": 6, "en": "Practical Security", "ar": "الأمن التطبيقي", "weeks": [11, 12], "desc_en": "Both sides of the job: harden and monitor a system, then run a real assessment against a target you are authorised to test — and write it up.", "desc_ar": "وجها العمل: تقوية نظام ومراقبته، ثم تنفيذ تقييم حقيقي على هدف مصرَّح لك باختباره — وكتابة تقريره.", "out_en": "You have done both defence and offence, under scope, and documented the result.", "out_ar": "نفّذت الدفاع والهجوم معاً، ضمن نطاق محدد، ووثّقت النتيجة.", "icon": "target"}, {"n": 7, "en": "Choose Your Direction", "ar": "اختر مسارك", "weeks": [13], "desc_en": "A team attack/defend exercise, then an evidence-based decision about which specialisation fits you — not a guess made in week one.", "desc_ar": "تمرين هجوم/دفاع بفريقين، ثم قرار مبني على دليل حول التخصص الذي يناسبك — لا تخمين في الأسبوع الأول.", "out_en": "You know which direction you are heading, and why.", "out_ar": "تعرف إلى أين تتجه، ولماذا.", "icon": "compass"}], "practice": [{"wk": 1, "id": "w1-build-the-lab", "en": "Build the lab", "ar": "Build the lab", "goal_en": "A working host + Ubuntu + Kali setup.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-terminal-survival-kit", "en": "Terminal survival kit", "ar": "Terminal survival kit", "goal_en": "Fluency with the 20 commands that cover 90% of daily work.", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-bandit-levels-0-10", "en": "Bandit levels 0-10", "ar": "Bandit levels 0-10", "goal_en": "Apply the survival kit to real problems.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 2, "id": "w2-the-permission-model-by-hand", "en": "The permission model by hand", "ar": "The permission model by hand", "goal_en": "Build intuition for permissions by creating every combination.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-users-groups-and-sudo", "en": "Users, groups, and sudo", "ar": "Users, groups, and sudo", "goal_en": "Notes explaining why limited sudo is better than full sudo, with reference to a real-world scenario.", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-processes-and-signals", "en": "Processes and signals", "ar": "Processes and signals", "goal_en": "", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-finding-suid-binaries", "en": "Finding SUID binaries", "ar": "Finding SUID binaries", "goal_en": "The first genuinely security-flavored lab.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 3, "id": "w3-services-and-systemd", "en": "Services and systemd", "ar": "Services and systemd", "goal_en": "Your working unit file plus an explanation of the difference between stop/disable and start/enable.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-reading-the-logs", "en": "Reading the logs", "ar": "Reading the logs", "goal_en": "The output of step 4 (you'll need to generate failures from at least two different source IPs, or simulate it), plus a written explanation of the pipeline.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-bash-scripting", "en": "Bash scripting", "ar": "Bash scripting", "goal_en": "", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 4, "id": "w4-subnetting-drills-by-hand", "en": "Subnetting drills, by hand", "ar": "Subnetting drills, by hand", "goal_en": "Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-map-your-own-lab-network", "en": "Map your own lab network", "ar": "Map your own lab network", "goal_en": "Read the network your own machine lives on, from the command line only.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-build-a-three-machine-network-on-an-internal-net", "en": "Build a three-machine network on an Internal Network", "ar": "Build a three-machine network on an Internal Network", "goal_en": "Build a switched network with no router and no DHCP. You assign every address by hand. This is where addressing stops being theory.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-enumerate-the-lab-with-arp-scan", "en": "Enumerate the lab with `arp-scan`", "ar": "Enumerate the lab with `arp-scan`", "goal_en": "Discover every host on a network without asking a single one of them for permission — using only ARP.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 5, "id": "w5-dissect-a-tcp-handshake", "en": "Dissect a TCP handshake", "ar": "Dissect a TCP handshake", "goal_en": "Stop reading about the handshake and watch it happen.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-a-login-in-plaintext", "en": "Capture a login in plaintext", "ar": "Capture a login in plaintext", "goal_en": "Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-follow-a-dns-resolution", "en": "Follow a DNS resolution", "ar": "Follow a DNS resolution", "goal_en": "See the exact packets behind \"typing a name into a browser\".", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-dhcp-dora-and-analyse-a-pcap", "en": "Capture DHCP DORA and analyse a pcap", "ar": "Capture DHCP DORA and analyse a pcap", "goal_en": "See how a machine gets an address, then analyse traffic you did not generate.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 6, "id": "w6-firewalls-with-ufw-and-reading-the-blocks", "en": "Firewalls with `ufw`, and reading the blocks", "ar": "Firewalls with `ufw`, and reading the blocks", "goal_en": "Write firewall rules, verify them from the outside, and find the denied traffic in the logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-tls-inspect-a-real-certificate", "en": "TLS: inspect a real certificate", "ar": "TLS: inspect a real certificate", "goal_en": "See the trust chain, not just the padlock.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-nmap-from-discovery-to-service-identification", "en": "Nmap: from discovery to service identification", "ar": "Nmap: from discovery to service identification", "goal_en": "Scan your own lab every way Nmap allows, and understand what each scan type actually sends.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-services-versions-nse-and-the-defender-s-view", "en": "Services, versions, NSE, and the defender's view", "ar": "Services, versions, NSE, and the defender's view", "goal_en": "Go from \"port 22 is open\" to \"this is OpenSSH version X on Ubuntu\" — then watch yourself get caught.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 7, "id": "w7-read-the-wire-with-devtools", "en": "Read the wire with DevTools", "ar": "Read the wire with DevTools", "goal_en": "See that a web page is not a thing — it is a transcript.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-the-same-requests-by-hand-with-curl", "en": "The same requests, by hand, with curl", "ar": "The same requests, by hand, with curl", "goal_en": "Prove that the browser is a convenience, not a requirement.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-your-own-web-server-and-its-access-log", "en": "Your own web server and its access log", "ar": "Your own web server and its access log", "goal_en": "Own both ends of the conversation.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-burp-suite-as-a-proxy-and-breaking-a-cookie", "en": "Burp Suite as a proxy, and breaking a cookie", "ar": "Burp Suite as a proxy, and breaking a cookie", "goal_en": "Put yourself between the browser and the server — then prove why cookie flags exist.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 8, "id": "w8-stand-up-a-deliberately-vulnerable-app", "en": "Stand up a deliberately vulnerable app", "ar": "Stand up a deliberately vulnerable app", "goal_en": "A target you are unambiguously authorized to attack, running in your own lab.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-sql-by-hand-on-your-own-data", "en": "SQL by hand, on your own data", "ar": "SQL by hand, on your own data", "goal_en": "Understand injection by first understanding the language being injected into.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-portswigger-academy-sql-injection", "en": "PortSwigger Academy: SQL injection", "ar": "PortSwigger Academy: SQL injection", "goal_en": "Your first real exploitation, on a target that is built to be exploited.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-access-control-and-finding-the-attack-in-the-log", "en": "Access control, and finding the attack in the log", "ar": "Access control, and finding the attack in the log", "goal_en": "The second root-cause pattern, then close the loop back to Week 3's logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 9, "id": "w9-threat-model-your-own-lab-with-stride", "en": "Threat model your own lab with STRIDE", "ar": "Threat model your own lab with STRIDE", "goal_en": "Produce a data-flow diagram and a complete STRIDE analysis of the lab you built in Weeks 1–8. You are attacking your own creation, on paper.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-risk-assessment-likelihood-impact", "en": "Risk assessment: likelihood × impact", "ar": "Risk assessment: likelihood × impact", "goal_en": "Turn the threat list from Lab 9.1 into a prioritised, defensible risk register.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-design-an-rbac-scheme-for-a-small-company", "en": "Design an RBAC scheme for a small company", "ar": "Design an RBAC scheme for a small company", "goal_en": "Design access control from scratch for a realistic business, and defend every permission.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-find-a-real-misconfiguration-and-write-it-up-as-", "en": "Find a real misconfiguration and write it up as a finding", "ar": "Find a real misconfiguration and write it up as a finding", "goal_en": "Produce a professional-grade vulnerability finding about your own environment, with evidence and a risk rating.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-analyse-a-published-cve-writeup-and-classify-it", "en": "Analyse a published CVE writeup and classify it", "ar": "Analyse a published CVE writeup and classify it", "goal_en": "Read a real vulnerability the way a professional does, and place it inside this week's framework.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 10, "id": "w10-hashing-is-not-encryption", "en": "Hashing is not encryption", "ar": "Hashing is not encryption", "goal_en": "Feel, not read, the difference between a hash and a cipher.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-crack-your-own-hashes-and-learn-why-password-pol", "en": "Crack your own hashes, and learn why password policy exists", "ar": "Crack your own hashes, and learn why password policy exists", "goal_en": "Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-inspect-a-real-tls-certificate-and-decode-every-", "en": "Inspect a real TLS certificate and decode every field", "ar": "Inspect a real TLS certificate and decode every field", "goal_en": "Stop treating the padlock as magic.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-generate-a-keypair-sign-a-file-and-break-the-sig", "en": "Generate a keypair, sign a file, and break the signature", "ar": "Generate a keypair, sign a file, and break the signature", "goal_en": "Prove a digital signature is bound to a specific file.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-watch-ecb-mode-leak-a-picture", "en": "Watch ECB mode leak a picture", "ar": "Watch ECB mode leak a picture", "goal_en": "See why ECB is the textbook example of a mode you must never use.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 11, "id": "w11-harden-your-ubuntu-vm", "en": "Harden your Ubuntu VM", "ar": "Harden your Ubuntu VM", "goal_en": "Take a machine from default-install to a documented, defensible baseline.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-stand-up-a-siem-and-ship-logs-into-it", "en": "Stand up a SIEM and ship logs into it", "ar": "Stand up a SIEM and ship logs into it", "goal_en": "A working Wazuh deployment receiving logs from your Ubuntu VM.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-the-full-loop-attack-it-then-detect-it", "en": "The full loop: attack it, then detect it", "ar": "The full loop: attack it, then detect it", "goal_en": "Generate a real brute-force against your own target and catch it in the SIEM. This is the single most important lab of the week.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-write-a-sigma-rule", "en": "Write a Sigma rule", "ar": "Write a Sigma rule", "goal_en": "Describe a behaviour in a vendor-neutral way.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-incident-timeline-and-att-ck-mapping", "en": "Incident timeline and ATT&CK mapping", "ar": "Incident timeline and ATT&CK mapping", "goal_en": "Turn scattered alerts into a story.", "goal_ar": "", "hours": 0.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-paperwork-first", "en": "Write the paperwork first", "ar": "Write the paperwork first", "goal_en": "Produce a real scope and rules-of-engagement document before you produce a single packet.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-passive-reconnaissance", "en": "Passive reconnaissance", "ar": "Passive reconnaissance", "goal_en": "Learn how much is knowable about a target without ever touching its infrastructure.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-scan-and-enumerate-metasploitable2", "en": "Scan and enumerate Metasploitable2", "ar": "Scan and enumerate Metasploitable2", "goal_en": "Take a deliberately vulnerable machine from \"unknown host\" to \"mapped attack surface.\"", "goal_ar": "", "hours": 2.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-verify-don-t-trust", "en": "Verify, don't trust", "ar": "Verify, don't trust", "goal_en": "Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-finding", "en": "Write the finding", "ar": "Write the finding", "goal_en": "Produce the actual deliverable of a penetration test.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}], "totalLessons": 53}</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

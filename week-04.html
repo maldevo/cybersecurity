@@ -1,0 +1,1408 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 04 — Networking I: Models, Addressing, How Packets Move | Pre Cybersecurity 0.1</title>
+<meta name="description" content="Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body data-week="4">
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html" aria-current="page"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <a href="path.html#stage-03"><span class="only-en">Networking</span><span class="only-ar">الشبكات</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span><span class="only-en">Week 04</span><span class="only-ar">الأسبوع 04</span></span>
+  </nav>
+  <!-- Names the same stage the learning path names, so the number in the corner of
+       the page matches the dot the student clicked to get here. -->
+  <span class="eyebrow" style="margin-top:14px"><span class="only-en">Stage 03 of 07 · Month 1</span><span class="only-ar">المرحلة 3 من 7 · الشهر الأول</span></span>
+  <h1><span class="only-en">Networking I: Models, Addressing, How Packets Move</span><span class="only-ar" dir="rtl" lang="ar">الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم</span></h1>
+  <p class="lede"><span class="only-en">Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.</span><span class="only-ar" dir="rtl" lang="ar">افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.</span></p>
+  <div class="meta-strip">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Intermediate</span><span class="only-ar">متوسط</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="only-en">~18h estimated</span><span class="only-ar">~18h تقديرياً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>4 <span class="only-en">lessons</span><span class="only-ar">درساً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><a href="week-03.html"><span class="only-en">Week 03 checkpoint</span><span class="only-ar">الأسبوع 03 — نقطة تحقّق</span></a></span>
+  </div>
+  <div class="card-pad" style="margin-top:20px;padding:0">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="eyebrow"><span class="only-en">Your progress in this course</span><span class="only-ar">تقدّمك في هذا المسار</span></span>
+      <div id="pc-weekbar" style="flex:1 1 200px;min-width:140px"></div>
+      <span id="pc-weekbar-label" dir="ltr" style="font-weight:700;font-size:.86rem;color:var(--accent);font-variant-numeric:tabular-nums"></span>
+    </div>
+  </div>
+  </div>
+</header>
+
+<div class="section" style="padding-top:0;border-bottom:0">
+  <div class="container">
+  <div class="grid grid-2">
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><h2><span class="only-en">What you'll learn</span><span class="only-ar">ما ستتعلّمه</span></h2></div>
+  <div class="card-pad">
+    <ul class="outcomes only-en"><li>Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent</li><li>Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer</li><li>Convert between decimal and binary octets by hand, without a calculator</li><li>Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges</li><li>Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range</li></ul>
+    <ul class="outcomes only-ar" dir="rtl" lang="ar"><li>تسمية طبقات OSI (7 طبقات) وطبقات TCP/IP (4 طبقات)، وربط كل طبقة من OSI بما يقابلها في TCP/IP</li><li>شرح التغليف (encapsulation): أي ترويسة تُضاف في كل طبقة، وما اسم وحدة البيانات (PDU) في كل طبقة</li><li>التحويل بين العشري والثنائي للأوكتيتات يدوياً، بلا آلة حاسبة</li><li>تحديد الفئة (class) وجزء الشبكة وجزء الجهاز في أي عنوان IPv4، والتعرّف على النطاقات الخاصة في RFC1918</li><li>تقسيم شبكة يدوياً: بمعطى x.x.x.x/N، استخرج عنوان الشبكة، وعنوان البث، ونطاق الأجهزة القابل للاستخدام</li></ul>
+    <a class="card-more" href="#objectives"><span class="only-en">All 8 objectives, with a checklist to tick off ↓</span><span class="only-ar" dir="rtl" lang="ar">كل الأهداف (8) مع قائمة تُعلّم عليها ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><h2><span class="only-en">Terms you'll meet this week</span><span class="only-ar">مصطلحات ستقابلها هذا الأسبوع</span></h2></div>
+  <div class="card-pad">
+    <div class="chips"><span class="chip chip-accent">OSI Model</span><span class="chip chip-accent">Encapsulation</span><span class="chip chip-accent">PDU</span><span class="chip chip-accent">Subnet Mask</span><span class="chip chip-accent">CIDR</span><span class="chip chip-accent">Broadcast</span></div>
+    <p class="hint"><span class="only-en">These stay in English on purpose. They are the words you will meet in the tools, the documentation and the interview.</span><span class="only-ar" dir="rtl" lang="ar">تبقى هذه المصطلحات بالإنجليزية عمداً. فهي الكلمات التي ستقابلها في الأدوات والوثائق والمقابلات.</span></p>
+    <a class="card-more" href="#terms"><span class="only-en">What each one means ↓</span><span class="only-ar" dir="rtl" lang="ar">ما معنى كل مصطلح ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+<nav class="wk-rail" aria-label="Sections / الأقسام"><div class="wk-rail-in"><div class="wk-rail-links"><a href="#objectives"><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></a><a href="#theory"><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></a><a href="#lab"><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></a><a href="#challenge"><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></a><a href="#payoff"><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></a><a href="#checkpoint"><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></a><a href="#notes"><span class="only-en">Concept Notes</span><span class="only-ar">ملاحظات مفاهيمية موسّعة</span></a><a href="#terms"><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></a></div><button type="button" id="pc-collapse" aria-pressed="false"><span class="only-en">Collapse all</span><span class="only-ar">اطوِ الكل</span></button></div></nav>
+<div class="container">
+<div class="flow">
+<details class="lesson-sec" id="objectives" data-sec="objectives" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The goals for this week</span><span class="only-ar">أهداف هذا الأسبوع</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent</li>
+<li class="task">Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer</li>
+<li class="task">Convert between decimal and binary octets by hand, without a calculator</li>
+<li class="task">Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges</li>
+<li class="task">Subnet a network by hand: given <code>x.x.x.x/N</code>, find the network address, broadcast, and usable host range</li>
+<li class="task">Explain what a MAC address is, how a switch builds its table, and why switches beat hubs</li>
+<li class="task">Explain how a packet leaves your machine: default gateway, ARP, hop-by-hop routing</li>
+<li class="task">Read <code>ip a</code>, <code>ip r</code>, <code>ip n</code>, <code>ping</code>, and <code>traceroute</code> output and explain every field</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">تسمية طبقات OSI (7 طبقات) وطبقات TCP/IP (4 طبقات)، وربط كل طبقة من OSI بما يقابلها في TCP/IP</li>
+<li class="task">شرح التغليف (encapsulation): أي ترويسة تُضاف في كل طبقة، وما اسم وحدة البيانات (PDU) في كل طبقة</li>
+<li class="task">التحويل بين العشري والثنائي للأوكتيتات يدوياً، بلا آلة حاسبة</li>
+<li class="task">تحديد الفئة (class) وجزء الشبكة وجزء الجهاز في أي عنوان IPv4، والتعرّف على النطاقات الخاصة في RFC1918</li>
+<li class="task">تقسيم شبكة يدوياً: بمعطى <code>x.x.x.x/N</code>، استخرج عنوان الشبكة، وعنوان البث، ونطاق الأجهزة القابل للاستخدام</li>
+<li class="task">شرح ما هو عنوان MAC، وكيف يبني المُبدّل (switch) جدوله، ولماذا المُبدّل أفضل من الـ hub</li>
+<li class="task">شرح كيف تغادر الحزمة جهازك: البوابة الافتراضية، و ARP، والتوجيه قفزة بقفزة</li>
+<li class="task">قراءة مخرجات <code>ip a</code> و <code>ip r</code> و <code>ip n</code> و <code>ping</code> و <code>traceroute</code> وشرح كل حقل فيها</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="theory" data-sec="theory" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈4h · Read and take notes</span><span class="only-ar">≈4ساعات · اقرأ ودوّن الملاحظات</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Topic</th>
+<th>Resource</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>The OSI model + TCP/IP model, layer by layer</td>
+<td><a href="https://practicalnetworking.net/series/packet-traveling/packet-traveling/">Practical Networking — Networking Fundamentals</a></td>
+<td>75m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Encapsulation and the packet's journey</td>
+<td><a href="https://www.professormesser.com/network-plus/n10-009/n10-009-video/n10-009-training-course/">Professor Messer — Network+ N10-009</a></td>
+<td>60m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>IPv4 addressing, classes, RFC1918 private ranges</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc1918">RFC 1918 — Address Allocation for Private Internets</a></td>
+<td>45m</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Subnetting and CIDR, from zero</td>
+<td><a href="https://www.practicalnetworking.net/stand-alone/subnetting-mastery/">Practical Networking — Subnetting Mastery</a></td>
+<td>90m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ARP, ICMP, and how a host finds its neighbours</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc826">RFC 826 — An Ethernet Address Resolution Protocol</a></td>
+<td>30m</td>
+</tr>
+<tr>
+<td>6</td>
+<td>IPv4 protocol reference (skim, don't memorize)</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc791">RFC 791 — Internet Protocol</a></td>
+<td>30m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Arabic supplement:</strong> <a href="https://www.youtube.com/@ITDose22">IT Dose — عماد نشأت</a> — the networking fundamentals series has the best visuals in Arabic for OSI, IP addressing, and subnetting. Watch the IP/Subnetting episodes alongside topic 4.</p>
+<p><strong>Hour budget note:</strong> subnetting is the single hardest thing this week. If you spend 3 hours on it instead of 90 minutes, that is normal and correct. Everything in Weeks 5, 6, and 12 depends on it.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الموضوع</th>
+<th>المصدر</th>
+<th>الوقت</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>نموذج OSI ونموذج TCP/IP، طبقة بطبقة</td>
+<td><a href="https://practicalnetworking.net/series/packet-traveling/packet-traveling/">Practical Networking — Networking Fundamentals</a></td>
+<td>75 دقيقة</td>
+</tr>
+<tr>
+<td>2</td>
+<td>التغليف ورحلة الحزمة</td>
+<td><a href="https://www.professormesser.com/network-plus/n10-009/n10-009-video/n10-009-training-course/">Professor Messer — Network+ N10-009</a></td>
+<td>60 دقيقة</td>
+</tr>
+<tr>
+<td>3</td>
+<td>عنونة IPv4، والفئات، والنطاقات الخاصة في RFC1918</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc1918">RFC 1918 — Address Allocation for Private Internets</a></td>
+<td>45 دقيقة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>تقسيم الشبكات و CIDR، من الصفر</td>
+<td><a href="https://www.practicalnetworking.net/stand-alone/subnetting-mastery/">Practical Networking — Subnetting Mastery</a></td>
+<td>90 دقيقة</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ARP و ICMP، وكيف يجد الجهاز جيرانه</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc826">RFC 826 — An Ethernet Address Resolution Protocol</a></td>
+<td>30 دقيقة</td>
+</tr>
+<tr>
+<td>6</td>
+<td>مرجع بروتوكول IPv4 (تصفّحه، لا تحفظه)</td>
+<td><a href="https://www.rfc-editor.org/rfc/rfc791">RFC 791 — Internet Protocol</a></td>
+<td>30 دقيقة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>ملحق عربي:</strong> <a href="https://www.youtube.com/@ITDose22">IT Dose — عماد نشأت</a> — سلسلة أساسيات الشبكات عنده هي أفضل شرح بصري بالعربية لنموذج OSI، وعنونة IP، وتقسيم الشبكات. شاهد حلقات IP/Subnetting مع الموضوع 4.</p>
+<p><strong>ملاحظة عن ميزانية الوقت:</strong> تقسيم الشبكات هو أصعب شيء في هذا الأسبوع. إن أنفقت عليه 3 ساعات بدل 90 دقيقة، فهذا طبيعي وصحيح. كل شيء في الأسابيع 5 و 6 و 12 يعتمد عليه.</p></div>
+  </div>
+</details><details class="lesson-sec" id="lab" data-sec="lab" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈7h · Step by step, with expected results</span><span class="only-ar">≈7ساعات · خطوة بخطوة مع النتائج المتوقعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><h3>Lab 4.1 — Subnetting drills, by hand (2h)</h3>
+<p><strong>Goal:</strong> Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.</p>
+<p><strong>Setup:</strong> Paper and pen. No calculator, no phone. Kali VM open in a second window for the verification step only.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>
+<p><strong>Binary conversion.</strong> Convert these to binary by hand, then check yourself with <code>python3 -c "print(bin(192))"</code>:
+   <code>192</code> · <code>168</code> · <code>10</code> · <code>130</code> · <code>255</code> · <code>224</code> · <code>0</code> · <code>127</code></p>
+</li>
+<li>
+<p><strong>Memorise the mask table.</strong> Write it out from memory five times:</p>
+</li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>CIDR</th>
+<th>Mask</th>
+<th>Block size (256 − last octet)</th>
+<th>Usable hosts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/24</td>
+<td>255.255.255.0</td>
+<td>256</td>
+<td>254</td>
+</tr>
+<tr>
+<td>/25</td>
+<td>255.255.255.128</td>
+<td>128</td>
+<td>126</td>
+</tr>
+<tr>
+<td>/26</td>
+<td>255.255.255.192</td>
+<td>64</td>
+<td>62</td>
+</tr>
+<tr>
+<td>/27</td>
+<td>255.255.255.224</td>
+<td>32</td>
+<td>30</td>
+</tr>
+<tr>
+<td>/28</td>
+<td>255.255.255.240</td>
+<td>16</td>
+<td>14</td>
+</tr>
+<tr>
+<td>/29</td>
+<td>255.255.255.248</td>
+<td>8</td>
+<td>6</td>
+</tr>
+<tr>
+<td>/30</td>
+<td>255.255.255.252</td>
+<td>4</td>
+<td>2</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="3">
+<li><strong>Solve these ten by hand.</strong> For each, write the network address, the broadcast address, the first usable host, the last usable host, and the number of usable hosts:</li>
+</ol>
+<ul>
+<li><code>192.168.10.0/24</code></li>
+<li><code>192.168.10.0/26</code></li>
+<li><code>192.168.10.130/26</code></li>
+<li><code>192.168.1.77/30</code></li>
+<li><code>172.16.5.200/22</code></li>
+<li><code>10.10.10.10/8</code></li>
+<li><code>192.168.100.200/27</code></li>
+<li><code>10.0.0.55/12</code></li>
+<li><code>192.168.1.1/25</code></li>
+<li><code>172.20.30.40/28</code></li>
+</ul>
+<ol start="4">
+<li>
+<p><strong>Verify with a tool.</strong> For each answer, check it:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>sipcalc<span class="w"> </span>-y<span class="w">     </span><span class="c1"># or use: ipcalc</span>
+sipcalc<span class="w"> </span><span class="m">192</span>.168.10.130/26
+python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import ipaddress; n=ipaddress.ip_network(&#39;192.168.10.130/26&#39;, strict=False); print(n.network_address, n.broadcast_address, list(n.hosts())[0], list(n.hosts())[-1], n.num_addresses-2)&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Drill to speed.</strong> Go to <a href="https://subnettingpractice.com/">subnettingpractice.com</a> and do 25 questions. Target: <strong>under 20 seconds each</strong>. Do not move on until you hit that.</p>
+</li>
+<li><strong>Reverse direction.</strong> Given "I need a subnet with at least 50 hosts", what is the smallest CIDR that fits? Do five of these.</li>
+</ol>
+<p><strong>Deliverable:</strong> Your handwritten working for all ten problems, plus your subnettingpractice.com score and time.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network address lands on an odd number like <code>.10.64</code> for a /26</td>
+<td>Correct — block size 64 means subnets start at 0, 64, 128, 192. You are not wrong</td>
+</tr>
+<tr>
+<td>You get 64 usable hosts for a /26</td>
+<td>You forgot to subtract 2 (network + broadcast). Correct answer is 62</td>
+</tr>
+<tr>
+<td><code>/22</code> breaks your brain</td>
+<td>Work in the <strong>third</strong> octet, not the fourth. Block size = 256 − 252 = 4, so subnets are 0, 4, 8, 12…</td>
+</tr>
+<tr>
+<td>Your answer is right but takes 3 minutes</td>
+<td>Not yet at professional speed. Drill more; speed here is muscle memory, nothing else</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 4.2 — Map your own lab network (1.5h)</h3>
+<p><strong>Goal:</strong> Read the network your own machine lives on, from the command line only.</p>
+<p><strong>Setup:</strong> Both VMs running, adapter on <strong>NAT Network</strong> (from Week 1).</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><code>ip a</code> — write down for each interface: name, state, MAC address, IP, prefix length.</li>
+<li><code>ip r</code> — identify your default gateway. What does <code>default via</code> mean?</li>
+<li><code>ip n</code> — this is the <strong>ARP cache</strong>: IP → MAC mappings your machine already knows. Why is it already populated?</li>
+<li><code>ping -c 3 &lt;ubuntu-ip&gt;</code> from Kali. Does the ARP cache change? Check <code>ip n</code> again.</li>
+<li><code>ping -c 3 1.1.1.1</code> — a public address. Then <code>traceroute 1.1.1.1</code>. How many hops before you leave your lab? Where does the path go?</li>
+<li><code>traceroute -I 1.1.1.1</code> (ICMP mode) vs plain <code>traceroute</code> (UDP mode). Do the paths differ? Why might that be?</li>
+<li><strong>Deliberately break the gateway:</strong> <code>sudo ip route del default</code>. Try to ping <code>1.1.1.1</code>. Now try to ping your Ubuntu VM. Explain the difference. Restore with <code>sudo ip route add default via &lt;gateway&gt;</code>.</li>
+</ol>
+<p><strong>Deliverable:</strong> A hand-drawn diagram of your lab: interfaces, IPs, MACs, the gateway, and where the lab ends and the internet begins.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ip a</code> shows <code>192.168.56.x</code> on one interface</td>
+<td>That's a host-only adapter, not a NAT Network adapter — check VirtualBox settings</td>
+</tr>
+<tr>
+<td><code>traceroute</code> prints only <code>* * *</code></td>
+<td>ICMP/UDP is filtered on the path. Try <code>traceroute -T -p 443 1.1.1.1</code> (TCP mode)</td>
+</tr>
+<tr>
+<td>Ping to the local VM works but internet fails after deleting the route</td>
+<td>Exactly the point: <strong>the gateway is the door out of your subnet.</strong> Same-subnet traffic never needs it</td>
+</tr>
+<tr>
+<td><code>ip n</code> shows <code>FAILED</code> or <code>INCOMPLETE</code></td>
+<td>Nothing answered the ARP request — host down, wrong subnet, or firewall dropping ARP</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 4.3 — Build a three-machine network on an Internal Network (2h)</h3>
+<p><strong>Goal:</strong> Build a switched network with <strong>no router and no DHCP</strong>. You assign every address by hand. This is where addressing stops being theory.</p>
+<p><strong>Setup:</strong> 16GB host. RAM budget: Kali 3GB, Ubuntu 3GB, third node 1.5GB. <strong>Do not run all three with a GUI at 4GB each</strong> — you will swap and hate your life.</p>
+<p>The third node: clone your Ubuntu VM and switch it to a <strong>server install with no desktop</strong>, or build a minimal Debian/Alpine VM. It only needs a shell.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><strong>Snapshot all three first.</strong></li>
+<li>In VirtualBox, give each VM a second adapter (Adapter 2) set to <strong>Internal Network</strong>, name <code>labnet</code>. Leave Adapter 1 on NAT Network so you keep internet through a different path.</li>
+<li>Boot all three. Find the new interface name (<code>ip a</code> — usually <code>enp0s8</code> or <code>eth1</code>).</li>
+<li><strong>Assign static addresses by hand — no DHCP exists on <code>labnet</code>:</strong></li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>VM</th>
+<th>Address</th>
+<th>Prefix</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kali</td>
+<td>192.168.50.10</td>
+<td>/24</td>
+<td>attacker</td>
+</tr>
+<tr>
+<td>Ubuntu</td>
+<td>192.168.50.20</td>
+<td>/24</td>
+<td>target</td>
+</tr>
+<tr>
+<td>Node-3</td>
+<td>192.168.50.30</td>
+<td>/24</td>
+<td>third host</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ubuntu (netplan):
+   <div class="highlight"><pre><span></span><code><span class="c1"># /etc/netplan/99-labnet.yaml</span>
+<span class="nt">network</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">ethernets</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enp0s8</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">addresses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">192.168.50.20/24</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>netplan<span class="w"> </span>apply
+</code></pre></div>
+   Kali and Node-3:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>enp0s8<span class="w"> </span>up
+sudo<span class="w"> </span>ip<span class="w"> </span>addr<span class="w"> </span>add<span class="w"> </span><span class="m">192</span>.168.50.10/24<span class="w"> </span>dev<span class="w"> </span>enp0s8
+</code></pre></div></p>
+<ol start="5">
+<li><strong>Prove the switch works.</strong> From Kali: <code>ping -c3 192.168.50.20</code> and <code>ping -c3 192.168.50.30</code>. Both must work — this proves layer 2 connectivity with <strong>zero</strong> routing involved.</li>
+<li><strong>Prove there is no gateway.</strong> <code>ip r</code> on any VM — there must be <strong>no</strong> <code>default via</code> line for <code>labnet</code>. Confirm: <code>ping -c2 1.1.1.1</code> fails, <code>ping -c2 192.168.50.20</code> succeeds.</li>
+<li><strong>Break it on purpose.</strong> Change Kali to <code>192.168.60.10/24</code> (wrong subnet). Try to ping Ubuntu. It fails — but the cable is fine. Explain in your notes why, using the words <em>subnet</em> and <em>layer 3</em>.</li>
+<li><strong>Now add a router role.</strong> Turn the Ubuntu VM into a router for the other two: <code>sudo sysctl -w net.ipv4.ip_forward=1</code>, then reach the Kali-to-Ubuntu subnet from Node-3. Note: this is a rabbit hole. Timebox it to 20 minutes; you'll do it properly in Week 6.</li>
+</ol>
+<p><strong>Deliverable:</strong> A diagram of the <code>labnet</code> with all three IPs and MACs, plus a written explanation of why two hosts on the same switch but different subnets cannot talk.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Interface is <code>DOWN</code> with no address</td>
+<td>You added the address but not <code>ip link set &lt;if&gt; up</code>, or netplan YAML indentation is wrong</td>
+</tr>
+<tr>
+<td>Address disappears after reboot</td>
+<td><code>ip addr add</code> is temporary by design. Make it permanent in netplan / NetworkManager</td>
+</tr>
+<tr>
+<td>Ping fails though addressing is correct</td>
+<td>VirtualBox Internal Network name must match <strong>exactly</strong> on all three VMs, including capitalisation</td>
+</tr>
+<tr>
+<td>All three get the same IP</td>
+<td>You're looking at Adapter 1 (NAT Network), not Adapter 2. Check <code>ip a</code> for which interface holds which address</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 4.4 — Enumerate the lab with <code>arp-scan</code> (1.5h)</h3>
+<p><strong>Goal:</strong> Discover every host on a network without asking a single one of them for permission — using only ARP.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>
+<p>From Kali (attached to <code>labnet</code>):
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>arp-scan<span class="w"> </span>-y<span class="w">     </span><span class="c1"># preinstalled on Kali, may need install on Ubuntu</span>
+sudo<span class="w"> </span>arp-scan<span class="w"> </span>-I<span class="w"> </span>eth1<span class="w"> </span>-l
+</code></pre></div>
+   (Replace <code>eth1</code> with your <code>labnet</code> interface name — <code>-I</code> picks the interface, <code>-l</code> means "my local network".)</p>
+</li>
+<li>
+<p>Record the output: IP, MAC, and vendor (OUI). Where does the vendor name come from if nobody asked the device?</p>
+</li>
+<li><strong>Add a fourth device.</strong> Boot a phone or a second lightweight VM onto <code>labnet</code>. Re-run the scan. Did it appear? How fast?</li>
+<li>Turn one VM off. Re-run. Does it still appear? Check <code>ip n</code> — how long did the stale entry persist?</li>
+<li><strong>Compare tools.</strong> This time scan with <code>nmap -sn 192.168.50.0/24</code>. Both find the hosts — but which one is faster, and which one is stealthier? Why? (Hint: ARP is layer 2; <code>nmap -sn</code> uses ARP on local networks too, but ICMP further away.)</li>
+<li><strong>The defender's view.</strong> On the Ubuntu target, run <code>sudo tcpdump -i enp0s8 arp -n</code> and re-run <code>arp-scan</code> from Kali. Read what Ubuntu sees. Write down: <strong>is there any way for Ubuntu to tell this scan apart from a normal ARP request?</strong></li>
+</ol>
+<p><strong>Deliverable:</strong> The full <code>arp-scan</code> output for <code>labnet</code>, plus a written answer to step 6 — this is the first time you will realise some scanning is <em>invisible</em>.</p>
+<blockquote>
+<p>⚠️ <strong>Authorization check.</strong> <code>arp-scan</code> on a network you do not own is a hostile act, even though it's "only ARP". Run it <strong>only</strong> on <code>labnet</code> and your own devices. The university Wi-Fi, the café, the family router — all off limits, permanently.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><h3>المختبر 4.1 — تدريبات تقسيم الشبكات، يدوياً (2 ساعات)</h3>
+<p><strong>الهدف:</strong> أن تقسّم الشبكات على الورق، بسرعة وبشكل صحيح، بلا آلة حاسبة. ثم تتحقق بأداة.</p>
+<p><strong>الإعداد:</strong> ورقة وقلم. لا آلة حاسبة، ولا هاتف. آلة Kali الافتراضية مفتوحة في نافذة ثانية لخطوة التحقق فقط.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>
+<p><strong>التحويل الثنائي.</strong> حوّل هذه الأرقام إلى ثنائي يدوياً، ثم تحقق من نفسك بـ <code>python3 -c "print(bin(192))"</code>:
+   <code>192</code> · <code>168</code> · <code>10</code> · <code>130</code> · <code>255</code> · <code>224</code> · <code>0</code> · <code>127</code></p>
+</li>
+<li>
+<p><strong>احفظ جدول الأقنعة.</strong> اكتبه من الذاكرة خمس مرات:</p>
+</li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>CIDR</th>
+<th>القناع</th>
+<th>حجم الكتلة (256 − آخر أوكتيت)</th>
+<th>الأجهزة القابلة للاستخدام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/24</td>
+<td>255.255.255.0</td>
+<td>256</td>
+<td>254</td>
+</tr>
+<tr>
+<td>/25</td>
+<td>255.255.255.128</td>
+<td>128</td>
+<td>126</td>
+</tr>
+<tr>
+<td>/26</td>
+<td>255.255.255.192</td>
+<td>64</td>
+<td>62</td>
+</tr>
+<tr>
+<td>/27</td>
+<td>255.255.255.224</td>
+<td>32</td>
+<td>30</td>
+</tr>
+<tr>
+<td>/28</td>
+<td>255.255.255.240</td>
+<td>16</td>
+<td>14</td>
+</tr>
+<tr>
+<td>/29</td>
+<td>255.255.255.248</td>
+<td>8</td>
+<td>6</td>
+</tr>
+<tr>
+<td>/30</td>
+<td>255.255.255.252</td>
+<td>4</td>
+<td>2</td>
+</tr>
+</tbody>
+</table></div>
+<ol start="3">
+<li><strong>حلّ هذه العشرة يدوياً.</strong> اكتب لكل واحدة: عنوان الشبكة، وعنوان البث، وأول جهاز قابل للاستخدام، وآخر جهاز قابل للاستخدام، وعدد الأجهزة القابلة للاستخدام:</li>
+</ol>
+<ul>
+<li><code>192.168.10.0/24</code></li>
+<li><code>192.168.10.0/26</code></li>
+<li><code>192.168.10.130/26</code></li>
+<li><code>192.168.1.77/30</code></li>
+<li><code>172.16.5.200/22</code></li>
+<li><code>10.10.10.10/8</code></li>
+<li><code>192.168.100.200/27</code></li>
+<li><code>10.0.0.55/12</code></li>
+<li><code>192.168.1.1/25</code></li>
+<li><code>172.20.30.40/28</code></li>
+</ul>
+<ol start="4">
+<li>
+<p><strong>تحقّق بأداة.</strong> افحص كل جواب:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>sipcalc<span class="w"> </span>-y<span class="w">     </span><span class="c1"># or use: ipcalc</span>
+sipcalc<span class="w"> </span><span class="m">192</span>.168.10.130/26
+python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import ipaddress; n=ipaddress.ip_network(&#39;192.168.10.130/26&#39;, strict=False); print(n.network_address, n.broadcast_address, list(n.hosts())[0], list(n.hosts())[-1], n.num_addresses-2)&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>تدرّب حتى السرعة.</strong> اذهب إلى <a href="https://subnettingpractice.com/">subnettingpractice.com</a> وحلّ 25 سؤالاً. الهدف: <strong>أقل من 20 ثانية لكل سؤال</strong>. لا تنتقل إلى ما بعده حتى تصل إلى ذلك.</p>
+</li>
+<li><strong>الاتجاه المعاكس.</strong> بمعطى "أحتاج شبكة فرعية تستوعب 50 جهازاً على الأقل"، ما أصغر CIDR يكفي؟ حلّ خمساً من هذه.</li>
+</ol>
+<p><strong>التسليم المطلوب:</strong> حلّك المكتوب بخط يدك للمسائل العشر كلها، مع نتيجتك ووقتك في subnettingpractice.com.</p>
+<p><strong>إن رأيت هذا → فمعناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>عنوان الشبكة يقع على رقم غريب مثل <code>.10.64</code> في /26</td>
+<td>صحيح — حجم الكتلة 64 يعني أن الشبكات تبدأ عند 0 و 64 و 128 و 192. لست مخطئاً</td>
+</tr>
+<tr>
+<td>تحصل على 64 جهازاً قابلاً للاستخدام في /26</td>
+<td>نسيت طرح 2 (الشبكة + البث). الجواب الصحيح 62</td>
+</tr>
+<tr>
+<td><code>/22</code> يكسّر دماغك</td>
+<td>اشتغل في الأوكتيت <strong>الثالث</strong>، لا الرابع. حجم الكتلة = 256 − 252 = 4، إذاً الشبكات هي 0، 4، 8، 12…</td>
+</tr>
+<tr>
+<td>جوابك صحيح لكنه يستغرق 3 دقائق</td>
+<td>لم تصل بعد إلى سرعة الاحتراف. تدرّب أكثر؛ السرعة هنا ذاكرة عضلية، لا شيء غير ذلك</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 4.2 — ارسم خريطة شبكة مختبرك (1.5 ساعات)</h3>
+<p><strong>الهدف:</strong> أن تقرأ الشبكة التي يعيش عليها جهازك، من سطر الأوامر فقط.</p>
+<p><strong>الإعداد:</strong> الآلتان الافتراضيتان تعملان، والمحوّل (adapter) على <strong>NAT Network</strong> (من الأسبوع 1).</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li><code>ip a</code> — اكتب لكل واجهة (interface): الاسم، والحالة، وعنوان MAC، وعنوان IP، وطول البادئة (prefix length).</li>
+<li><code>ip r</code> — حدّد بوابتك الافتراضية. ماذا يعني <code>default via</code>؟</li>
+<li><code>ip n</code> — هذا هو <strong>ذاكرة ARP المؤقتة (ARP cache)</strong>: خرائط IP → MAC التي يعرفها جهازك بالفعل. لماذا هي ممتلئة أصلاً؟</li>
+<li><code>ping -c 3 &lt;ubuntu-ip&gt;</code> من Kali. هل تتغيّر ذاكرة ARP؟ افحص <code>ip n</code> مرة أخرى.</li>
+<li><code>ping -c 3 1.1.1.1</code> — عنوان عام. ثم <code>traceroute 1.1.1.1</code>. كم قفزة (hop) قبل أن تغادر مختبرك؟ إلى أين يمضي المسار؟</li>
+<li><code>traceroute -I 1.1.1.1</code> (وضع ICMP) مقابل <code>traceroute</code> المجرّد (وضع UDP). هل يختلف المساران؟ ولماذا قد يحدث ذلك؟</li>
+<li><strong>اكسر البوابة عمداً:</strong> <code>sudo ip route del default</code>. جرّب أن تـ ping <code>1.1.1.1</code>. ثم جرّب أن تـ ping آلة Ubuntu. اشرح الفرق. أعد الوضع بـ <code>sudo ip route add default via &lt;gateway&gt;</code>.</li>
+</ol>
+<p><strong>التسليم المطلوب:</strong> رسم يدوي لمختبرك: الواجهات، وعناوين IP، وعناوين MAC، والبوابة، وأين ينتهي المختبر ويبدأ الإنترنت.</p>
+<p><strong>إن رأيت هذا → فمعناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ip a</code> يُظهر <code>192.168.56.x</code> على إحدى الواجهات</td>
+<td>هذا محوّل host-only، لا محوّل NAT Network — افحص إعدادات VirtualBox</td>
+</tr>
+<tr>
+<td><code>traceroute</code> يطبع <code>* * *</code> فقط</td>
+<td>حركة ICMP/UDP مُرشَّحة على المسار. جرّب <code>traceroute -T -p 443 1.1.1.1</code> (وضع TCP)</td>
+</tr>
+<tr>
+<td>الـ ping إلى الآلة المحلية ينجح لكن الإنترنت يفشل بعد حذف المسار</td>
+<td>هذا هو المقصود بالضبط: <strong>البوابة هي باب الخروج من شبكتك الفرعية.</strong> وحركة نفس الشبكة الفرعية لا تحتاجها أبداً</td>
+</tr>
+<tr>
+<td><code>ip n</code> يُظهر <code>FAILED</code> أو <code>INCOMPLETE</code></td>
+<td>لا شيء أجاب على طلب ARP — الجهاز متوقف، أو الشبكة الفرعية خاطئة، أو جدار ناري يُسقط ARP</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 4.3 — ابنِ شبكة من ثلاثة أجهزة على Internal Network (2 ساعات)</h3>
+<p><strong>الهدف:</strong> ابنِ شبكة مُبدَّلة (switched) <strong>بلا موجّه وبلا DHCP</strong>. أنت تعيّن كل عنوان بيدك. هنا تتوقف العنونة عن كونها نظرية.</p>
+<p><strong>الإعداد:</strong> مضيف بذاكرة 16GB. ميزانية الذاكرة: Kali بـ 3GB، و Ubuntu بـ 3GB، والعقدة الثالثة بـ 1.5GB. <strong>لا تشغّل الثلاث بواجهة رسومية وبذاكرة 4GB لكل واحدة</strong> — ستستخدم swap وستكره حياتك.</p>
+<p>العقدة الثالثة: استنسخ آلة Ubuntu وحوّلها إلى <strong>تثبيت سيرفر بلا سطح مكتب</strong>، أو ابنِ آلة Debian/Alpine مصغّرة. لا تحتاج سوى shell.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li><strong>خُذ لقطة (snapshot) للثلاث أولاً.</strong></li>
+<li>في VirtualBox، أعطِ كل آلة محوّلاً ثانياً (Adapter 2) مضبوطاً على <strong>Internal Network</strong> بالاسم <code>labnet</code>. واترك Adapter 1 على NAT Network لتحتفظ بالإنترنت عبر مسار مختلف.</li>
+<li>أقلع الثلاث. اعرف اسم الواجهة الجديدة (<code>ip a</code> — عادةً <code>enp0s8</code> أو <code>eth1</code>).</li>
+<li><strong>عيّن العناوين الساكنة يدوياً — لا وجود لـ DHCP على <code>labnet</code>:</strong></li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الآلة</th>
+<th>العنوان</th>
+<th>البادئة</th>
+<th>الدور</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kali</td>
+<td>192.168.50.10</td>
+<td>/24</td>
+<td>المهاجم</td>
+</tr>
+<tr>
+<td>Ubuntu</td>
+<td>192.168.50.20</td>
+<td>/24</td>
+<td>الهدف</td>
+</tr>
+<tr>
+<td>Node-3</td>
+<td>192.168.50.30</td>
+<td>/24</td>
+<td>الجهاز الثالث</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ubuntu (netplan):
+   <div class="highlight"><pre><span></span><code><span class="c1"># /etc/netplan/99-labnet.yaml</span>
+<span class="nt">network</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">ethernets</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enp0s8</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">addresses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">192.168.50.20/24</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>netplan<span class="w"> </span>apply
+</code></pre></div>
+   Kali و Node-3:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>enp0s8<span class="w"> </span>up
+sudo<span class="w"> </span>ip<span class="w"> </span>addr<span class="w"> </span>add<span class="w"> </span><span class="m">192</span>.168.50.10/24<span class="w"> </span>dev<span class="w"> </span>enp0s8
+</code></pre></div></p>
+<ol start="5">
+<li><strong>أثبت أن المُبدّل يعمل.</strong> من Kali: <code>ping -c3 192.168.50.20</code> و <code>ping -c3 192.168.50.30</code>. يجب أن ينجح الاثنان — هذا يثبت اتصال الطبقة 2 بـ <strong>صفر</strong> توجيه.</li>
+<li><strong>أثبت أنه لا توجد بوابة.</strong> <code>ip r</code> على أي آلة — يجب أن <strong>لا</strong> يوجد سطر <code>default via</code> من أجل <code>labnet</code>. أكّد: <code>ping -c2 1.1.1.1</code> يفشل، و <code>ping -c2 192.168.50.20</code> ينجح.</li>
+<li><strong>اكسرها عمداً.</strong> غيّر Kali إلى <code>192.168.60.10/24</code> (شبكة فرعية خاطئة). جرّب أن تـ ping آلة Ubuntu. سيفشل — مع أن الكابل سليم. اشرح في ملاحظاتك لماذا، مستخدماً كلمتَي <em>الشبكة الفرعية</em> و <em>الطبقة 3</em>.</li>
+<li><strong>الآن أضف دور الموجّه.</strong> حوّل آلة Ubuntu إلى موجّه للآلتين الأخريين: <code>sudo sysctl -w net.ipv4.ip_forward=1</code>، ثم اصل من Node-3 إلى الشبكة الفرعية بين Kali و Ubuntu. ملاحظة: هذا باب متشعّب (rabbit hole). حدّده بـ 20 دقيقة؛ وستفعله باحتراف في الأسبوع 6.</li>
+</ol>
+<p><strong>التسليم المطلوب:</strong> رسم لمخطط <code>labnet</code> مع عناوين IP و MAC للثلاث، مع شرح مكتوب لسبب عدم قدرة جهازين على نفس المُبدّل لكن في شبكتين فرعيتين مختلفتين على التخاطب.</p>
+<p><strong>إن رأيت هذا → فمعناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>الواجهة <code>DOWN</code> وبلا عنوان</td>
+<td>أضفت العنوان لكن نسيت <code>ip link set &lt;if&gt; up</code>، أو أن إزاحة (indentation) ملف netplan YAML خاطئة</td>
+</tr>
+<tr>
+<td>العنوان يختفي بعد إعادة التشغيل</td>
+<td><code>ip addr add</code> مؤقت بالتصميم. اجعله دائماً في netplan / NetworkManager</td>
+</tr>
+<tr>
+<td>الـ ping يفشل مع أن العنونة صحيحة</td>
+<td>اسم Internal Network في VirtualBox يجب أن يتطابق <strong>تماماً</strong> على الآلات الثلاث، بما في ذلك حالة الأحرف</td>
+</tr>
+<tr>
+<td>الثلاث تأخذ نفس عنوان IP</td>
+<td>أنت تنظر إلى Adapter 1 (NAT Network)، لا Adapter 2. افحص <code>ip a</code> لتعرف أي واجهة تحمل أي عنوان</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 4.4 — تعداد المختبر بـ <code>arp-scan</code> (1.5 ساعات)</h3>
+<p><strong>الهدف:</strong> اكتشف كل جهاز على الشبكة دون أن تطلب الإذن من أي منها — باستخدام ARP فقط.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>
+<p>من Kali (المتّصلة بـ <code>labnet</code>):
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>arp-scan<span class="w"> </span>-y<span class="w">     </span><span class="c1"># preinstalled on Kali, may need install on Ubuntu</span>
+sudo<span class="w"> </span>arp-scan<span class="w"> </span>-I<span class="w"> </span>eth1<span class="w"> </span>-l
+</code></pre></div>
+   (استبدل <code>eth1</code> باسم واجهة <code>labnet</code> عندك — <code>-I</code> يختار الواجهة، و <code>-l</code> تعني "شبكتي المحلية".)</p>
+</li>
+<li>
+<p>سجّل المخرجات: IP، و MAC، والشركة المصنّعة (OUI). من أين يأتي اسم الشركة إن لم يسأل أحدٌ الجهاز؟</p>
+</li>
+<li><strong>أضف جهازاً رابعاً.</strong> أقلع هاتفاً أو آلة افتراضية خفيفة ثانية على <code>labnet</code>. أعد تشغيل الفحص. هل ظهر؟ وبأي سرعة؟</li>
+<li>أطفئ إحدى الآلات. أعد الفحص. هل ما زال يظهر؟ افحص <code>ip n</code> — كم بقي المدخل القديم (stale entry)؟</li>
+<li><strong>قارن الأدوات.</strong> هذه المرة افحص بـ <code>nmap -sn 192.168.50.0/24</code>. كلتاهما تجد الأجهزة — لكن أيّهما أسرع، وأيّهما أكثر تخفّياً؟ لماذا؟ (تلميح: ARP في الطبقة 2؛ و <code>nmap -sn</code> يستخدم ARP أيضاً على الشبكات المحلية، لكن ICMP على الشبكات الأبعد.)</li>
+<li><strong>من منظور المدافع.</strong> على هدف Ubuntu، شغّل <code>sudo tcpdump -i enp0s8 arp -n</code> وأعد تشغيل <code>arp-scan</code> من Kali. اقرأ ما تراه Ubuntu. واكتب: <strong>هل توجد أي طريقة تستطيع بها Ubuntu أن تميّز هذا الفحص عن طلب ARP عادي؟</strong></li>
+</ol>
+<p><strong>التسليم المطلوب:</strong> مخرجات <code>arp-scan</code> الكاملة لـ <code>labnet</code>، مع إجابة مكتوبة على الخطوة 6 — هذه أول مرة تدرك فيها أن بعض الفحص <em>غير مرئي</em>.</p>
+<blockquote>
+<p>⚠️ <strong>تحقّق من التصريح.</strong> تشغيل <code>arp-scan</code> على شبكة لا تملكها فعل عدائي، حتى لو كان "ARP فقط". شغّله <strong>فقط</strong> على <code>labnet</code> وعلى أجهزتك أنت. شبكة الواي فاي في الجامعة، والمقهى، وراوتر البيت — كلها خارج الحدود، بشكل دائم.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="challenge" data-sec="challenge" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈5h · Unguided — this is where it sticks</span><span class="only-ar">≈5ساعات · بدون إرشاد — هنا يحدث التعلّم الحقيقي</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li>Bandit levels <strong>26-28</strong> (unguided). Level 26 is the first genuinely hard one — it's a restricted shell. Level 27-28 introduce <code>git</code>. Take the time to actually understand what a restricted shell blocks and why.</li>
+<li><strong><code>subnet-calc.sh</code></strong> — write a Bash script that takes an address in CIDR form (<code>192.168.10.130/26</code>) as <code>$1</code> and prints: network address, broadcast, first host, last host, usable count, and the mask in dotted-decimal. <strong>Do not use <code>ipcalc</code> or <code>sipcalc</code>.</strong> Implement the math yourself with Bash arithmetic (<code>$(( ))</code>). This is the only way subnetting becomes permanent.</li>
+<li><strong><code>netinventory.sh</code></strong> — run <code>ip a</code>, <code>ip r</code>, and <code>ip n</code> and emit a single formatted report: all interfaces with IPs and MACs, the default gateway, and the full ARP cache sorted by IP.</li>
+<li><strong>Written analysis:</strong> you have one IP address from a log: <code>203.0.113.47</code>. Using only free, passive sources, list everything you could learn about it. Then do the same exercise on <strong>your own</strong> public IP (from <code>curl ifconfig.me</code>) and compare. Which revealed more, and why does that matter?</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li>مستويات Bandit من <strong>26 إلى 28</strong> (بلا إرشاد). المستوى 26 هو أول مستوى صعب فعلاً — إنه restricted shell. والمستويان 27-28 يقدّمان <code>git</code>. خذ وقتك لتفهم فعلاً ما الذي يمنعه restricted shell ولماذا.</li>
+<li><strong><code>subnet-calc.sh</code></strong> — اكتب سكربت Bash يستقبل عنواناً بصيغة CIDR (<code>192.168.10.130/26</code>) في <code>$1</code> ويطبع: عنوان الشبكة، والبث، وأول جهاز، وآخر جهاز، وعدد الأجهزة القابلة للاستخدام، والقناع بالصيغة العشرية المنقّطة (dotted-decimal). <strong>لا تستخدم <code>ipcalc</code> ولا <code>sipcalc</code>.</strong> نفّذ الحساب بنفسك بحساب Bash (<code>$(( ))</code>). هذه هي الطريقة الوحيدة ليصبح تقسيم الشبكات راسخاً.</li>
+<li><strong><code>netinventory.sh</code></strong> — شغّل <code>ip a</code> و <code>ip r</code> و <code>ip n</code> وأخرج تقريراً واحداً منسّقاً: كل الواجهات مع عناوين IP و MAC، والبوابة الافتراضية، وذاكرة ARP كاملة مرتّبة حسب IP.</li>
+<li><strong>تحليل مكتوب:</strong> لديك عنوان IP واحد من سجل: <code>203.0.113.47</code>. باستخدام مصادر مجانية وسلبية فقط، اسرد كل ما يمكنك معرفته عنه. ثم نفّذ التمرين نفسه على عنوان IP العام <strong>الخاص بك</strong> (من <code>curl ifconfig.me</code>) وقارن. أيّهما كشف أكثر، ولماذا يهم ذلك؟</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="payoff" data-sec="payoff" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The security consequence</span><span class="only-ar">الأثر الأمني</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>Networking is not a prerequisite for security. Networking <em>is</em> security.</strong></p>
+<p>Everything an attacker does travels over a network. Everything a defender sees arrives as network traffic. If you cannot reason about addressing, subnets, and layer 2, you cannot understand a single attack you will study in the next nine weeks.</p>
+<p>Three things worth internalizing:</p>
+<ol>
+<li>
+<p><strong>ARP has no authentication — and that is a design flaw, not a bug.</strong> When your machine asks "who has 192.168.50.1?", any host on the segment may answer, and your machine will believe it. There is no signature, no challenge, no verification. An attacker on the same segment simply answers <em>first</em> and claims to be the gateway. Now every packet you send to the internet goes through them. That is <strong>ARP spoofing</strong>, and it is the front door to a <strong>man-in-the-middle</strong> attack — the attacker reads, and can silently modify, your traffic. This is why you will spend Week 5 watching a real credential cross the wire. ARP spoofing is not exotic; it is the default behaviour of a fundamentally trusting protocol, and it works because you are on the same <strong>broadcast domain</strong>.</p>
+</li>
+<li>
+<p><strong>This is why network segmentation exists, and why flat networks are dangerous.</strong> In Lab 4.3 you built a flat <code>/24</code> where all three machines can see each other directly. In a real company, that flat network can mean the intern's laptop shares a broadcast domain with the payroll server. One compromised machine, and the attacker can ARP-spoof every neighbour. Segmentation — VLANs, subnets, firewalls between them — is a direct response to exactly the problem you just demonstrated with <code>arp-scan</code>. When you read "lateral movement" in an incident report, this is the mechanism.</p>
+</li>
+<li>
+<p><strong>A single IP address tells an attacker more than you think.</strong> From one address they can determine: which ISP or hosting provider owns it (ASN), the likely country and city, its reverse DNS hostname (which frequently leaks role and environment — <code>jenkins-dev-01.corp.example.com</code> names the service, the environment, <em>and</em> the company), whether it is residential/dynamic or a static business range, and whether it appears in public internet-wide scan datasets. None of that requires touching the target. It is all passive. This is called <strong>OSINT</strong>, and it is the first phase of every real engagement. The defensive lesson is equally sharp: <strong>your hostnames and your exposed services leak your internal structure</strong>, and that is why naming conventions and outbound service exposure are security decisions, not IT housekeeping.</p>
+</li>
+</ol></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>الشبكات ليست متطلباً سابقاً للأمن. الشبكات <em>هي</em> الأمن.</strong></p>
+<p>كل ما يفعله المهاجم ينتقل عبر شبكة. وكل ما يراه المدافع يصل في صورة حركة شبكة. إن لم تستطع التفكير المنطقي في العنونة والشبكات الفرعية والطبقة 2، فلن تفهم هجمة واحدة من التي ستدرسها في الأسابيع التسعة القادمة.</p>
+<p>ثلاثة أمور تستحق أن تستوعبها:</p>
+<ol>
+<li>
+<p><strong>ARP بلا أي مصادقة — وهذا عيب في التصميم، لا خطأ برمجي.</strong> عندما يسأل جهازك "من يملك 192.168.50.1؟"، يجوز لأي جهاز على نفس القطاع أن يجيب، وسيصدّقه جهازك. لا توقيع، ولا تحدٍّ، ولا تحقّق. والمهاجم على نفس القطاع يجيب ببساطة <em>أولاً</em> ويدّعي أنه البوابة. عندها تمر كل حزمة ترسلها إلى الإنترنت عبره. هذا هو <strong>انتحال ARP (ARP spoofing)</strong>، وهو الباب الأمامي لهجوم <strong>الرجل في المنتصف (MITM)</strong> — يقرأ المهاجم حركتك، ويستطيع تعديلها بصمت. لهذا ستقضي الأسبوع 5 في مشاهدة بيانات اعتماد حقيقية تعبر السلك. انتحال ARP ليس شيئاً نادراً؛ إنه السلوك الافتراضي لبروتوكول يثق بكل شيء، وينجح لأنك على نفس <strong>نطاق البث (broadcast domain)</strong>.</p>
+</li>
+<li>
+<p><strong>لهذا توجد تجزئة الشبكة، ولهذا الشبكات المسطحة خطرة.</strong> في المختبر 4.3 بنيت شبكة مسطحة <code>/24</code> ترى فيها الآلات الثلاث بعضها مباشرة. وفي شركة حقيقية، تلك الشبكة المسطحة قد تعني أن حاسوب المتدرّب يشارك نطاق البث مع سيرفر الرواتب. جهاز واحد مخترق، ويستطيع المهاجم انتحال ARP لكل جيرانه. التجزئة (segmentation) — VLANs، وشبكات فرعية، وجدران نارية بينها — ردّ مباشر على المشكلة نفسها التي عرضتها للتو بـ <code>arp-scan</code>. وعندما تقرأ "الحركة الجانبية (lateral movement)" في تقرير حادث، فهذا هو الميكانيزم.</p>
+</li>
+<li>
+<p><strong>عنوان IP واحد يخبر المهاجم بأكثر مما تظن.</strong> من عنوان واحد يستطيع تحديد: أي مزوّد خدمة إنترنت أو استضافة يملكه (ASN)، والدولة والمدينة المحتملة، واسمه العكسي في DNS (reverse DNS) — الذي كثيراً ما يسرّب الدور والبيئة: <code>jenkins-dev-01.corp.example.com</code> يسمّي الخدمة، <em>و</em>البيئة، <em>و</em>الشركة — وهل هو عنوان منزلي/ديناميكي أم نطاق أعمال ساكن، وهل يظهر في مجموعات بيانات المسح العامة على مستوى الإنترنت. لا شيء من ذلك يتطلب لمس الهدف. كله سلبي. هذا يُسمى <strong>OSINT</strong>، وهو المرحلة الأولى في كل عملية حقيقية. والدرس الدفاعي بنفس الحدّة: <strong>أسماء أجهزتك وخدماتك المكشوفة تسرّب بنيتك الداخلية</strong>، ولهذا فإن اصطلاحات التسمية وكشف الخدمات للخارج قرارات أمنية، لا أعمال صيانة تقنية.</p>
+</li>
+</ol></div>
+  </div>
+</details><details class="lesson-sec" id="checkpoint" data-sec="checkpoint" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4M4 4h12l-1.5 4L16 12H4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Prove it to yourself before moving on</span><span class="only-ar">أثبت لنفسك أنك أتقنت قبل المتابعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Solve five consecutive subnetting problems, by hand, in under 20 seconds each, with no errors</li>
+<li class="task">Given an arbitrary <code>/N</code>, state the mask, block size, and usable host count from memory</li>
+<li class="task">Draw your lab network from memory: IPs, MACs, gateway, subnet boundaries</li>
+<li class="task">Explain, out loud, what happens at layer 2 and layer 3 when Kali pings Ubuntu on a different subnet</li>
+<li class="task">Explain ARP spoofing in three sentences, including <em>why the protocol allows it</em></li>
+<li class="task">Build the 3-VM <code>labnet</code> with static addressing and prove all three can reach each other</li>
+<li class="task">Run <code>arp-scan</code> and <code>nmap -sn</code> on your own lab; explain the difference in what each sends</li>
+<li class="task">Bandit 26-28 complete</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">حلّ خمس مسائل تقسيم شبكات متتالية، يدوياً، في أقل من 20 ثانية لكل واحدة، بلا أخطاء</li>
+<li class="task">بمعطى <code>/N</code> عشوائي، اذكر القناع وحجم الكتلة وعدد الأجهزة القابلة للاستخدام من الذاكرة</li>
+<li class="task">ارسم شبكة مختبرك من الذاكرة: عناوين IP، وعناوين MAC، والبوابة، وحدود الشبكات الفرعية</li>
+<li class="task">اشرح بصوت مسموع ما يحدث في الطبقة 2 والطبقة 3 عندما تـ ping آلة Kali آلة Ubuntu على شبكة فرعية مختلفة</li>
+<li class="task">اشرح انتحال ARP في ثلاث جمل، بما في ذلك <em>لماذا يسمح البروتوكول بذلك</em></li>
+<li class="task">ابنِ <code>labnet</code> بـ 3 آلات افتراضية بعنونة ساكنة وأثبت أن الثلاث تصل إلى بعضها</li>
+<li class="task">شغّل <code>arp-scan</code> و <code>nmap -sn</code> على مختبرك؛ واشرح الفرق في ما يرسله كل منهما</li>
+<li class="task">إكمال Bandit 26-28</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec only-ar" id="notes" data-sec="notes" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 0-9-9"/><path d="M12 7v5l3 2M3 21l3-3"/></svg></span>
+    <span class="lesson-titles">
+      <h2>ملاحظات مفاهيمية موسّعة</h2>
+      <span class="lesson-sub"><span>شرح إضافي موسّع</span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose" dir="rtl" lang="ar"><h3>نموذج OSI — لماذا نحتاج طبقات أصلاً؟</h3>
+<p>تخيّل أنك تريد إرسال رسالة لصديق في مدينة أخرى. أنت لا تفكر في: أي طريق تسلك الشاحنة، ولا كيف تُعبّأ الصناديق، ولا كيف تعمل إشارات المرور. أنت فقط <strong>تكتب الرسالة</strong> وتضعها في صندوق البريد.</p>
+<p>هذا بالضبط ما يفعله <strong>نموذج الطبقات</strong>: يقسّم عملية الاتصال المعقدة إلى <strong>طبقات مستقلة</strong>، كل طبقة لها مهمة واحدة واضحة، وتقدّم خدمتها للطبقة التي فوقها دون أن تعرف هي كيف تعمل الطبقة التي تحتها.</p>
+<p><strong>الفائدة العملية:</strong> عندما يتعطل شيء، تعرف <strong>أين</strong> تبحث. لا إنترنت؟ ابدأ من الطبقة 1. يفتح الموقع بالاسم لكن لا يعمل برقم IP؟ المشكلة في طبقة التطبيق (DNS).</p>
+<h3>مقارنة النموذجين</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>OSI (7 طبقات)</th>
+<th>TCP/IP (4 طبقات)</th>
+<th>ماذا يحدث هنا</th>
+<th>أمثلة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7</td>
+<td>Application</td>
+<td>Application</td>
+<td>ما يراه المستخدم</td>
+<td>HTTP، DNS، SSH</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Presentation</td>
+<td>Application</td>
+<td>الترميز والتشفير</td>
+<td>TLS، UTF-8</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Session</td>
+<td>Application</td>
+<td>إدارة الجلسة</td>
+<td>—</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Transport</td>
+<td>Transport</td>
+<td>التوصيل بين البرامج، المنافذ</td>
+<td>TCP، UDP</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Network</td>
+<td>Internet</td>
+<td>العنونة والتوجيه بين الشبكات</td>
+<td>IP، ICMP</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Data Link</td>
+<td>Network Access</td>
+<td>العنونة الفيزيائية داخل الشبكة</td>
+<td>Ethernet، ARP، MAC</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Physical</td>
+<td>Network Access</td>
+<td>الإشارات على السلك</td>
+<td>الكابلات، Wi-Fi</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>ملاحظة مهمة:</strong> الطبقات 5 و 6 و 7 في OSI لا وجود لها كطبقات مستقلة في TCP/IP — كلها مدمجة في طبقة التطبيق. لهذا الواقع العملي يستخدم TCP/IP، بينما OSI يبقى <strong>لغة مشتركة</strong> للوصف: عندما يقول مهندس "هذه مشكلة طبقة 2"، يفهم الجميع المقصود فوراً.</p>
+</blockquote>
+<h3>التغليف (Encapsulation) — الفكرة التي تشرح كل شيء</h3>
+<p>عندما ترسل رسالة، لا تُرسل كما هي. تُغلَّف طبقة فوق طبقة، مثل الظرف داخل ظرف داخل ظرف:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الطبقة</th>
+<th>الوحدة (PDU)</th>
+<th>ما يُضاف</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application</td>
+<td>Data</td>
+<td>رسالتك: <code>GET /login</code></td>
+</tr>
+<tr>
+<td>Transport</td>
+<td>Segment</td>
+<td>رأس TCP: منفذ المصدر، منفذ الوجهة، رقم التسلسل</td>
+</tr>
+<tr>
+<td>Network</td>
+<td>Packet</td>
+<td>رأس IP: عنوان IP المصدر والوجهة</td>
+</tr>
+<tr>
+<td>Data Link</td>
+<td>Frame</td>
+<td>رأس Ethernet: MAC المصدر والوجهة</td>
+</tr>
+<tr>
+<td>Physical</td>
+<td>Bits</td>
+<td>تُحوَّل إلى إشارات كهربائية أو ضوئية</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>القاعدة:</strong> كل طبقة تضيف <strong>رأسها (header)</strong> فقط، ولا تنظر داخل ما فوقها. جهاز التوجيه (Router) يقرأ رأس IP ويرميه، ثم يقرأ التالي. المُبدّل (Switch) يقرأ رأس Ethernet فقط ولا يعرف شيئاً عن IP.</p>
+<blockquote>
+<p><strong>لماذا يهمنا هذا أمنياً؟</strong> لأن كل طبقة لها هجماتها الخاصة. الهجوم على ARP هو طبقة 2. انتحال IP هو طبقة 3. اختطاف الجلسة هو طبقة 4. XSS هو طبقة 7. <strong>عندما تفهم الطبقات، تصبح كل ثغرة تقرأ عنها في مكانها الصحيح.</strong></p>
+</blockquote>
+<h3>العنونة IPv4 — الأساس الرياضي</h3>
+<p><strong>عنوان IPv4</strong> = 32 بت، تُكتب كأربعة أرقام (كل رقم من 0 إلى 255) تفصلها نقاط.</p>
+<p><strong>لماذا 255؟</strong> لأن كل رقم يمثل <strong>8 بتات</strong>، و 2⁸ = 256 احتمالاً (من 0 إلى 255).</p>
+<p><strong>التحويل من عشري إلى ثنائي — الطريقة:</strong></p>
+<p>قيم البتات الثمانية من اليسار لليمين:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>128</th>
+<th>64</th>
+<th>32</th>
+<th>16</th>
+<th>8</th>
+<th>4</th>
+<th>2</th>
+<th>1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>مثال: حوّل 192 إلى ثنائي</strong></p>
+<div class="highlight"><pre><span></span><code>192 = 128 + 64  →  128 نعم(1)  64 نعم(1)  32 لا(0)  16 لا(0)  8 لا(0)  4 لا(0)  2 لا(0)  1 لا(0)
+192 = 1 1 0 0 0 0 0 0
+</code></pre></div>
+<p><strong>مثال كامل: 192.168.10.130</strong></p>
+<div class="highlight"><pre><span></span><code>192  →  11000000
+168  →  10101000     (168 = 128 + 32 + 8)
+ 10  →  00001010     (10  = 8 + 2)
+130  →  10000010     (130 = 128 + 2)
+</code></pre></div>
+<h3>الفئات (Classes) والعناوين الخاصة</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الفئة</th>
+<th>المدى</th>
+<th>القناع الافتراضي</th>
+<th>الاستخدام</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>0 – 127</td>
+<td>/8</td>
+<td>شبكات ضخمة</td>
+</tr>
+<tr>
+<td>B</td>
+<td>128 – 191</td>
+<td>/16</td>
+<td>شبكات متوسطة</td>
+</tr>
+<tr>
+<td>C</td>
+<td>192 – 223</td>
+<td>/24</td>
+<td>شبكات صغيرة</td>
+</tr>
+<tr>
+<td>D</td>
+<td>224 – 239</td>
+<td>—</td>
+<td>Multicast</td>
+</tr>
+<tr>
+<td>E</td>
+<td>240 – 255</td>
+<td>—</td>
+<td>تجريبي</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>العناوين الخاصة (RFC 1918)</strong> — لا تُوجَّه على الإنترنت إطلاقاً:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المدى</th>
+<th>القناع</th>
+<th>عدد العناوين</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10.0.0.0 – 10.255.255.255</td>
+<td>/8</td>
+<td>~16.7 مليون</td>
+</tr>
+<tr>
+<td>172.16.0.0 – 172.31.255.255</td>
+<td>/12</td>
+<td>~1 مليون</td>
+</tr>
+<tr>
+<td>192.168.0.0 – 192.168.255.255</td>
+<td>/16</td>
+<td>65,536</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>عناوين خاصة أخرى يجب حفظها:</strong></p>
+<ul>
+<li><code>127.0.0.0/8</code> → <strong>العنوان المحلي (localhost)</strong> — جهازك نفسه.</li>
+<li><code>169.254.0.0/16</code> → <strong>APIPA</strong> — يظهر عندما يفشل الحصول على عنوان من DHCP. <strong>رؤيته علامة مشكلة، لا حل.</strong></li>
+</ul>
+<blockquote>
+<p><strong>لماذا هذا مهم أمنياً؟</strong> لأن رؤية عنوان <code>10.x</code> أو <code>192.168.x</code> في سجل تخبرك أن النشاط <strong>داخلي</strong> — أي أن المهاجم إما موجود داخل الشبكة فعلاً، أو أنه يستخدم برنامجاً يزوّر العناوين. العنوان الخاص في سجل هجوم على سيرفر عام = <strong>علامة تفشيل (tunneling) أو وسيط</strong>. أما عنوان <code>127.0.0.1</code> في السجلات فهو إما خدمة داخلية أو <strong>تزوير متعمّد لإخفاء المصدر الحقيقي</strong>.</p>
+</blockquote>
+<h3>التقسيم الفرعي (Subnetting) — بالمثال العملي</h3>
+<p><strong>الفكرة:</strong> بدلاً من شبكة واحدة كبيرة، نقسمها إلى شبكات أصغر. لماذا؟ للأمان (عزل) وللتنظيم (تقليل حركة البث).</p>
+<p><strong>الخطوة الحاسمة: حساب حجم الكتلة</strong></p>
+<blockquote>
+<p><strong>الصيغة الذهبية: حجم الكتلة = 256 − آخر رقم في القناع</strong></p>
+</blockquote>
+<p><strong>مثال 1: <code>192.168.10.0/26</code></strong></p>
+<ol>
+<li>القناع <code>/26</code> = <code>255.255.255.192</code></li>
+<li>حجم الكتلة = 256 − 192 = <strong>64</strong></li>
+<li>الشبكات الفرعية تبدأ عند: <code>.0</code> · <code>.64</code> · <code>.128</code> · <code>.192</code></li>
+<li>عدد الأجهزة القابلة للاستخدام = 2⁶ − 2 = <strong>62</strong></li>
+</ol>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الشبكة</th>
+<th>عنوان الشبكة</th>
+<th>أول جهاز</th>
+<th>آخر جهاز</th>
+<th>عنوان البث</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>192.168.10.0</td>
+<td>.1</td>
+<td>.62</td>
+<td>.63</td>
+</tr>
+<tr>
+<td>2</td>
+<td>192.168.10.64</td>
+<td>.65</td>
+<td>.126</td>
+<td>.127</td>
+</tr>
+<tr>
+<td>3</td>
+<td>192.168.10.128</td>
+<td>.129</td>
+<td>.190</td>
+<td>.191</td>
+</tr>
+<tr>
+<td>4</td>
+<td>192.168.10.192</td>
+<td>.193</td>
+<td>.254</td>
+<td>.255</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>مثال 2: أين يقع <code>192.168.10.130/26</code>؟</strong></p>
+<ul>
+<li>الكتل: 0، 64، 128، 192 → العدد 130 يقع بين 128 و 191</li>
+<li><strong>عنوان الشبكة:</strong> 192.168.10.128</li>
+<li><strong>أول جهاز:</strong> 192.168.10.129</li>
+<li><strong>آخر جهاز:</strong> 192.168.10.190</li>
+<li><strong>عنوان البث:</strong> 192.168.10.191</li>
+</ul>
+<p><strong>مثال 3: القناع في الأوكتيت الثالث — <code>172.16.5.200/22</code></strong></p>
+<p>هنا الكتلة ليست في الأوكتيت الرابع بل <strong>الثالث</strong>:</p>
+<ol>
+<li>القناع <code>/22</code> = <code>255.255.252.0</code></li>
+<li>حجم الكتلة في الأوكتيت الثالث = 256 − 252 = <strong>4</strong></li>
+<li>الشبكات: 0، 4، 8، 12 … → العدد 5 يقع بين 4 و 7</li>
+<li><strong>الشبكة:</strong> 172.16.4.0 · <strong>البث:</strong> 172.16.7.255</li>
+</ol>
+<blockquote>
+<p><strong>القاعدة عند اللبس:</strong> اكتب القناع بالثنائي وضع خطاً تحت بتات الشبكة. ما تبقّى أصفاراً هو الجزء الذي يتغير (الأجهزة). <strong>لا تحفظ — ارسم.</strong></p>
+</blockquote>
+<p><strong>لماذا نطرح 2؟</strong> لأن أول عنوان في كل شبكة هو <strong>عنوان الشبكة نفسه</strong> (يُستخدم لتعريف الشبكة)، وآخر عنوان هو <strong>عنوان البث (Broadcast)</strong> الذي يذهب لكل الأجهزة. لا يجوز إعطاؤهما لجهاز.</p>
+<h3>ARP — الثغرة المدمجة في التصميم</h3>
+<p><strong>المشكلة:</strong> الجهاز يعرف عنوان IP الوجهة، لكنه يحتاج <strong>MAC</strong> ليبني إطار Ethernet. كيف يربط بينهما؟ عبر <strong>ARP</strong>.</p>
+<p><strong>آلية العمل في خطوتين:</strong></p>
+<ol>
+<li><strong>طلب (Request):</strong> يُرسل <strong>بثاً (Broadcast)</strong> لكل الشبكة: "من يملك <code>192.168.50.20</code>؟ أخبر <code>192.168.50.10</code>"</li>
+<li><strong>رد (Reply):</strong> الجهاز صاحب العنوان يرد <strong>مباشرة (Unicast)</strong>: "أنا <code>192.168.50.20</code>، وهذا MAC الخاص بي"</li>
+</ol>
+<p><strong>النتيجة:</strong> جدول مؤقت في ذاكرتك يربط IP بـ MAC. تراه بأمر <code>ip n</code>.</p>
+<p><strong>الثغرة:</strong> لا يوجد في ARP <strong>أي مصادقة</strong>. الرسالة تقول ببساطة "ثق بي". لذلك:</p>
+<blockquote>
+<p><strong>انتحال ARP (ARP Spoofing):</strong> المهاجم يرسل ردود ARP كاذبة باستمرار: "أنا البوابة <code>192.168.50.1</code>، وهذا MAC الخاص بي". فتحدّث ضحاياه جدول ARP عندهم، ويصبح كل خروجهم للإنترنت ماراً عبر جهاز المهاجم. <strong>هذه هي هجمة الرجل في المنتصف (MITM)</strong>، وهي ممكنة <strong>فقط</strong> لأن ARP بلا أي مصادقة.</p>
+</blockquote>
+<p><strong>كيف تدافع؟</strong></p>
+<ul>
+<li><strong>التقسيم (Segmentation):</strong> المهاجم يحتاج أن يكون على <strong>نفس الشبكة المحلية</strong>. عزل الشبكات يقطع الطريق.</li>
+<li><strong>Dynamic ARP Inspection (DAI):</strong> ميزة على المُبدّلات المُدارة تتحقق من صحة ردود ARP.</li>
+<li><strong>المراقبة:</strong> أدوات مثل <code>arpwatch</code> تنبّهك عند تغيّر ربط IP-MAC.</li>
+</ul></div></div>
+</details><details class="lesson-sec" id="terms" data-sec="terms" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Keep these in English</span><span class="only-ar">احتفظ بها بالإنجليزية</span></span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>العربية</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OSI Model</td>
+<td>نموذج الربط بين الأنظمة المفتوحة</td>
+<td>7 طبقات، مرجع للوصف</td>
+</tr>
+<tr>
+<td>Encapsulation</td>
+<td>التغليف</td>
+<td>إضافة رأس في كل طبقة</td>
+</tr>
+<tr>
+<td>PDU</td>
+<td>وحدة البيانات</td>
+<td>اسم الوحدة يختلف حسب الطبقة</td>
+</tr>
+<tr>
+<td>Subnet Mask</td>
+<td>قناع الشبكة الفرعية</td>
+<td>يحدد أي جزء شبكة وأي جزء جهاز</td>
+</tr>
+<tr>
+<td>CIDR</td>
+<td>التوجيه بين النطاقات بدون فئات</td>
+<td>الكتابة <code>/26</code></td>
+</tr>
+<tr>
+<td>Broadcast</td>
+<td>البث</td>
+<td>يُرسل لكل الأجهزة في الشبكة</td>
+</tr>
+<tr>
+<td>Default Gateway</td>
+<td>البوابة الافتراضية</td>
+<td>باب الخروج من الشبكة</td>
+</tr>
+<tr>
+<td>MAC Address</td>
+<td>العنوان الفيزيائي</td>
+<td>48 بت، مكتوب على كرت الشبكة</td>
+</tr>
+<tr>
+<td>ARP</td>
+<td>بروتوكول تحويل العناوين</td>
+<td>يربط IP بـ MAC</td>
+</tr>
+<tr>
+<td>ARP Spoofing</td>
+<td>انتحال ARP</td>
+<td>جوهر هجمات MITM المحلية</td>
+</tr>
+<tr>
+<td>MITM</td>
+<td>الرجل في المنتصف</td>
+<td>المهاجم يمرّ بين الطرفين</td>
+</tr>
+<tr>
+<td>Segment / Broadcast Domain</td>
+<td>نطاق البث</td>
+<td>كل من يصل إليه ARP Request</td>
+</tr>
+<tr>
+<td>Routing</td>
+<td>التوجيه</td>
+<td>نقل الحزم بين الشبكات</td>
+</tr>
+<tr>
+<td>Hop</td>
+<td>قفزة</td>
+<td>انتقال من موجّه إلى آخر</td>
+</tr>
+</tbody>
+</table></div></div></div>
+</details>
+</div>
+<nav class="weeknav"><a class="prev" href="week-03.html"><span class="dir"><span class="only-en">← Previous</span><span class="only-ar">→ السابق</span></span><span class="ttl"><span class="only-en">Linux: Services, Logs, and Bash Scripting</span><span class="only-ar" dir="rtl" lang="ar">لينكس: الخدمات والسجلات وكتابة سكربتات Bash</span></span></a><a class="next" href="week-05.html"><span class="dir"><span class="only-en">Next →</span><span class="only-ar">← التالي</span></span><span class="ttl"><span class="only-en">Networking II: TCP, Ports, DNS, DHCP + Wireshark</span><span class="only-ar" dir="rtl" lang="ar">الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark</span></span></a></nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+<script id="pc-data" type="application/json">{"weeks": [{"n": 1, "en": "Terminal From Zero & Build Your Lab", "ar": "Terminal من الصفر وبناء مختبرك", "desc_en": "Start from absolute zero: learn what a terminal is, why almost all security work happens there, and build your own practice lab.", "desc_ar": "ابدأ من الصفر التام: تعلّم ما هو Terminal، ولماذا يحدث العمل الأمني كله تقريباً فيها، وابنِ مختبر تدريب خاصاً بك.", "stage": 1, "difficulty": "beginner", "load": "~18h", "prereq": null, "prereqKind": "", "url": "week-01.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Terminal", "Shell", "Kernel", "Linux", "Filesystem", "Directory"], "objectives": ["Explain what an operating system, a shell, and a filesystem are, in their own words", "Navigate the filesystem confidently: pwd, ls, cd, absolute vs relative paths", "Create, read, move, copy, and delete files and directories", "Use man and --help to teach themselves a command they've never seen", "Explain what a virtual machine is and why we use one instead of our real computer"]}, {"n": 2, "en": "Linux: Filesystem, Users, Permissions, Processes", "ar": "لينكس: نظام الملفات والمستخدمون والصلاحيات والعمليات", "desc_en": "Learn how Linux organises files and decides who may touch them — and why one wrong permission can hand over a whole system.", "desc_ar": "تعرّف على كيفية تنظيم Linux للملفات وتحديد من يحق له الوصول إليها — ولماذا خطأ صلاحيات واحد قد يسلّم النظام بالكامل.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 1, "prereqKind": "gate", "url": "week-02.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation", "Least Privilege", "Process ID (PID)"], "objectives": ["Explain the Linux permission model: owner / group / other, read / write / execute", "Read and set permissions in both symbolic (rwxr-xr-x) and numeric (755) notation", "Explain what chmod, chown, umask do and when each is used", "Create users and groups; explain why privilege separation matters", "Use sudo correctly and explain why running as root permanently is dangerous"]}, {"n": 3, "en": "Linux: Services, Logs, and Bash Scripting", "ar": "لينكس: الخدمات والسجلات وكتابة سكربتات Bash", "desc_en": "See what runs in the background, how logs record nearly everything, and how to automate repetitive work instead of repeating it.", "desc_ar": "اكتشف ما يعمل في الخلفية، وكيف تسجّل السجلات كل شيء تقريباً، وكيف تُؤتمت المهام المتكررة بدل تكرارها يدوياً.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 2, "prereqKind": "checkpoint", "url": "week-03.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Service / Daemon", "systemd", "Log", "journalctl", "cron", "Persistence"], "objectives": ["Explain what a service (daemon) is and how systemd manages it", "Start, stop, enable, disable, and inspect services with systemctl", "Read and interpret journalctl output", "Locate and read the key log files in /var/log and explain what each records", "Write a Bash script with variables, conditionals, loops, and arguments"]}, {"n": 4, "en": "Networking I: Models, Addressing, How Packets Move", "ar": "الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم", "desc_en": "Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.", "desc_ar": "افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 3, "prereqKind": "checkpoint", "url": "week-04.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask", "CIDR", "Broadcast"], "objectives": ["Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent", "Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer", "Convert between decimal and binary octets by hand, without a calculator", "Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges", "Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range"]}, {"n": 5, "en": "Networking II: TCP, Ports, DNS, DHCP + Wireshark", "ar": "الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark", "desc_en": "Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.", "desc_ar": "شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 4, "prereqKind": "checkpoint", "url": "week-05.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST", "Teardown", "Ephemeral Port"], "objectives": ["Describe the TCP three-way handshake and name the flag and sequence number in each packet", "Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals", "Contrast TCP and UDP and choose correctly between them for a given use case", "State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory", "Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)"]}, {"n": 6, "en": "Networking III: TLS, Firewalls, NAT + Nmap", "ar": "الشبكات ٣: TLS والجدران النارية وNAT مع Nmap", "desc_en": "Learn how connections are encrypted and filtered, then scan a network the way a security professional does — and find your own scan in the logs.", "desc_ar": "تعلّم كيف تُشفَّر الاتصالات وتُفلتر، ثم امسح شبكة كما يفعل محترف الأمن — وابحث عن أثر مسحتك أنت في السجلات.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 5, "prereqKind": "checkpoint", "url": "week-06.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust", "SNI", "Firewall"], "objectives": ["Explain what TLS protects and what it does not protect (hint: the endpoints are still endpoints)", "Describe the TLS handshake at a high level and explain the role of the certificate and the CA chain", "Inspect a live certificate with openssl s_client and read its subject, issuer, validity, and SANs", "Contrast stateless and stateful firewalls, and explain what connection tracking buys you", "Write, order, verify, and delete ufw rules, and read a firewall block in the logs"]}, {"n": 7, "en": "Web I: HTTP Deep, Cookies, Sessions, Browsers", "ar": "الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات", "desc_en": "Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.", "desc_ar": "تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 6, "prereqKind": "checkpoint", "url": "week-07.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Request / Response", "HTTP Header", "Method", "Status Code", "Stateless", "Cookie"], "objectives": ["Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page", "Use GET, POST, PUT, DELETE deliberately and explain when a server should use each", "Classify any status code by its class (1xx–5xx) and explain what the class means", "Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers", "Explain why HTTP is stateless, and how cookies and sessions restore state on top of it"]}, {"n": 8, "en": "Web II: Architecture, Databases, APIs + OWASP Top 10", "ar": "الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10", "desc_en": "See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.", "desc_ar": "تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 7, "prereqKind": "checkpoint", "url": "week-08.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Database", "SQL", "Query", "Injection", "SQL Injection", "Prepared Statement"], "objectives": ["Describe a three-tier web architecture and identify the trust boundary between each tier", "Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN", "Explain how application code builds a query and sends it to a database", "Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header", "Name the OWASP Top 10 categories and place a given vulnerability into the right one"]}, {"n": 9, "en": "Security Core: Risk, Threat Modeling, Access Control", "ar": "أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول", "desc_en": "Learn the words the profession runs on — threat, vulnerability, risk — and how to describe a problem precisely enough to fix it.", "desc_ar": "تعلّم الكلمات التي تقوم عليها المهنة — التهديد والثغرة والخطر — وكيف تصف مشكلة بدقة تكفي لحلّها.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 8, "prereqKind": "checkpoint", "url": "week-09.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Confidentiality", "Integrity", "Availability", "Authentication", "Authorization", "DAC / MAC / RBAC / ABAC"], "objectives": ["Explain the CIA triad and give a concrete, real failure of each of the three properties", "Distinguish authentication from authorization, and explain how conflating them produces breaches", "Compare the four access control models — DAC, MAC, RBAC, ABAC — and say when each is used", "Apply least privilege and separation of duties to a real scenario", "Define asset, threat, vulnerability, exploit, and risk — and never confuse them again"]}, {"n": 10, "en": "Applied Cryptography", "ar": "التشفير التطبيقي", "desc_en": "Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.", "desc_ar": "افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 9, "prereqKind": "checkpoint", "url": "week-10.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext", "Symmetric / Asymmetric", "Public / Private Key"], "objectives": ["Distinguish hashing, encryption, and encoding — and say what each is actually for", "Explain why MD5 is broken, what \"broken\" precisely means, and why it still appears everywhere", "Explain salting, and demonstrate why an unsalted password hash is catastrophic", "Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)", "Explain symmetric encryption, and articulate the key distribution problem it creates"]}, {"n": 11, "en": "Defensive Taster: Hardening, Detection, Incident Response", "ar": "جولة دفاعية: التقوية والكشف والاستجابة للحوادث", "desc_en": "Play defence: lock down a system, collect its logs, then attack your own machine and detect yourself in a SIEM.", "desc_ar": "العب دور الدفاع: قوِّ نظاماً، واجمع سجلاته، ثم اهجم على جهازك أنت واكتشف هجومك في نظام SIEM.", "stage": 6, "difficulty": "intermediate", "load": "~18h", "prereq": 10, "prereqKind": "checkpoint", "url": "week-11.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark", "Prevention / Detection / Response", "Log Aggregation"], "objectives": ["Explain system hardening and what a CIS Benchmark actually is", "Reduce attack surface on a real Ubuntu VM: services, ports, packages, config", "Explain why prevention alone always eventually fails, and what detection adds", "Explain what a log is, what log aggregation solves, and why central collection matters", "Describe what a SIEM is, what it correlates, and why it exists"]}, {"n": 12, "en": "Offensive Taster: Methodology, Recon, Exploitation, Reporting", "ar": "جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير", "desc_en": "Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.", "desc_ar": "تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.", "stage": 6, "difficulty": "advanced", "load": "~18h", "prereq": 11, "prereqKind": "checkpoint", "url": "week-12.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)", "Penetration Test", "Vulnerability Assessment"], "objectives": ["Explain authorization, scope, and rules of engagement — and why all three are written, not spoken", "Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime", "Describe the PTES phases and where OWASP WSTG fits for web applications", "Perform passive reconnaissance using only public sources", "Perform active enumeration against your own lab target"]}, {"n": 13, "en": "Capstone: Attack/Defend Exercise & Specialization Decision", "ar": "مشروع الختام: تمرين هجوم/دفاع وقرار التخصص", "desc_en": "Put it all together in a two-team exercise, then choose the direction you will specialise in — based on what you actually did, not what sounded impressive.", "desc_ar": "اجمع كل شيء في تمرين بفريقين، ثم اختر الاتجاه الذي ستتخصص فيه — بناءً على ما فعلته فعلاً، لا على ما بدا مثيراً.", "stage": 7, "difficulty": "advanced", "load": "~18h", "prereq": 12, "prereqKind": "checkpoint", "url": "week-13.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "brief", "en": "The Scenario", "ar": "سيناريو التمرين", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "structure", "en": "Exercise Structure", "ar": "هيكل التمرين", "hours": null, "counts": true}, {"key": "rubric", "en": "How You'll Be Assessed", "ar": "كيف ستُقيَّم", "hours": null, "counts": false}, {"key": "deliverables", "en": "What You Must Deliver", "ar": "ما يجب أن تسلّمه", "hours": null, "counts": true}, {"key": "debrief", "en": "Structured Debrief", "ar": "المراجعة المنظّمة", "hours": null, "counts": false}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "decision", "en": "Choosing Your Direction", "ar": "اختيار مسارك", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "limits", "en": "What You Still Don't Know", "ar": "ما لا تعرفه بعد", "hours": null, "counts": false}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Capstone", "Attack/Defend Exercise", "Red Team / Blue Team", "Purple Team", "White Cell", "Rules of Engagement"], "objectives": ["Plan and execute a team engagement under a written scope and rules of engagement", "Defend a live Ubuntu target: hardening, monitoring, triage, containment, and reporting", "Attack a live Ubuntu target: reconnaissance, enumeration, verified exploitation, and reporting", "Keep an accurate, timestamped operational log throughout an engagement", "Produce a professional incident report (defenders) or penetration test report (attackers)"]}], "stages": [{"n": 1, "en": "Start Here — Computer & Terminal Basics", "ar": "ابدأ من هنا — أساسيات الحاسوب و Terminal", "weeks": [1], "desc_en": "What a terminal is, how a computer organises files, and how to build a safe lab you can break and rebuild without risking anything real.", "desc_ar": "ما هو Terminal، وكيف ينظّم الحاسوب ملفاته، وكيف تبني مختبراً آمناً تكسره وتعيد بناءه دون أي خطر على أجهزتك الحقيقية.", "out_en": "You have your own isolated lab and can move around a system from the command line.", "out_ar": "تملك مختبراً معزولاً خاصاً بك، وتستطيع التنقل في النظام من سطر الأوامر.", "icon": "terminal"}, {"n": 2, "en": "Linux Fundamentals", "ar": "أساسيات Linux", "weeks": [2, 3], "desc_en": "How Linux stores files, who is allowed to touch them, what runs in the background — and how intruders stay on a machine once they are in.", "desc_ar": "كيف يخزّن Linux الملفات، ومن يُسمح له بالوصول إليها، وما يعمل في الخلفية — وكيف يبقى المهاجم على الجهاز بعد دخوله.", "out_en": "You can navigate, inspect and script a Linux system — and spot the misconfigurations that give it away.", "out_ar": "تستطيع التنقل في نظام Linux وفحصه وكتابة سكربتات له — وملاحظة الأخطاء الإعدادية التي تسلّمه.", "icon": "terminal"}, {"n": 3, "en": "Networking", "ar": "الشبكات", "weeks": [4, 5, 6], "desc_en": "How machines find each other, how data actually travels, and how to watch that traffic — the skill most attacks and defences are built on.", "desc_ar": "كيف تجد الأجهزة بعضها، وكيف تنتقل البيانات فعلاً، وكيف تراقب هذه الحركة — المهارة التي يُبنى عليها معظم الهجوم والدفاع.", "out_en": "You can read a packet capture, explain what you see, and scan a network you are authorised to test.", "out_ar": "تستطيع قراءة تحليل حزم الشبكة، وشرح ما تراه، ومسح شبكة مصرَّح لك باختبارها.", "icon": "network"}, {"n": 4, "en": "Web Security", "ar": "أمن الويب", "weeks": [7, 8], "desc_en": "How a website really works — requests, cookies, sessions, databases — and where those pieces break when user input is trusted.", "desc_ar": "كيف يعمل موقع الويب فعلاً — الطلبات والكوكيز والجلسات وقواعد البيانات — وأين تنكسر هذه الأجزاء عند الثقة بمدخلات المستخدم.", "out_en": "You can follow a web request end to end, and name the flaw behind a broken page.", "out_ar": "تستطيع تتبّع طلب ويب من البداية للنهاية، وتسمية الثغرة وراء أي خلل.", "icon": "globe"}, {"n": 5, "en": "Cybersecurity Fundamentals", "ar": "أساسيات الأمن السيبراني", "weeks": [9, 10], "desc_en": "The vocabulary the whole profession runs on: threat, vulnerability, risk, the CIA Triad, authentication — plus what hashing and encryption actually do.", "desc_ar": "المفردات التي تقوم عليها المهنة كلها: التهديد والثغرة والخطر وثلاثي CIA والمصادقة — إضافة إلى ما تفعله التجزئة والتشفير فعلاً.", "out_en": "You can describe a risk precisely, using the same words a security team uses.", "out_ar": "تستطيع وصف أي خطر بدقة، بالكلمات نفسها التي يستخدمها فريق الأمن.", "icon": "shield"}, {"n": 6, "en": "Practical Security", "ar": "الأمن التطبيقي", "weeks": [11, 12], "desc_en": "Both sides of the job: harden and monitor a system, then run a real assessment against a target you are authorised to test — and write it up.", "desc_ar": "وجها العمل: تقوية نظام ومراقبته، ثم تنفيذ تقييم حقيقي على هدف مصرَّح لك باختباره — وكتابة تقريره.", "out_en": "You have done both defence and offence, under scope, and documented the result.", "out_ar": "نفّذت الدفاع والهجوم معاً، ضمن نطاق محدد، ووثّقت النتيجة.", "icon": "target"}, {"n": 7, "en": "Choose Your Direction", "ar": "اختر مسارك", "weeks": [13], "desc_en": "A team attack/defend exercise, then an evidence-based decision about which specialisation fits you — not a guess made in week one.", "desc_ar": "تمرين هجوم/دفاع بفريقين، ثم قرار مبني على دليل حول التخصص الذي يناسبك — لا تخمين في الأسبوع الأول.", "out_en": "You know which direction you are heading, and why.", "out_ar": "تعرف إلى أين تتجه، ولماذا.", "icon": "compass"}], "practice": [{"wk": 1, "id": "w1-build-the-lab", "en": "Build the lab", "ar": "Build the lab", "goal_en": "A working host + Ubuntu + Kali setup.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-terminal-survival-kit", "en": "Terminal survival kit", "ar": "Terminal survival kit", "goal_en": "Fluency with the 20 commands that cover 90% of daily work.", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-bandit-levels-0-10", "en": "Bandit levels 0-10", "ar": "Bandit levels 0-10", "goal_en": "Apply the survival kit to real problems.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 2, "id": "w2-the-permission-model-by-hand", "en": "The permission model by hand", "ar": "The permission model by hand", "goal_en": "Build intuition for permissions by creating every combination.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-users-groups-and-sudo", "en": "Users, groups, and sudo", "ar": "Users, groups, and sudo", "goal_en": "Notes explaining why limited sudo is better than full sudo, with reference to a real-world scenario.", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-processes-and-signals", "en": "Processes and signals", "ar": "Processes and signals", "goal_en": "", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-finding-suid-binaries", "en": "Finding SUID binaries", "ar": "Finding SUID binaries", "goal_en": "The first genuinely security-flavored lab.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 3, "id": "w3-services-and-systemd", "en": "Services and systemd", "ar": "Services and systemd", "goal_en": "Your working unit file plus an explanation of the difference between stop/disable and start/enable.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-reading-the-logs", "en": "Reading the logs", "ar": "Reading the logs", "goal_en": "The output of step 4 (you'll need to generate failures from at least two different source IPs, or simulate it), plus a written explanation of the pipeline.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-bash-scripting", "en": "Bash scripting", "ar": "Bash scripting", "goal_en": "", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 4, "id": "w4-subnetting-drills-by-hand", "en": "Subnetting drills, by hand", "ar": "Subnetting drills, by hand", "goal_en": "Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-map-your-own-lab-network", "en": "Map your own lab network", "ar": "Map your own lab network", "goal_en": "Read the network your own machine lives on, from the command line only.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-build-a-three-machine-network-on-an-internal-net", "en": "Build a three-machine network on an Internal Network", "ar": "Build a three-machine network on an Internal Network", "goal_en": "Build a switched network with no router and no DHCP. You assign every address by hand. This is where addressing stops being theory.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-enumerate-the-lab-with-arp-scan", "en": "Enumerate the lab with `arp-scan`", "ar": "Enumerate the lab with `arp-scan`", "goal_en": "Discover every host on a network without asking a single one of them for permission — using only ARP.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 5, "id": "w5-dissect-a-tcp-handshake", "en": "Dissect a TCP handshake", "ar": "Dissect a TCP handshake", "goal_en": "Stop reading about the handshake and watch it happen.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-a-login-in-plaintext", "en": "Capture a login in plaintext", "ar": "Capture a login in plaintext", "goal_en": "Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-follow-a-dns-resolution", "en": "Follow a DNS resolution", "ar": "Follow a DNS resolution", "goal_en": "See the exact packets behind \"typing a name into a browser\".", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-dhcp-dora-and-analyse-a-pcap", "en": "Capture DHCP DORA and analyse a pcap", "ar": "Capture DHCP DORA and analyse a pcap", "goal_en": "See how a machine gets an address, then analyse traffic you did not generate.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 6, "id": "w6-firewalls-with-ufw-and-reading-the-blocks", "en": "Firewalls with `ufw`, and reading the blocks", "ar": "Firewalls with `ufw`, and reading the blocks", "goal_en": "Write firewall rules, verify them from the outside, and find the denied traffic in the logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-tls-inspect-a-real-certificate", "en": "TLS: inspect a real certificate", "ar": "TLS: inspect a real certificate", "goal_en": "See the trust chain, not just the padlock.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-nmap-from-discovery-to-service-identification", "en": "Nmap: from discovery to service identification", "ar": "Nmap: from discovery to service identification", "goal_en": "Scan your own lab every way Nmap allows, and understand what each scan type actually sends.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-services-versions-nse-and-the-defender-s-view", "en": "Services, versions, NSE, and the defender's view", "ar": "Services, versions, NSE, and the defender's view", "goal_en": "Go from \"port 22 is open\" to \"this is OpenSSH version X on Ubuntu\" — then watch yourself get caught.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 7, "id": "w7-read-the-wire-with-devtools", "en": "Read the wire with DevTools", "ar": "Read the wire with DevTools", "goal_en": "See that a web page is not a thing — it is a transcript.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-the-same-requests-by-hand-with-curl", "en": "The same requests, by hand, with curl", "ar": "The same requests, by hand, with curl", "goal_en": "Prove that the browser is a convenience, not a requirement.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-your-own-web-server-and-its-access-log", "en": "Your own web server and its access log", "ar": "Your own web server and its access log", "goal_en": "Own both ends of the conversation.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-burp-suite-as-a-proxy-and-breaking-a-cookie", "en": "Burp Suite as a proxy, and breaking a cookie", "ar": "Burp Suite as a proxy, and breaking a cookie", "goal_en": "Put yourself between the browser and the server — then prove why cookie flags exist.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 8, "id": "w8-stand-up-a-deliberately-vulnerable-app", "en": "Stand up a deliberately vulnerable app", "ar": "Stand up a deliberately vulnerable app", "goal_en": "A target you are unambiguously authorized to attack, running in your own lab.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-sql-by-hand-on-your-own-data", "en": "SQL by hand, on your own data", "ar": "SQL by hand, on your own data", "goal_en": "Understand injection by first understanding the language being injected into.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-portswigger-academy-sql-injection", "en": "PortSwigger Academy: SQL injection", "ar": "PortSwigger Academy: SQL injection", "goal_en": "Your first real exploitation, on a target that is built to be exploited.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-access-control-and-finding-the-attack-in-the-log", "en": "Access control, and finding the attack in the log", "ar": "Access control, and finding the attack in the log", "goal_en": "The second root-cause pattern, then close the loop back to Week 3's logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 9, "id": "w9-threat-model-your-own-lab-with-stride", "en": "Threat model your own lab with STRIDE", "ar": "Threat model your own lab with STRIDE", "goal_en": "Produce a data-flow diagram and a complete STRIDE analysis of the lab you built in Weeks 1–8. You are attacking your own creation, on paper.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-risk-assessment-likelihood-impact", "en": "Risk assessment: likelihood × impact", "ar": "Risk assessment: likelihood × impact", "goal_en": "Turn the threat list from Lab 9.1 into a prioritised, defensible risk register.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-design-an-rbac-scheme-for-a-small-company", "en": "Design an RBAC scheme for a small company", "ar": "Design an RBAC scheme for a small company", "goal_en": "Design access control from scratch for a realistic business, and defend every permission.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-find-a-real-misconfiguration-and-write-it-up-as-", "en": "Find a real misconfiguration and write it up as a finding", "ar": "Find a real misconfiguration and write it up as a finding", "goal_en": "Produce a professional-grade vulnerability finding about your own environment, with evidence and a risk rating.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-analyse-a-published-cve-writeup-and-classify-it", "en": "Analyse a published CVE writeup and classify it", "ar": "Analyse a published CVE writeup and classify it", "goal_en": "Read a real vulnerability the way a professional does, and place it inside this week's framework.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 10, "id": "w10-hashing-is-not-encryption", "en": "Hashing is not encryption", "ar": "Hashing is not encryption", "goal_en": "Feel, not read, the difference between a hash and a cipher.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-crack-your-own-hashes-and-learn-why-password-pol", "en": "Crack your own hashes, and learn why password policy exists", "ar": "Crack your own hashes, and learn why password policy exists", "goal_en": "Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-inspect-a-real-tls-certificate-and-decode-every-", "en": "Inspect a real TLS certificate and decode every field", "ar": "Inspect a real TLS certificate and decode every field", "goal_en": "Stop treating the padlock as magic.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-generate-a-keypair-sign-a-file-and-break-the-sig", "en": "Generate a keypair, sign a file, and break the signature", "ar": "Generate a keypair, sign a file, and break the signature", "goal_en": "Prove a digital signature is bound to a specific file.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-watch-ecb-mode-leak-a-picture", "en": "Watch ECB mode leak a picture", "ar": "Watch ECB mode leak a picture", "goal_en": "See why ECB is the textbook example of a mode you must never use.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 11, "id": "w11-harden-your-ubuntu-vm", "en": "Harden your Ubuntu VM", "ar": "Harden your Ubuntu VM", "goal_en": "Take a machine from default-install to a documented, defensible baseline.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-stand-up-a-siem-and-ship-logs-into-it", "en": "Stand up a SIEM and ship logs into it", "ar": "Stand up a SIEM and ship logs into it", "goal_en": "A working Wazuh deployment receiving logs from your Ubuntu VM.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-the-full-loop-attack-it-then-detect-it", "en": "The full loop: attack it, then detect it", "ar": "The full loop: attack it, then detect it", "goal_en": "Generate a real brute-force against your own target and catch it in the SIEM. This is the single most important lab of the week.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-write-a-sigma-rule", "en": "Write a Sigma rule", "ar": "Write a Sigma rule", "goal_en": "Describe a behaviour in a vendor-neutral way.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-incident-timeline-and-att-ck-mapping", "en": "Incident timeline and ATT&CK mapping", "ar": "Incident timeline and ATT&CK mapping", "goal_en": "Turn scattered alerts into a story.", "goal_ar": "", "hours": 0.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-paperwork-first", "en": "Write the paperwork first", "ar": "Write the paperwork first", "goal_en": "Produce a real scope and rules-of-engagement document before you produce a single packet.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-passive-reconnaissance", "en": "Passive reconnaissance", "ar": "Passive reconnaissance", "goal_en": "Learn how much is knowable about a target without ever touching its infrastructure.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-scan-and-enumerate-metasploitable2", "en": "Scan and enumerate Metasploitable2", "ar": "Scan and enumerate Metasploitable2", "goal_en": "Take a deliberately vulnerable machine from \"unknown host\" to \"mapped attack surface.\"", "goal_ar": "", "hours": 2.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-verify-don-t-trust", "en": "Verify, don't trust", "ar": "Verify, don't trust", "goal_en": "Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-finding", "en": "Write the finding", "ar": "Write the finding", "goal_en": "Produce the actual deliverable of a penetration test.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}], "totalLessons": 53}</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

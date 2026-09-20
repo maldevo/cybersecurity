@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Choosing your direction | Pre Cybersecurity 0.1</title>
+<meta name="description" content="How to choose offensive vs defensive after week 13, and what months 4-6 look like.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html" aria-current="page"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <span><span class="only-en">Stage 07</span><span class="only-ar">المرحلة ٠٧</span></span>
+    </nav>
+    <span class="eyebrow" style="margin-top:14px"><span class="only-en">After week 13</span><span class="only-ar">ما بعد الأسبوع ١٣</span></span>
+    <h1><span class="only-en">Choosing your direction</span><span class="only-ar">اختيار مسارك</span></h1>
+    <p class="lede"><span class="only-en">Offensive or defensive is an evidence question, not a personality one. Here is how to answer it — and what months 4–6 look like once you have.</span><span class="only-ar" dir="rtl" lang="ar">الهجومي أم الدفاعي؟ سؤال يُجاب عليه بالأدلة، لا بالمزاج. هذه هي الطريقة — وكيف تبدو الأشهر ٤–٦ بعد أن تقرر.</span></p>
+    <p class="lede" style="font-size:.92rem;margin-top:10px"><span class="only-en">The detailed content on this page is deliberately in English: the terminology of both tracks is what you will be asked about in interviews.</span><span class="only-ar" dir="rtl" lang="ar">المحتوى التفصيلي لهذه الصفحة بالإنجليزية عمداً: مصطلحات المسارين هي نفسها التي ستُسأل عنها في المقابلات.</span></p>
+  </div>
+</header>
+<div class="container">
+  <div class="prose" style="max-width:none"><blockquote>
+<p>Read this in <strong>Week 11</strong>, not Week 13. You need to be paying attention <em>during</em> the taster weeks, not trying to remember them afterward.</p>
+</blockquote>
+<hr>
+<h2>First, the honest framing</h2>
+<p><strong>Thirteen weeks does not make anyone an expert.</strong> It makes someone who has a genuine, tested foundation — and who can now learn any specialization without drowning. That's the real achievement, and it's a big one: most people who "study cybersecurity" never get here.</p>
+<p><strong>You are not yet hireable in a specialist role.</strong> Not because the program failed, but because a foundation isn't a specialty. Months 4-6 build the specialty. Anyone who starts applying for pentest jobs in Week 14 and hears nothing back will wrongly conclude the 13 weeks didn't work.</p>
+<p><strong>And the choice you make now is not permanent.</strong> Most senior people in this field are fluent in both offense and defense — they started somewhere and the paths converged. This is a <em>starting direction</em>, not a life sentence.</p>
+<hr>
+<h2>How to choose: evidence, not vibes</h2>
+<p>The most common career mistake in security is choosing a specialty in month one based on what sounds cool, then discovering in year two that you hate the daily work.</p>
+<p>So do it with evidence. Answer these for <strong>each</strong> of weeks 11 and 12:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Offensive (W12)</th>
+<th>Defensive (W11)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Which part did I lose track of time doing?</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Which part did I have to force myself through?</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>What did I do <em>beyond</em> the assignment, unprompted?</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>When I got stuck, did I want to keep digging or move on?</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Which felt more like "work" and which more like "play"?</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Did I enjoy the <em>report/write-up</em> or resent it?</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Two signals matter more than the rest:</strong></p>
+<ol>
+<li><strong>Where did you go beyond the assignment?</strong> That's intrinsic motivation, and it's the only thing that sustains you through the boring parts of a real job.</li>
+<li><strong>How do you feel about the paperwork?</strong> Offensive work is ~60% reporting and documentation. Defensive work is heavy on process, tickets, and communication. <strong>People who love the technical part but hate writing will burn out in both.</strong> Be honest here.</li>
+</ol>
+<p><strong>Also weigh the environment, not just the activity:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Offensive</th>
+<th>Defensive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Daily rhythm</strong></td>
+<td>Project-based, variable, deadline spikes</td>
+<td>Shift-based, steady, on-call rotations</td>
+</tr>
+<tr>
+<td><strong>Team shape</strong></td>
+<td>Small teams, solo work common</td>
+<td>Larger SOC teams, heavy collaboration</td>
+</tr>
+<tr>
+<td><strong>Stress profile</strong></td>
+<td>High-stakes deadlines; "did I miss something"</td>
+<td>Sustained alert volume; "did I miss the one that mattered"</td>
+</tr>
+<tr>
+<td><strong>Visibility</strong></td>
+<td>Deliverable is a report; clear endpoint</td>
+<td>Deliverable is <em>absence of incidents</em> — harder to demonstrate</td>
+</tr>
+<tr>
+<td><strong>Learning curve</strong></td>
+<td>Very steep, very wide</td>
+<td>Steep, narrower, deeper</td>
+</tr>
+<tr>
+<td><strong>Who thrives</strong></td>
+<td>Curious, self-directed, comfortable with ambiguity</td>
+<td>Methodical, patient, process-comfortable, communicative</td>
+</tr>
+</tbody>
+</table></div>
+<p>Neither column is better. They suit genuinely different temperaments, and plenty of people discover — often in their 30s — that they were on the wrong side.</p>
+<hr>
+<h2>The third option nobody mentions</h2>
+<p><strong>You don't have to pick either.</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it is</th>
+<th>Why it's underrated</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GRC</strong> (Governance, Risk, Compliance)</td>
+<td>Policy, risk assessment, audit, frameworks</td>
+<td>Less technical, high demand, excellent entry point, strong career ceiling</td>
+</tr>
+<tr>
+<td><strong>AppSec</strong></td>
+<td>Security embedded in a dev team</td>
+<td>Hybrid — you need both offense and defense instincts</td>
+</tr>
+<tr>
+<td><strong>Cloud Security</strong></td>
+<td>Securing AWS/Azure/GCP</td>
+<td>The fastest-growing area, huge shortage</td>
+</tr>
+<tr>
+<td><strong>Detection Engineering</strong></td>
+<td>Building the detections, not just triaging them</td>
+<td>Sits between blue team and engineering; very in demand</td>
+</tr>
+<tr>
+<td><strong>Purple Team</strong></td>
+<td>Explicitly bridging both</td>
+<td>Increasingly a real role, not just an exercise</td>
+</tr>
+<tr>
+<td><strong>Security Engineering</strong></td>
+<td>Building security into infrastructure</td>
+<td>Deep systems work, less adversarial</td>
+</tr>
+</tbody>
+</table></div>
+<p>If after the taster weeks neither offense nor defense felt right, <strong>that is real information, not a failure.</strong> Say so, and we design a different Month 4.</p>
+<hr>
+<h2>What Months 4-6 look like</h2>
+<p>Not week-by-week — that depends on who's still standing and what they choose. But the <em>shape</em>:</p>
+<h3>If Offensive</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Month</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4</strong></td>
+<td>Depth on web exploitation (PortSwigger Academy, systematically) + privilege escalation (Linux, then Windows) + Active Directory fundamentals — <strong>AD is the single biggest gap between beginners and employability</strong></td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>Network penetration testing, pivoting, Metasploit, exploitation methodology against full machines (HTB/VulnHub), reporting at professional standard</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>Specialize: exploit development, reverse engineering, cloud pentesting, or red teaming. Build a portfolio of write-ups. Certification prep (OSCP or PNPT)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>The gap to close:</strong> Active Directory. Nearly every real corporate environment runs it, and almost every beginner curriculum skips it. It is not optional.</p>
+<h3>If Defensive</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Month</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4</strong></td>
+<td>Deepen detection: SIEM engineering (Wazuh/Elastic), log source onboarding, detection rule writing (Sigma), tuning and false-positive reduction. <strong>This is the most employable blue-team skill</strong></td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>Incident response in depth, digital forensics (disk, memory, network), malware analysis basics, threat intelligence and how to consume it</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>Specialize: SOC engineering, threat hunting, DFIR, cloud security, or detection engineering. Build a home-lab portfolio with real detection scenarios. Certification prep (BTL1, GCIH, or Security+ first)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>The gap to close:</strong> real detection volume. Free labs give you clean, well-labelled data. Real environments are noisy. Build a home lab that generates realistic noise, and learn to tune against it.</p>
+<h3>Either way, for everyone</h3>
+<ul>
+<li><strong>Python properly.</strong> You've had Bash. Python is the language of security tooling and you need it in month 4 regardless of track.</li>
+<li><strong>Build a portfolio.</strong> A public repo of write-ups from HTB/TryHackMe/VulnHub. <strong>This gets people hired more reliably than certifications.</strong></li>
+<li><strong>A personal blog.</strong> Explaining your work in writing is the skill that compounds fastest in this career.</li>
+</ul>
+<hr>
+<h2>The employability conversation — have it honestly</h2>
+<p><strong>What gets someone hired at month 6:</strong></p>
+<ol>
+<li>Demonstrable hands-on skill (a portfolio of things they actually did)</li>
+<li>Ability to communicate (write-ups, reports, explaining findings)</li>
+<li>A foundational cert (Security+, or a track-specific one)</li>
+<li>Evidence they can learn independently</li>
+</ol>
+<p><strong>What does not:</strong></p>
+<ul>
+<li>A pile of certificates with no portfolio</li>
+<li>Being able to name tools without having used them deeply</li>
+<li>Enthusiasm without evidence</li>
+</ul>
+<p><strong>Job market reality, regionally:</strong> SOC analyst and GRC roles are the most accessible entry points and the most numerous. Pentest roles are more competitive and usually expect prior IT or SOC experience. If someone's goal is "get into the field," <strong>the SOC is usually the faster door</strong> — and it's a legitimate destination, not a consolation prize.</p>
+<p><strong>The honest sentence for Week 13:</strong></p>
+<blockquote>
+<p>"You've built a real foundation and you can now learn anything in this field. You are not yet a specialist, and you shouldn't expect to be hired as one yet. Months 4-6 make you hireable. The hardest part of this is behind you — not because the material gets easier, but because you now know how to learn it."</p>
+</blockquote>
+<hr>
+<h2>The decision meeting — Week 13</h2>
+<p>Run it as a structured session, not a chat:</p>
+<ol>
+<li>Each learner presents their taster-week evidence table. <strong>Read from the notes, not from memory.</strong></li>
+<li>They state a preference and one sentence of justification.</li>
+<li>You give a candid assessment: where their demonstrated strengths actually point — which may not match their preference.</li>
+<li><strong>If preference and aptitude disagree, say so.</strong> A learner who loved offense but showed weak debugging and no patience for reporting needs to hear that now, not in year two.</li>
+<li>Record the decision in the progress tracker with the reasoning. Revisit at the end of Month 4.</li>
+<li><strong>Nobody is locked in.</strong> Make that explicit.</li>
+</ol>
+<hr>
+<h2>What we don't know yet — and how we decide</h2>
+<p>Months 4-6 are deliberately <strong>not designed yet.</strong> Designing them now, before knowing:</p>
+<ul>
+<li>who's still in the program</li>
+<li>what they actually chose</li>
+<li>what turned out to be the cohort's weak spots</li>
+<li>how much time they realistically still have</li>
+</ul>
+<p>...would waste the work and produce a plan built on guesses.</p>
+<p><strong>Design them at the end of Week 13</strong>, from what the cohort actually looks like.</p>
+<hr></div>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

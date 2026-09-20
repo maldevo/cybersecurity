@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 08 — Web II: Architecture, Databases, APIs + OWASP Top 10 | Pre Cybersecurity 0.1</title>
+<meta name="description" content="See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body data-week="8">
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html" aria-current="page"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <a href="path.html#stage-04"><span class="only-en">Web Security</span><span class="only-ar">أمن الويب</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span><span class="only-en">Week 08</span><span class="only-ar">الأسبوع 08</span></span>
+  </nav>
+  <!-- Names the same stage the learning path names, so the number in the corner of
+       the page matches the dot the student clicked to get here. -->
+  <span class="eyebrow" style="margin-top:14px"><span class="only-en">Stage 04 of 07 · Month 2</span><span class="only-ar">المرحلة 4 من 7 · الشهر الثاني</span></span>
+  <h1><span class="only-en">Web II: Architecture, Databases, APIs + OWASP Top 10</span><span class="only-ar" dir="rtl" lang="ar">الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10</span></h1>
+  <p class="lede"><span class="only-en">See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.</span><span class="only-ar" dir="rtl" lang="ar">تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.</span></p>
+  <div class="meta-strip">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Intermediate</span><span class="only-ar">متوسط</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="only-en">~18h estimated</span><span class="only-ar">~18h تقديرياً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>4 <span class="only-en">lessons</span><span class="only-ar">درساً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><a href="week-07.html"><span class="only-en">Week 07 checkpoint</span><span class="only-ar">الأسبوع 07 — نقطة تحقّق</span></a></span>
+  </div>
+  <div class="card-pad" style="margin-top:20px;padding:0">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="eyebrow"><span class="only-en">Your progress in this course</span><span class="only-ar">تقدّمك في هذا المسار</span></span>
+      <div id="pc-weekbar" style="flex:1 1 200px;min-width:140px"></div>
+      <span id="pc-weekbar-label" dir="ltr" style="font-weight:700;font-size:.86rem;color:var(--accent);font-variant-numeric:tabular-nums"></span>
+    </div>
+  </div>
+  </div>
+</header>
+
+<div class="section" style="padding-top:0;border-bottom:0">
+  <div class="container">
+  <div class="grid grid-2">
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><h2><span class="only-en">What you'll learn</span><span class="only-ar">ما ستتعلّمه</span></h2></div>
+  <div class="card-pad">
+    <ul class="outcomes only-en"><li>Describe a three-tier web architecture and identify the trust boundary between each tier</li><li>Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN</li><li>Explain how application code builds a query and sends it to a database</li><li>Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header</li><li>Name the OWASP Top 10 categories and place a given vulnerability into the right one</li></ul>
+    <ul class="outcomes only-ar" dir="rtl" lang="ar"><li>اشرح معمارية تطبيق ويب من ثلاث طبقات وحدّد حدّ الثقة (Trust Boundary) بين كل طبقتين</li><li>اكتب SQL أساسية: SELECT و INSERT و UPDATE و DELETE، مع WHERE و ORDER BY و JOIN بسيط</li><li>اشرح كيف يبني كود التطبيق استعلاماً ويرسله إلى قاعدة البيانات</li><li>اشرح REST: نقاط النهاية (endpoints) والأفعال (verbs) و JSON ورموز الحالة، وكيف تُحمَل المصادقة في ترويسة (header)</li><li>سمِّ فئات OWASP Top 10 وضع ثغرة معيّنة في الفئة الصحيحة</li></ul>
+    <a class="card-more" href="#objectives"><span class="only-en">All 8 objectives, with a checklist to tick off ↓</span><span class="only-ar" dir="rtl" lang="ar">كل الأهداف (8) مع قائمة تُعلّم عليها ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><h2><span class="only-en">Terms you'll meet this week</span><span class="only-ar">مصطلحات ستقابلها هذا الأسبوع</span></h2></div>
+  <div class="card-pad">
+    <div class="chips"><span class="chip chip-accent">Database</span><span class="chip chip-accent">SQL</span><span class="chip chip-accent">Query</span><span class="chip chip-accent">Injection</span><span class="chip chip-accent">SQL Injection</span><span class="chip chip-accent">Prepared Statement</span></div>
+    <p class="hint"><span class="only-en">These stay in English on purpose. They are the words you will meet in the tools, the documentation and the interview.</span><span class="only-ar" dir="rtl" lang="ar">تبقى هذه المصطلحات بالإنجليزية عمداً. فهي الكلمات التي ستقابلها في الأدوات والوثائق والمقابلات.</span></p>
+    <a class="card-more" href="#terms"><span class="only-en">What each one means ↓</span><span class="only-ar" dir="rtl" lang="ar">ما معنى كل مصطلح ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+<nav class="wk-rail" aria-label="Sections / الأقسام"><div class="wk-rail-in"><div class="wk-rail-links"><a href="#objectives"><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></a><a href="#theory"><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></a><a href="#lab"><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></a><a href="#challenge"><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></a><a href="#payoff"><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></a><a href="#checkpoint"><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></a><a href="#notes"><span class="only-en">Concept Notes</span><span class="only-ar">ملاحظات مفاهيمية موسّعة</span></a><a href="#terms"><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></a></div><button type="button" id="pc-collapse" aria-pressed="false"><span class="only-en">Collapse all</span><span class="only-ar">اطوِ الكل</span></button></div></nav>
+<div class="container">
+<div class="flow">
+<details class="lesson-sec" id="objectives" data-sec="objectives" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The goals for this week</span><span class="only-ar">أهداف هذا الأسبوع</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Describe a three-tier web architecture and identify the trust boundary between each tier</li>
+<li class="task">Write basic SQL: <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, with <code>WHERE</code>, <code>ORDER BY</code>, and a simple <code>JOIN</code></li>
+<li class="task">Explain how application code builds a query and sends it to a database</li>
+<li class="task">Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header</li>
+<li class="task">Name the OWASP Top 10 categories and place a given vulnerability into the right one</li>
+<li class="task">Explain the root cause of SQL injection and of Broken Access Control / IDOR</li>
+<li class="task">Distinguish authentication from authorization, and explain why hiding a button is not access control</li>
+<li class="task">Complete the first PortSwigger Academy labs on SQL injection and access control, and find a SQLi attempt in a raw access log</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">اشرح معمارية تطبيق ويب من ثلاث طبقات وحدّد حدّ الثقة (Trust Boundary) بين كل طبقتين</li>
+<li class="task">اكتب SQL أساسية: <code>SELECT</code> و <code>INSERT</code> و <code>UPDATE</code> و <code>DELETE</code>، مع <code>WHERE</code> و <code>ORDER BY</code> و <code>JOIN</code> بسيط</li>
+<li class="task">اشرح كيف يبني كود التطبيق استعلاماً ويرسله إلى قاعدة البيانات</li>
+<li class="task">اشرح REST: نقاط النهاية (endpoints) والأفعال (verbs) و JSON ورموز الحالة، وكيف تُحمَل المصادقة في ترويسة (header)</li>
+<li class="task">سمِّ فئات OWASP Top 10 وضع ثغرة معيّنة في الفئة الصحيحة</li>
+<li class="task">اشرح السبب الجذري لحقن SQL ولضعف التحكم بالوصول / IDOR</li>
+<li class="task">فرّق بين المصادقة والتخويل، واشرح لماذا إخفاء زر ليس تحكماً بالوصول</li>
+<li class="task">أكمل أول مختبرات PortSwigger Academy في حقن SQL والتحكم بالوصول، واعثر على محاولة SQLi في سجل وصول خام</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="theory" data-sec="theory" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈4h · Read and take notes</span><span class="only-ar">≈4ساعات · اقرأ ودوّن الملاحظات</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Topic</th>
+<th>Resource</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Web application architecture — client, server, database</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/First_steps/Introduction">MDN — Server-side first steps</a></td>
+<td>25m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>SQL fundamentals, hands-on from the first query</td>
+<td><a href="https://sqlbolt.com/">SQLBolt — interactive SQL lessons</a></td>
+<td>70m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>What SQL injection is, at the conceptual level</td>
+<td><a href="https://owasp.org/www-community/attacks/SQL_Injection">OWASP — SQL Injection</a></td>
+<td>20m</td>
+</tr>
+<tr>
+<td>4</td>
+<td>APIs, REST, and JSON</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Glossary/JSON">MDN — JSON</a> + <a href="https://portswigger.net/web-security/api-testing">PortSwigger — API testing</a></td>
+<td>40m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Authentication mechanisms (basic, session, token)</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Authentication">MDN — HTTP Authentication</a></td>
+<td>30m</td>
+</tr>
+<tr>
+<td>6</td>
+<td>The OWASP Top 10 as a map</td>
+<td><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a> — read the overview, then A01, A03, A07</td>
+<td>50m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Arabic supplement:</strong> <a href="https://www.youtube.com/@IbrahimHegazy">إبراهيم حجازي — Ibrahim Hegazy</a> has full Arabic walkthroughs of web application vulnerabilities including SQL injection — the closest Arabic equivalent to the PortSwigger material. <a href="https://www.youtube.com/@technawidotcom">تكناوي دوت نيت</a> covers the OWASP categories and practical web pentesting in Arabic.</p>
+<blockquote>
+<p><strong>The 100% free resource that matters most in these two weeks:</strong>
+<a href="https://portswigger.net/web-security"><strong>PortSwigger Web Security Academy</strong></a> — completely free, no account required to read the theory, and every lab runs in your browser on PortSwigger's own servers. It is the single best web security resource that exists, at any price. It is built by the people who make Burp Suite. <strong>Start at <a href="https://portswigger.net/web-security/getting-started">Getting started</a> and then take the <a href="https://portswigger.net/web-security/learning-paths/server-side-vulnerabilities-apprentice">server-side vulnerabilities learning path</a>.</strong></p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الموضوع</th>
+<th>المصدر</th>
+<th>الوقت</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>معمارية تطبيق الويب — العميل والسيرفر وقاعدة البيانات</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/First_steps/Introduction">MDN — Server-side first steps</a></td>
+<td>25 دقيقة</td>
+</tr>
+<tr>
+<td>2</td>
+<td>أساسيات SQL، تطبيق عملي من أول استعلام</td>
+<td><a href="https://sqlbolt.com/">SQLBolt — interactive SQL lessons</a></td>
+<td>70 دقيقة</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ما هو حقن SQL، على المستوى المفاهيمي</td>
+<td><a href="https://owasp.org/www-community/attacks/SQL_Injection">OWASP — SQL Injection</a></td>
+<td>20 دقيقة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>الـ APIs و REST و JSON</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Glossary/JSON">MDN — JSON</a> + <a href="https://portswigger.net/web-security/api-testing">PortSwigger — API testing</a></td>
+<td>40 دقيقة</td>
+</tr>
+<tr>
+<td>5</td>
+<td>آليات المصادقة (basic، session، token)</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Authentication">MDN — HTTP Authentication</a></td>
+<td>30 دقيقة</td>
+</tr>
+<tr>
+<td>6</td>
+<td>OWASP Top 10 كخريطة</td>
+<td><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a> — اقرأ النظرة العامة، ثم A01 و A03 و A07</td>
+<td>50 دقيقة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>إضافة بالعربية:</strong> لدى <a href="https://www.youtube.com/@IbrahimHegazy">إبراهيم حجازي — Ibrahim Hegazy</a> شروح عربية كاملة لثغرات تطبيقات الويب بما فيها حقن SQL — وهي أقرب مكافئ عربي لمواد PortSwigger. ويغطي <a href="https://www.youtube.com/@technawidotcom">تكناوي دوت نيت</a> فئات OWASP واختبار اختراق الويب العملي بالعربية.</p>
+<blockquote>
+<p><strong>المصدر المجاني 100% الأهم في هذين الأسبوعين:</strong>
+<a href="https://portswigger.net/web-security"><strong>PortSwigger Web Security Academy</strong></a> — مجاني تماماً، ولا يتطلب حساباً لقراءة الجانب النظري، وكل مختبر يعمل في متصفحك على خوادم PortSwigger نفسها. إنه أفضل مصدر لأمن الويب موجود، بأي ثمن. بناه الأشخاص الذين صنعوا Burp Suite. <strong>ابدأ من <a href="https://portswigger.net/web-security/getting-started">Getting started</a> ثم اسلك <a href="https://portswigger.net/web-security/learning-paths/server-side-vulnerabilities-apprentice">مسار تعلّم ثغرات جهة السيرفر</a>.</strong></p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="lab" data-sec="lab" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈7h · Step by step, with expected results</span><span class="only-ar">≈7ساعات · خطوة بخطوة مع النتائج المتوقعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p>All VMs stay on the NAT Network. The deliberately vulnerable applications you install this week are <strong>hostile by design</strong> and must never be exposed beyond that network.</p>
+<h3>Lab 8.1 — Stand up a deliberately vulnerable app (1.5h)</h3>
+<p><strong>Goal:</strong> A target you are unambiguously authorized to attack, running in your own lab.</p>
+<p><strong>Setup:</strong> Ubuntu VM. You will run <strong>DVWA</strong> and, if RAM allows, the <strong>OWASP Juice Shop</strong>.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>
+<p>Install the pieces DVWA needs:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>apache2<span class="w"> </span>mariadb-server<span class="w"> </span>php<span class="w"> </span>php-mysqli<span class="w"> </span>php-gd<span class="w"> </span>git
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>apache2<span class="w"> </span>mariadb
+</code></pre></div></p>
+</li>
+<li>
+<p>Get DVWA from its official repository: <a href="https://github.com/digininja/DVWA">github.com/digininja/DVWA</a>.
+   <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/var/www/html
+sudo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/digininja/DVWA.git<span class="w"> </span>dvwa
+sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span>www-data:www-data<span class="w"> </span>/var/www/html/dvwa
+</code></pre></div></p>
+</li>
+<li>
+<p>Configure it: copy <code>config/config.inc.php.dist</code> to <code>config/config.inc.php</code>, set the database credentials, then create the database and the user in MariaDB.</p>
+</li>
+<li>Fix the two settings the official setup page will complain about — <code>allow_url_include</code> and <code>allow_url_fopen</code> in <code>php.ini</code> — restart Apache, then browse to <code>http://localhost/dvwa/setup.php</code> and click <strong>Create / Reset Database</strong>.</li>
+<li>Log in (default <code>admin</code> / <code>password</code> — change it), then set <strong>DVWA Security</strong> to <strong>Low</strong>. You will raise it deliberately in the challenge block.</li>
+<li><strong>Isolate it.</strong> Confirm DVWA is reachable <strong>only</strong> from the NAT Network. Verify from your host machine that it is not reachable.</li>
+<li><strong>Optional, if you have 8GB+ free:</strong> OWASP Juice Shop, which is a modern single-page app and a better model of a real target — <a href="https://owasp.org/www-project-juice-shop/">owasp.org/www-project-juice-shop</a> · <a href="https://github.com/juice-shop/juice-shop">github.com/juice-shop/juice-shop</a>.</li>
+</ol>
+<p><strong>Expected output:</strong> DVWA's setup page showing all green, a working login, and a security level of Low.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Setup page shows red on <code>allow_url_include</code></td>
+<td>Edit the right <code>php.ini</code> (<code>php -i \| grep "Loaded Configuration File"</code> tells you which) and restart Apache</td>
+</tr>
+<tr>
+<td>"Could not connect to the database"</td>
+<td>MariaDB not running, or <code>config.inc.php</code> has the wrong credentials</td>
+</tr>
+<tr>
+<td><code>403 Forbidden</code> on <code>/dvwa</code></td>
+<td>File ownership — <code>chown -R www-data:www-data</code> on the DVWA directory</td>
+</tr>
+<tr>
+<td>Juice Shop needs more RAM than you have</td>
+<td>Skip it this week; DVWA alone is enough for the labs</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 8.2 — SQL by hand, on your own data (1.5h)</h3>
+<p><strong>Goal:</strong> Understand injection by first understanding the language being injected into.</p>
+<p><strong>Setup:</strong> Ubuntu VM, MariaDB running.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>
+<p>Open the client: <code>sudo mysql</code>. Create a practice database and one table:
+   <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">shop</span><span class="p">;</span>
+<span class="n">USE</span><span class="w"> </span><span class="n">shop</span><span class="p">;</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">username</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span><span class="w"> </span><span class="k">role</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">20</span><span class="p">),</span><span class="w"> </span><span class="n">city</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">));</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="k">role</span><span class="p">,</span><span class="w"> </span><span class="n">city</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span>
+<span class="w">  </span><span class="p">(</span><span class="s1">&#39;ali&#39;</span><span class="p">,</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span><span class="s1">&#39;Cairo&#39;</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;sara&#39;</span><span class="p">,</span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="s1">&#39;Alexandria&#39;</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;omar&#39;</span><span class="p">,</span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="s1">&#39;Cairo&#39;</span><span class="p">);</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><code>SELECT</code> — retrieve everything, then only Cairo users, then only the admin, then only two columns, ordered:
+   <div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">city</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Cairo&#39;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="k">role</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="k">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;admin&#39;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">username</span><span class="p">;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><code>UPDATE</code>, then read back the change. Then <code>DELETE</code> a row and read back. Do this deliberately — you are learning to modify data, which is what an attacker does after a successful injection.</p>
+</li>
+<li>
+<p><code>JOIN</code> at the basic level — add an <code>orders</code> table with a <code>user_id</code> column, then join it:
+   <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="p">,</span><span class="w"> </span><span class="n">user_id</span><span class="w"> </span><span class="nb">INT</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="nb">INT</span><span class="p">);</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">250</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">90</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">400</span><span class="p">);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">total</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">user_id</span><span class="p">;</span>
+</code></pre></div>
+   Explain in your notes what the <code>ON</code> clause is doing.</p>
+</li>
+<li>
+<p><strong>The key observation:</strong> write down, in your own words, what separates the <strong>code</strong> (<code>SELECT ... WHERE</code>) from the <strong>data</strong> (<code>'Cairo'</code>). Notice the quotes. Everything about injection lives in that distinction. Do not move on until you can state it clearly.</p>
+</li>
+</ol>
+<p><strong>Expected output:</strong> A working <code>shop</code> database, plus a written paragraph distinguishing SQL structure from SQL data.</p>
+<h3>Lab 8.3 — PortSwigger Academy: SQL injection (2h)</h3>
+<p><strong>Goal:</strong> Your first real exploitation, on a target that is built to be exploited.</p>
+<p><strong>Setup:</strong> Browser only. Go to the <a href="https://portswigger.net/web-security/sql-injection">SQL injection topic</a>. You do not need Burp for the first two labs, but the Academy integrates with it when you do.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Read the topic page fully — <a href="https://portswigger.net/web-security/sql-injection"><strong>What is SQL injection?</strong></a> — and the <a href="https://portswigger.net/web-security/sql-injection/cheat-sheet">cheat sheet</a>. Note the two sub-types on the page: retrieving hidden data, and subverting application logic.</li>
+<li>Complete <a href="https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data"><strong>SQL injection vulnerability in WHERE clause allowing retrieval of hidden data</strong></a>. Before you touch it, write down what query the application <em>probably</em> runs for a category filter, and what you would need to inject to make it return everything.</li>
+<li>Complete <a href="https://portswigger.net/web-security/sql-injection/lab-login-bypass"><strong>SQL injection vulnerability allowing login bypass</strong></a>. Same discipline: predict the query first, then confirm your prediction.</li>
+<li>For each lab, write in your notes: the exact input you used, the query you think the server built, and <strong>what the application should have done differently</strong>.</li>
+<li>Read <a href="https://portswigger.net/web-security/sql-injection/union-attacks"><strong>Union attacks</strong></a> — do not attempt the union labs yet. Just understand why <code>UNION</code> escalates "read my data" into "read <em>your</em> data."</li>
+<li>Read <a href="https://portswigger.net/web-security/sql-injection/blind"><strong>Blind SQL injection</strong></a> — again, concept only. Note why an application that shows no errors is still injectable.</li>
+</ol>
+<p><strong>Expected output:</strong> Two solved labs (the Academy marks them green), plus written predictions for each.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The lab says "Not solved" after a promising response</td>
+<td>You got data back but not the <em>specific</em> thing the lab asks for — reread the lab's exact objective</td>
+</tr>
+<tr>
+<td>Input returns a <code>500</code></td>
+<td>Usually a syntax error in your injection — the query broke. <strong>That error is information</strong>; a well-built app would not have shown it to you</td>
+</tr>
+<tr>
+<td>Nothing at all changes</td>
+<td>Try <code>--</code> vs <code>--</code> (comment syntax needs a trailing space in MySQL) and check <code>--</code> vs <code>#</code></td>
+</tr>
+<tr>
+<td>Lab resets every few minutes</td>
+<td>Normal — Academy instances are short-lived. That is deliberate</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 8.4 — Access control, and finding the attack in the log (2h)</h3>
+<p><strong>Goal:</strong> The second root-cause pattern, then close the loop back to Week 3's logs.</p>
+<p><strong>Setup:</strong> Browser for the Academy, Ubuntu VM for the log, DVWA for the local attack.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Read the <a href="https://portswigger.net/web-security/access-control">Access control topic</a> and the <a href="https://portswigger.net/web-security/access-control/idor">IDOR section</a>. Write down, in one sentence, the difference between "the request never reached the code that checks permissions" and "the check exists but trusts something the client controls."</li>
+<li>Complete <a href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality"><strong>Unprotected admin functionality</strong></a> — the vulnerability is literally a missing check plus a guessable path.</li>
+<li>Complete <a href="https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references"><strong>Insecure direct object references</strong></a> — the application checks that you are logged in, but not that the object is <em>yours</em>. This is IDOR, and it is one of the most common real-world web bugs in existence.</li>
+<li>Complete <a href="https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter"><strong>User role controlled by request parameter</strong></a> — authorization decided by a value the client sends. Say out loud why that can never be secure.</li>
+<li>
+<p><strong>Close the loop.</strong> In DVWA (Security = Low), use the SQL Injection page with a <em>detection-friendly</em> payload — something that will appear verbatim in the log. Then:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>tail<span class="w"> </span>-50<span class="w"> </span>/var/log/apache2/access.log
+grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;UNION\|SELECT\|OR%201&quot;</span><span class="w"> </span>/var/log/apache2/access.log
+</code></pre></div></p>
+</li>
+<li>
+<p>Identify the request line in the log. Note that <strong>the whole attack is right there in plain text</strong> — URL, method, user-agent, payload. Now answer: <em>what would you grep for in a real log to find this? What would it look like if the attacker encoded it?</em></p>
+</li>
+<li>Raise DVWA Security to <strong>Medium</strong> and repeat step 5 on the same page. Note what changed in how your input had to be written. Do not chase it further — the point is that defenses change the shape of the attack.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong>DVWA is deliberately vulnerable software, installed on your own VM, for the purpose of being attacked.</strong> That is its entire design. The identical action against any system you do not own is unauthorized access and a crime.</p>
+</blockquote>
+<p><strong>Expected output:</strong> Three solved Academy access-control labs, plus a <code>grep</code> result showing your own SQLi payload sitting in <code>/var/log/apache2/access.log</code>.</p></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p>كل الأجهزة الوهمية تبقى على NAT Network. التطبيقات المثبَّت بها ثغرات عمداً والتي ستثبّتها هذا الأسبوع <strong>عدائية بالتصميم</strong> ويجب ألا تُعرَّض أبداً خارج تلك الشبكة.</p>
+<h3>المختبر 8.1 — شغّل تطبيقاً مثبَّتاً به ثغرات عمداً (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> هدف أنت مخوَّل بمهاجمته بشكل قاطع، يعمل داخل مختبرك أنت.</p>
+<p><strong>التهيئة:</strong> جهاز Ubuntu وهمي. ستشغّل <strong>DVWA</strong>، وإن سمحت الذاكرة، <strong>OWASP Juice Shop</strong>.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>
+<p>ثبّت المكوّنات التي يحتاجها DVWA:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>apache2<span class="w"> </span>mariadb-server<span class="w"> </span>php<span class="w"> </span>php-mysqli<span class="w"> </span>php-gd<span class="w"> </span>git
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>apache2<span class="w"> </span>mariadb
+</code></pre></div></p>
+</li>
+<li>
+<p>احصل على DVWA من مستودعه الرسمي: <a href="https://github.com/digininja/DVWA">github.com/digininja/DVWA</a>.
+   <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/var/www/html
+sudo<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/digininja/DVWA.git<span class="w"> </span>dvwa
+sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span>www-data:www-data<span class="w"> </span>/var/www/html/dvwa
+</code></pre></div></p>
+</li>
+<li>
+<p>هيّئه: انسخ <code>config/config.inc.php.dist</code> إلى <code>config/config.inc.php</code>، واضبط بيانات اعتماد قاعدة البيانات، ثم أنشئ قاعدة البيانات والمستخدم في MariaDB.</p>
+</li>
+<li>أصلح الإعدادين اللذين ستشتكي منهما صفحة الإعداد الرسمية — <code>allow_url_include</code> و <code>allow_url_fopen</code> في <code>php.ini</code> — ثم أعد تشغيل Apache، وتصفّح إلى <code>http://localhost/dvwa/setup.php</code> واضغط <strong>Create / Reset Database</strong>.</li>
+<li>سجّل الدخول (الافتراضي <code>admin</code> / <code>password</code> — غيّره)، ثم اضبط <strong>DVWA Security</strong> على <strong>Low</strong>. سترفعها عمداً في كتلة التحدي.</li>
+<li><strong>اعزله.</strong> تأكد أن DVWA يمكن الوصول إليه <strong>فقط</strong> من NAT Network. تحقّق من جهازك المضيف أنه غير قابل للوصول.</li>
+<li><strong>اختياري، إن كانت لديك 8GB+ حرة:</strong> OWASP Juice Shop، وهو تطبيق حديث من نوع صفحة واحدة ونموذج أفضل لهدف حقيقي — <a href="https://owasp.org/www-project-juice-shop/">owasp.org/www-project-juice-shop</a> · <a href="https://github.com/juice-shop/juice-shop">github.com/juice-shop/juice-shop</a>.</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> صفحة إعداد DVWA تظهر كلها بالأخضر، وتسجيل دخول يعمل، ومستوى أمان Low.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>صفحة الإعداد تُظهر أحمر عند <code>allow_url_include</code></td>
+<td>عدّل ملف <code>php.ini</code> الصحيح (<code>php -i \| grep "Loaded Configuration File"</code> يخبرك أيهما) وأعد تشغيل Apache</td>
+</tr>
+<tr>
+<td>"Could not connect to the database"</td>
+<td>MariaDB لا يعمل، أو <code>config.inc.php</code> فيه بيانات اعتماد خاطئة</td>
+</tr>
+<tr>
+<td><code>403 Forbidden</code> على <code>/dvwa</code></td>
+<td>ملكية الملفات — <code>chown -R www-data:www-data</code> على مجلد DVWA</td>
+</tr>
+<tr>
+<td>Juice Shop يحتاج ذاكرة أكثر مما لديك</td>
+<td>تجاوزه هذا الأسبوع؛ DVWA وحده يكفي للمختبرات</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 8.2 — SQL بيدك، على بياناتك أنت (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> افهم الحقن بفهم اللغة التي نُحقن فيها أولاً.</p>
+<p><strong>التهيئة:</strong> جهاز Ubuntu وهمي، و MariaDB يعمل.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>
+<p>افتح العميل: <code>sudo mysql</code>. أنشئ قاعدة بيانات تدريب وجدولاً واحداً:
+   <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">shop</span><span class="p">;</span>
+<span class="n">USE</span><span class="w"> </span><span class="n">shop</span><span class="p">;</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">username</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span><span class="w"> </span><span class="k">role</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">20</span><span class="p">),</span><span class="w"> </span><span class="n">city</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">));</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="p">(</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="k">role</span><span class="p">,</span><span class="w"> </span><span class="n">city</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span>
+<span class="w">  </span><span class="p">(</span><span class="s1">&#39;ali&#39;</span><span class="p">,</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span><span class="s1">&#39;Cairo&#39;</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;sara&#39;</span><span class="p">,</span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="s1">&#39;Alexandria&#39;</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;omar&#39;</span><span class="p">,</span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="s1">&#39;Cairo&#39;</span><span class="p">);</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><code>SELECT</code> — استرجع كل شيء، ثم مستخدمي Cairo فقط، ثم المدير فقط، ثم عمودين فقط، مرتَّبين:
+   <div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">city</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Cairo&#39;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="k">role</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="k">role</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;admin&#39;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">username</span><span class="p">;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><code>UPDATE</code>، ثم اقرأ التغيير. ثم <code>DELETE</code> صفاً واقرأ النتيجة. افعل هذا عمداً — أنت تتعلم تعديل البيانات، وهذا ما يفعله المهاجم بعد حقن ناجح.</p>
+</li>
+<li>
+<p><code>JOIN</code> على المستوى الأساسي — أضف جدول <code>orders</code> فيه عمود <code>user_id</code>، ثم اربطه:
+   <div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="p">,</span><span class="w"> </span><span class="n">user_id</span><span class="w"> </span><span class="nb">INT</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="nb">INT</span><span class="p">);</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">total</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">250</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">90</span><span class="p">),</span><span class="w"> </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">400</span><span class="p">);</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">total</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">user_id</span><span class="p">;</span>
+</code></pre></div>
+   اشرح في ملاحظاتك ما الذي يفعله شرط <code>ON</code>.</p>
+</li>
+<li>
+<p><strong>الملاحظة المفتاحية:</strong> اكتب بكلماتك أنت ما الذي يفصل <strong>الشيفرة</strong> (<code>SELECT ... WHERE</code>) عن <strong>البيانات</strong> (<code>'Cairo'</code>). لاحظ علامات الاقتباس. كل شيء عن الحقن يعيش في هذا التمييز. لا تنتقل إلى ما بعده قبل أن تستطيع قوله بوضوح.</p>
+</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> قاعدة بيانات <code>shop</code> تعمل، بالإضافة إلى فقرة مكتوبة تفرّق بين بنية SQL وبيانات SQL.</p>
+<h3>المختبر 8.3 — PortSwigger Academy: حقن SQL (2 ساعة)</h3>
+<p><strong>الهدف:</strong> أول استغلال حقيقي لك، على هدف مبني ليُستغَل.</p>
+<p><strong>التهيئة:</strong> المتصفح فقط. اذهب إلى <a href="https://portswigger.net/web-security/sql-injection">موضوع حقن SQL</a>. لا تحتاج Burp في المختبرين الأولين، لكن الأكاديمية تتكامل معه عندما تحتاجه.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>اقرأ صفحة الموضوع كاملة — <a href="https://portswigger.net/web-security/sql-injection"><strong>What is SQL injection?</strong></a> — و<a href="https://portswigger.net/web-security/sql-injection/cheat-sheet">ورقة الغش (cheat sheet)</a>. لاحظ النوعين الفرعيين في الصفحة: استرجاع بيانات مخفية، وإفساد منطق التطبيق.</li>
+<li>أكمل <a href="https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data"><strong>SQL injection vulnerability in WHERE clause allowing retrieval of hidden data</strong></a>. قبل أن تلمسه، اكتب الاستعلام الذي <em>يُرجَّح</em> أن التطبيق يشغّله لفلتر التصنيف، وما ستحتاج حقنه ليعيد كل شيء.</li>
+<li>أكمل <a href="https://portswigger.net/web-security/sql-injection/lab-login-bypass"><strong>SQL injection vulnerability allowing login bypass</strong></a>. الانضباط نفسه: تنبّأ بالاستعلام أولاً، ثم أكّد تنبؤك.</li>
+<li>لكل مختبر، اكتب في ملاحظاتك: المدخل الدقيق الذي استخدمته، والاستعلام الذي تظن أن السيرفر بناه، و<strong>ما كان ينبغي للتطبيق أن يفعله بشكل مختلف</strong>.</li>
+<li>اقرأ <a href="https://portswigger.net/web-security/sql-injection/union-attacks"><strong>Union attacks</strong></a> — لا تحاول مختبرات UNION بعد. فقط افهم لماذا يرقّي <code>UNION</code> الأمر من "اقرأ بياناتي" إلى "اقرأ <em>بياناتك</em>".</li>
+<li>اقرأ <a href="https://portswigger.net/web-security/sql-injection/blind"><strong>Blind SQL injection</strong></a> — مرة أخرى، المفهوم فقط. لاحظ لماذا يظل تطبيق لا يُظهر أي أخطاء قابلاً للحقن.</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> مختبران محلولان (تعلّمهما الأكاديمية بالأخضر)، بالإضافة إلى تنبؤات مكتوبة لكل منهما.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>المختبر يقول "Not solved" بعد استجابة واعدة</td>
+<td>حصلت على بيانات، لكن ليس <em>الشيء المحدد</em> الذي يطلبه المختبر — أعد قراءة هدف المختبر بدقة</td>
+</tr>
+<tr>
+<td>المدخل يعيد <code>500</code></td>
+<td>عادةً خطأ صياغة في الحقن — الاستعلام انكسر. <strong>هذا الخطأ معلومة</strong>؛ وتطبيق مبني جيداً لم يكن ليُظهره لك</td>
+</tr>
+<tr>
+<td>لا يتغيّر شيء إطلاقاً</td>
+<td>جرّب <code>--</code> مقابل <code>--</code> (صياغة التعليق تحتاج مسافة في نهايتها في MySQL) وتحقّق من <code>--</code> مقابل <code>#</code></td>
+</tr>
+<tr>
+<td>المختبر يُعاد ضبطه كل بضع دقائق</td>
+<td>طبيعي — نُسخ الأكاديمية قصيرة العمر. وهذا مقصود</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 8.4 — التحكم بالوصول، وإيجاد الهجوم في السجل (2 ساعة)</h3>
+<p><strong>الهدف:</strong> نمط السبب الجذري الثاني، ثم إغلاق الحلقة عودةً إلى سجلات الأسبوع 3.</p>
+<p><strong>التهيئة:</strong> المتصفح للأكاديمية، وجهاز Ubuntu وهمي للسجل، و DVWA للهجوم المحلي.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>اقرأ <a href="https://portswigger.net/web-security/access-control">موضوع التحكم بالوصول</a> و<a href="https://portswigger.net/web-security/access-control/idor">قسم IDOR</a>. اكتب في جملة واحدة الفرق بين "الطلب لم يصل أبداً إلى الشيفرة التي تفحص الصلاحيات" و"الفحص موجود لكنه يثق بشيء يتحكم به العميل".</li>
+<li>أكمل <a href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality"><strong>Unprotected admin functionality</strong></a> — الثغرة حرفياً فحص غائب زائد مسار قابل للتخمين.</li>
+<li>أكمل <a href="https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references"><strong>Insecure direct object references</strong></a> — التطبيق يتحقق أنك مسجّل الدخول، لكنه لا يتحقق أن الكائن <em>يخصّك</em>. هذا هو IDOR، وهو أحد أكثر أخطاء الويب الواقعية شيوعاً.</li>
+<li>أكمل <a href="https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter"><strong>User role controlled by request parameter</strong></a> — تخويل يُقرَّر بقيمة يرسلها العميل. قل بصوت عالٍ لماذا لا يمكن أن يكون هذا آمناً أبداً.</li>
+<li>
+<p><strong>أغلق الحلقة.</strong> في DVWA (Security = Low)، استخدم صفحة SQL Injection بحمولة <em>صديقة للكشف</em> — شيء سيظهر حرفياً في السجل. ثم:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>tail<span class="w"> </span>-50<span class="w"> </span>/var/log/apache2/access.log
+grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;UNION\|SELECT\|OR%201&quot;</span><span class="w"> </span>/var/log/apache2/access.log
+</code></pre></div></p>
+</li>
+<li>
+<p>حدّد سطر الطلب في السجل. لاحظ أن <strong>الهجوم كله هناك بنص صريح</strong> — الـ URL والطريقة (method) والـ user-agent والحمولة. الآن أجب: <em>عن أي شيء كنت ستستخدم grep في سجل حقيقي لإيجاد هذا؟ وكيف سيبدو لو رمّز (encode) المهاجم ما أرسله؟</em></p>
+</li>
+<li>ارفع DVWA Security إلى <strong>Medium</strong> وكرّر الخطوة 5 على الصفحة نفسها. لاحظ ما تغيّر في طريقة كتابة مدخلك. لا تطارد الأمر أكثر — النقطة أن الدفاعات تغيّر شكل الهجوم.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong>DVWA برمجية مثبَّت بها ثغرات عمداً، مثبَّتة على جهازك الوهمي، لغرض مهاجمتها.</strong> هذا تصميمها بالكامل. الفعل نفسه ضد أي نظام لا تملكه هو وصول غير مصرَّح به وجريمة.</p>
+</blockquote>
+<p><strong>المخرج المطلوب:</strong> ثلاثة مختبرات تحكم بالوصول محلولة في الأكاديمية، بالإضافة إلى نتيجة <code>grep</code> تُظهر حمولة SQLi الخاصة بك جالسة في <code>/var/log/apache2/access.log</code>.</p></div>
+  </div>
+</details><details class="lesson-sec" id="challenge" data-sec="challenge" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈5h · Unguided — this is where it sticks</span><span class="only-ar">≈5ساعات · بدون إرشاد — هنا يحدث التعلّم الحقيقي</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li><strong>OverTheWire Natas, levels 11–16</strong> — continue from last week. From here the levels are genuine server-side web exploitation: file inclusion, uploads, and the SQL injection levels. Every one of them is solvable with what you now know.</li>
+<li><strong>PortSwigger Academy, apprentice tier</strong> — finish every remaining <em>apprentice</em> lab in <a href="https://portswigger.net/web-security/sql-injection">SQL injection</a> and <a href="https://portswigger.net/web-security/access-control">Access control</a>, then start <a href="https://portswigger.net/web-security/authentication">Authentication</a> and its <a href="https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses">username enumeration lab</a>. Browse <a href="https://portswigger.net/web-security/all-topics">all topics</a> and note how many categories exist — that list is your next two years.</li>
+<li><strong>OWASP Juice Shop</strong> (if you installed it) — work the scoreboard. It ranks challenges by difficulty; start at one star and do not skip ahead.</li>
+<li><strong>Write the vulnerability report for one lab.</strong> For a single Academy lab, write: title, affected endpoint, steps to reproduce, evidence (the request and the response), impact, root cause, and remediation. Keep it to one page. <strong>This is the exact deliverable of a professional pentest</strong>, and you will be graded on it in Week 12.</li>
+<li>Answer in writing: <em>the OWASP Top 10 is often described as a list of vulnerabilities. Why is that description misleading?</em> (Hint: look at how the categories are named.)</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li><strong>OverTheWire Natas، المستويات 11–16</strong> — تابع من الأسبوع الماضي. من هنا تصبح المستويات استغلالاً حقيقياً لتطبيقات ويب من جهة السيرفر: تضمين الملفات (file inclusion)، والرفع (uploads)، ومستويات حقن SQL. كل واحد منها قابل للحل بما تعرفه الآن.</li>
+<li><strong>PortSwigger Academy، فئة apprentice</strong> — أكمل كل مختبر <em>apprentice</em> متبقٍّ في <a href="https://portswigger.net/web-security/sql-injection">حقن SQL</a> و<a href="https://portswigger.net/web-security/access-control">التحكم بالوصول</a>، ثم ابدأ <a href="https://portswigger.net/web-security/authentication">المصادقة (Authentication)</a> ومختبرها <a href="https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses">username enumeration</a>. تصفّح <a href="https://portswigger.net/web-security/all-topics">كل المواضيع</a> ولاحظ كم فئة موجودة — تلك القائمة هي السنتان القادمتان لك.</li>
+<li><strong>OWASP Juice Shop</strong> (إن كنت ثبّتَه) — اعمل على لوحة النتائج (scoreboard). إنها ترتّب التحديات حسب الصعوبة؛ ابدأ بنجمة واحدة ولا تقفز إلى ما بعدها.</li>
+<li><strong>اكتب تقرير ثغرة لأحد المختبرات.</strong> لمختبر واحد من الأكاديمية، اكتب: العنوان، ونقطة النهاية المصابة، وخطوات إعادة الإنتاج، والأدلة (الطلب والاستجابة)، والأثر، والسبب الجذري، والمعالجة. اجعله في صفحة واحدة. <strong>هذا هو المُخرَج الدقيق لاختبار اختراق احترافي</strong>، وستُقيَّم عليه في الأسبوع 12.</li>
+<li>أجب كتابةً: <em>غالباً ما يُوصف OWASP Top 10 بأنه قائمة ثغرات. لماذا هذا الوصف مضلّل؟</em> (تلميح: انظر كيف سُمّيت الفئات.)</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="payoff" data-sec="payoff" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The security consequence</span><span class="only-ar">الأثر الأمني</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>The OWASP Top 10 is a map, not a checklist.</strong> Read the category names carefully and you will notice something: almost none of them name a <em>bug</em>. "Broken Access Control," "Identification and Authentication Failures," "Security Misconfiguration" — these are descriptions of <strong>classes of design failure</strong>. That is the single most important thing to take from this week. Web vulnerabilities are rarely clever. They are the same two mistakes, made over and over, in a thousand different technologies.</p>
+<p><strong>Root-cause pattern #1: trusting user input.</strong></p>
+<p>An application builds a string out of your input and hands it to an interpreter — the SQL engine, the shell, the filesystem, an XML parser. The interpreter cannot tell which parts of that string were the developer's code and which parts were yours. So if your input contains the interpreter's own syntax, you have just written code inside their program.</p>
+<p>That is all SQL injection is:</p>
+<div class="highlight"><pre><span></span><code><span class="x">// The vulnerable pattern — the user&#39;s text becomes part of the QUERY</span>
+<span class="x">$q = &quot;SELECT * FROM users WHERE username = &#39;&quot; . $_POST[&#39;username&#39;] . &quot;&#39;&quot;;</span>
+</code></pre></div>
+<p>If the user sends <code>admin'--</code>, the database receives:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;admin&#39;</span><span class="c1">-- &#39; AND password = &#39;anything&#39;</span>
+</code></pre></div>
+<p>The <code>--</code> comments out the password check. There was never a password check to defeat; there was only a string that no longer meant what the developer assumed it meant. The <strong>fix</strong> is not to filter bad characters — filtering is a losing arms race. The fix is to stop building strings:</p>
+<div class="highlight"><pre><span></span><code><span class="x">// The safe pattern — the query STRUCTURE is fixed before the data arrives</span>
+<span class="x">$stmt = $pdo-&gt;prepare(&quot;SELECT * FROM users WHERE username = ?&quot;);</span>
+<span class="x">$stmt-&gt;execute([$_POST[&#39;username&#39;]]);</span>
+</code></pre></div>
+<p>With a parameterized query, the database is told "here is the query, and separately, here is a value." The value can never become grammar. <strong>Design, not filtering.</strong> Every injection class in the Top 10 — SQL, command, LDAP, XPath — is the same mistake with a different interpreter.</p>
+<p><strong>Root-cause pattern #2: failing to check authorization on the server.</strong></p>
+<p>Broken Access Control sits at <strong>A01</strong> — the top of the 2021 list — because it is the most common serious web vulnerability and the one that most often exposes real user data. The pattern is always the same: the application checks something <em>other than</em> "is this user allowed to do this?"</p>
+<ul>
+<li>It checks you are logged in, but not that the record is yours → <strong>IDOR</strong>. Change <code>?invoice_id=1042</code> to <code>1043</code> and you are reading a stranger's invoice.</li>
+<li>It hides the admin button but leaves the admin endpoint reachable → <strong>security through obscurity</strong>. The page is hidden; the API is not.</li>
+<li>It decides your role from a value you send → the client is now the authorization server. <code>role=admin</code> and you are done.</li>
+</ul>
+<p>Notice what all three have in common: <strong>the browser was doing the enforcement, and the browser belongs to the attacker.</strong> Which brings back the sentence from last week, now with a body count: the same-origin policy, hidden buttons, disabled form fields, and client-side validation are <em>usability features</em>. They are not security controls. The only authorization check that exists is the one the <strong>server</strong> performs, on <strong>every</strong> request, against the <strong>identity it established</strong> — not against anything the client told it.</p>
+<p><strong>And the third thread, tying both weeks together:</strong> the highest-value target in any web application is not the database. It is the <strong>session</strong>. Injection reads data; a stolen session <em>is</em> the user, with all their permissions, and it looks completely legitimate in the logs. This is why the flags from Week 7 exist, and why "the app is secure because it uses HTTPS" is not an answer to anything.</p>
+<blockquote>
+<p>⚠️ <strong>Legal boundary — repeated deliberately, because this is the week learners feel tempted.</strong>
+DVWA, OWASP Juice Shop, and the PortSwigger Academy labs are <strong>deliberately vulnerable systems, built for exactly this purpose</strong>. PortSwigger runs its labs on its own servers and invites you to attack them. That invitation is the authorization. OverTheWire's Natas servers exist to be broken. That is the authorization.
+<strong>Everything else requires written permission.</strong> Testing a live website — even one request, even adding a single quote to a URL parameter to "see what happens" — without a signed scope, a bug bounty program's published policy, or a CTF's rules, is unauthorized access and is a criminal offence in essentially every jurisdiction. There is no small version of this. The difference between a penetration tester and a criminal is not skill and it is not intent — it is <strong>a document</strong>. In Week 12 you will learn to read that document. Until then: your VMs, your lab, and the sanctioned platforms. Nothing else.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>OWASP Top 10 خريطة، لا قائمة تحقق.</strong> اقرأ أسماء الفئات بعناية وستلاحظ شيئاً: لا يكاد أي منها يسمّي <em>خطأً برمجياً</em>. "Broken Access Control" و"Identification and Authentication Failures" و"Security Misconfiguration" — هذه أوصاف <strong>لفئات فشل تصميمي</strong>. وهذا هو أهم شيء واحد تأخذه من هذا الأسبوع. ثغرات الويب نادراً ما تكون بارعة. إنها الخطأان نفسهما، يُرتكبان مراراً وتكراراً، في ألف تقنية مختلفة.</p>
+<p><strong>نمط السبب الجذري #1: الثقة بمدخلات المستخدم.</strong></p>
+<p>يبني التطبيق نصاً من مدخلك ويسلّمه إلى مفسّر (interpreter) — محرّك SQL، أو الـ shell، أو نظام الملفات، أو محلّل XML. لا يستطيع المفسّر التمييز بين الأجزاء التي كانت شيفرة المطوّر والأجزاء التي كانت مدخلك. فإن احتوى مدخلك على صياغة المفسّر نفسه، فقد كتبت للتو شيفرة داخل برنامجه.</p>
+<p>هذا كل ما في حقن SQL:</p>
+<div class="highlight"><pre><span></span><code><span class="x">// The vulnerable pattern — the user&#39;s text becomes part of the QUERY</span>
+<span class="x">$q = &quot;SELECT * FROM users WHERE username = &#39;&quot; . $_POST[&#39;username&#39;] . &quot;&#39;&quot;;</span>
+</code></pre></div>
+<p>إن أرسل المستخدم <code>admin'--</code>، تستقبل قاعدة البيانات:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;admin&#39;</span><span class="c1">-- &#39; AND password = &#39;anything&#39;</span>
+</code></pre></div>
+<p>الـ <code>--</code> تعلّق فحص كلمة المرور. لم يكن هناك قط فحص كلمة مرور لنهزمه؛ كان هناك فقط نص لم يعد يعني ما افترض المطوّر أنه يعنيه. و<strong>الحل</strong> ليس تصفية الأحرف السيئة — فالتصفية سباق تسلح خاسر. الحل هو التوقف عن بناء النصوص:</p>
+<div class="highlight"><pre><span></span><code><span class="x">// The safe pattern — the query STRUCTURE is fixed before the data arrives</span>
+<span class="x">$stmt = $pdo-&gt;prepare(&quot;SELECT * FROM users WHERE username = ?&quot;);</span>
+<span class="x">$stmt-&gt;execute([$_POST[&#39;username&#39;]]);</span>
+</code></pre></div>
+<p>مع استعلام ذي معاملات (parameterized query)، تُخبَر قاعدة البيانات: "هذا هو الاستعلام، وبشكل منفصل، هذه قيمة." ولا يمكن للقيمة أن تصبح قواعد أبداً. <strong>تصميم، لا تصفية.</strong> كل فئات الحقن في Top 10 — SQL، والأوامر، و LDAP، و XPath — هي الخطأ نفسه بمفسّر مختلف.</p>
+<p><strong>نمط السبب الجذري #2: الفشل في فحص التخويل على السيرفر.</strong></p>
+<p>يجلس ضعف التحكم بالوصول في <strong>A01</strong> — قمة قائمة 2021 — لأنه أشهر ثغرة ويب خطيرة، وأكثرها كشفاً لبيانات مستخدمين حقيقية. والنمط واحد دائماً: التطبيق يفحص شيئاً <em>غير</em> "هل يُسمح لهذا المستخدم بفعل هذا؟"</p>
+<ul>
+<li>يفحص أنك مسجّل الدخول، لا أن السجل يخصّك → <strong>IDOR</strong>. غيّر <code>?invoice_id=1042</code> إلى <code>1043</code> وستقرأ فاتورة شخص غريب.</li>
+<li>يخفي زر المدير لكنه يترك نقطة نهاية المدير قابلة للوصول → <strong>الأمن بالإخفاء (security through obscurity)</strong>. الصفحة مخفية؛ والـ API ليس كذلك.</li>
+<li>يقرّر دورك من قيمة ترسلها أنت → العميل الآن هو سيرفر التخويل. <code>role=admin</code> وانتهيت.</li>
+</ul>
+<p>لاحظ القاسم المشترك بين الثلاثة: <strong>المتصفح كان ينفّذ الإنفاذ، والمتصفح ملك المهاجم.</strong> وهذا يعيد جملة الأسبوع الماضي، الآن مع حصيلة ضحايا: سياسة الأصل الواحد، والأزرار المخفية، وحقول النماذج المعطّلة، والتحقق في جهة العميل — كلها <em>ميزات استخدام</em>. وليست ضوابط أمنية. التحقق الوحيد من التخويل الموجود هو الذي ينفّذه <strong>السيرفر</strong>، على <strong>كل</strong> طلب، مقابل <strong>الهوية التي أنشأها هو</strong> — لا مقابل أي شيء أخبره به العميل.</p>
+<p><strong>والخيط الثالث، الرابط بين الأسبوعين:</strong> أعلى هدف قيمةً في أي تطبيق ويب ليس قاعدة البيانات. إنه <strong>الجلسة</strong>. فالحقن يقرأ بيانات؛ أما الجلسة المسروقة <em>فهي</em> المستخدم، بكل صلاحياته، وتبدو مشروعة تماماً في السجلات. ولهذا توجد الأعلام (flags) في الأسبوع 7، ولهذا فإن "التطبيق آمن لأنه يستخدم HTTPS" ليس جواباً على أي شيء.</p>
+<blockquote>
+<p>⚠️ <strong>الحد القانوني — مُكرَّر عمداً، لأن هذا هو الأسبوع الذي يشعر فيه المتعلمون بالإغراء.</strong>
+DVWA و OWASP Juice Shop ومختبرات PortSwigger Academy هي <strong>أنظمة مثبَّت بها ثغرات عمداً، مبنية لهذا الغرض بالضبط</strong>. و PortSwigger يشغّل مختبراته على خوادمه الخاصة ويدعوك لمهاجمتها. تلك الدعوة هي التخويل. وخوادم Natas الخاصة بـ OverTheWire موجودة لتُكسَر. وهذا هو التخويل.
+<strong>كل ما عدا ذلك يتطلب إذناً مكتوباً.</strong> اختبار موقع حيّ — حتى طلب واحد، حتى إضافة علامة اقتباس واحدة إلى معامل URL لـ "ترى ما يحدث" — بدون نطاق موقَّع (scope)، أو سياسة منشورة لبرنامج bug bounty، أو قواعد CTF، هو وصول غير مصرَّح به وجريمة جنائية في كل نطاق قضائي تقريباً. ولا توجد نسخة صغيرة من هذا. الفرق بين مختبر اختراق ومجرم ليس المهارة وليس النية — إنه <strong>مستند</strong>. في الأسبوع 12 ستتعلم قراءة ذلك المستند. وحتى ذلك الحين: أجهزتك الوهمية، ومختبرك، والمنصات المصرَّح بها. لا شيء غيرها.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="checkpoint" data-sec="checkpoint" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4M4 4h12l-1.5 4L16 12H4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Prove it to yourself before moving on</span><span class="only-ar">أثبت لنفسك أنك أتقنت قبل المتابعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Draw a three-tier web architecture and mark where an attacker's input crosses each trust boundary</li>
+<li class="task">Write a <code>SELECT</code> with <code>WHERE</code>, a <code>JOIN</code>, and an <code>UPDATE</code> from memory, and explain the <code>ON</code> clause</li>
+<li class="task">Explain, out loud, why a parameterized query stops SQL injection and string filtering does not</li>
+<li class="task">Explain IDOR using the phrase "authenticated but not authorized," with an example</li>
+<li class="task">Name at least six OWASP Top 10 categories and place a given vulnerability in the correct one</li>
+<li class="task">Three PortSwigger Academy access-control labs and two SQL injection labs solved</li>
+<li class="task">Show a <code>grep</code> of your own <code>access.log</code> containing your own SQLi attempt, and explain each field</li>
+<li class="task">Natas levels 0–16 complete</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">ارسم معمارية تطبيق ويب من ثلاث طبقات وحدّد أين تعبر مدخلات المهاجم كل حدّ ثقة</li>
+<li class="task">اكتب <code>SELECT</code> مع <code>WHERE</code>، و <code>JOIN</code>، و <code>UPDATE</code> من الذاكرة، واشرح شرط <code>ON</code></li>
+<li class="task">اشرح بصوت عالٍ لماذا يوقف الاستعلام ذو المعاملات حقن SQL ولا تفعل التصفية النصية</li>
+<li class="task">اشرح IDOR بعبارة "مُصادَق عليه لكن غير مُخوَّل"، مع مثال</li>
+<li class="task">سمِّ ست فئات على الأقل من OWASP Top 10 وضع ثغرة معيّنة في الفئة الصحيحة</li>
+<li class="task">ثلاثة مختبرات تحكم بالوصول ومختبرا حقن SQL محلولة في PortSwigger Academy</li>
+<li class="task">اعرض <code>grep</code> لملف <code>access.log</code> الخاص بك يحتوي محاولتك أنت في SQLi، واشرح كل حقل</li>
+<li class="task">مستويات Natas من 0 إلى 16 مكتملة</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec only-ar" id="notes" data-sec="notes" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 0-9-9"/><path d="M12 7v5l3 2M3 21l3-3"/></svg></span>
+    <span class="lesson-titles">
+      <h2>ملاحظات مفاهيمية موسّعة</h2>
+      <span class="lesson-sub"><span>شرح إضافي موسّع</span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose" dir="rtl" lang="ar"><h3>معمارية تطبيق الويب — من ثلاثة طبقات</h3>
+<p>أي تطبيق ويب حقيقي يتكون من ثلاث طبقات، و<strong>بين كل طبقتين حدود ثقة (Trust Boundary)</strong> — وهي أهم مفهوم في هذا الأسبوع:</p>
+<div class="highlight"><pre><span></span><code>[ المتصفح ]  ──►  [ السيرفر ]  ──►  [ قاعدة البيانات ]
+ العميل            منطق التطبيق        تخزين البيانات
+</code></pre></div>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الطبقة</th>
+<th>من يتحكم بها</th>
+<th>هل نثق بها؟</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>المتصفح (Client)</td>
+<td><strong>المهاجم</strong></td>
+<td>❌ لا. إطلاقاً. ملك المستخدم، ويمكن تعديله بالكامل</td>
+</tr>
+<tr>
+<td>السيرفر (Server)</td>
+<td>المطوّر</td>
+<td>✅ نعم — هنا يجب أن يكون كل التحقق</td>
+</tr>
+<tr>
+<td>قاعدة البيانات</td>
+<td>المطوّر</td>
+<td>✅ نعم — لكنها تنفّذ ما يُقال لها حرفياً</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>القاعدة الذهبية:</strong> كل ما يأتي من المتصفح هو <strong>مدخلات غير موثوقة</strong> — حتى لو جاء من نموذج كتبته أنت، وحتى لو كان في حقل مخفي (<code>hidden</code>)، وحتى لو منعته جافاسكربت. المهاجم لا يستخدم متصفحك؛ يستخدم <code>curl</code> أو Burp ويرسل ما يريد.</p>
+</blockquote>
+<h3>قواعد البيانات و SQL — اللغة التي نُخترق من خلالها</h3>
+<p><strong>قاعدة البيانات</strong> منظّمة في <strong>جداول (Tables)</strong>: صفوف (Records) وأعمدة (Columns). و<strong>SQL</strong> هي لغة التحدث معها.</p>
+<p><strong>الأوامر الأربعة الأساسية:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الأمر</th>
+<th>الوظيفة</th>
+<th>مثال</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SELECT</code></td>
+<td>اقرأ بيانات</td>
+<td><code>SELECT * FROM users;</code></td>
+</tr>
+<tr>
+<td><code>INSERT</code></td>
+<td>أضف صفاً</td>
+<td><code>INSERT INTO users (username) VALUES ('ali');</code></td>
+</tr>
+<tr>
+<td><code>UPDATE</code></td>
+<td>عدّل صفاً</td>
+<td><code>UPDATE users SET role='admin' WHERE id=3;</code></td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>احذف صفاً</td>
+<td><code>DELETE FROM users WHERE id=3;</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong><code>WHERE</code></strong> تحدّد أي الصفوف. <strong>بدونها، الأمر يطبّق على الجدول كله</strong> — وهذه معلومة أمنية خطيرة: <code>UPDATE users SET role='admin'</code> بدون <code>WHERE</code> تمنح كل المستخدمين صلاحيات المدير.</p>
+<p><strong><code>JOIN</code></strong> يربط جدولين ببعضهما عبر عمود مشترك:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">total</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">users</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">user_id</span><span class="p">;</span>
+</code></pre></div>
+<p><code>ON</code> تقول: اربط الصف الذي <code>users.id</code> فيه يساوي <code>orders.user_id</code>. تخيّل أن لك صفاً في جدول المستخدمين وصفاً في جدول الطلبات — هذا الأمر يعيدهما معاً كسطر واحد.</p>
+<p><strong>الوعد (IN) و الخروج منه:</strong> SQL له <code>UNION</code> (يجمع نتائج استعلامين)، و<code>;</code> (ينهي الأمر ويبدأ آخر)، و<code>--</code> (تعليق يلغي بقية السطر). هذه كلها <strong>أدوات مشروعة تماماً</strong> — لكنها في يد مهاجم تصبح أسلحة. <strong>الخطأ ليس في اللغة، بل في التطبيق الذي سمح لك بكلماتها داخل جملته.</strong></p>
+<h3>كيف يتحدث التطبيق مع قاعدة البيانات — وهنا يولد الثقب</h3>
+<p>الكود الساذج يبني نص الاستعلام بدمج مدخلاتك مباشرة:</p>
+<div class="highlight"><pre><span></span><code><span class="x">// ❌ خطير — مدخلات المستخدم تُدمج في نص الاستعلام</span>
+<span class="x">$username = $_POST[&#39;username&#39;];</span>
+<span class="x">$query = &quot;SELECT * FROM users WHERE username = &#39;&quot; . $username . &quot;&#39;&quot;;</span>
+</code></pre></div>
+<p><strong>ما الذي يحدث ذهنياً في هذه اللحظة؟</strong> المطوّر يرى: "جملة استعلام + قيمة". لكن قاعدة البيانات <strong>لا ترى هذا التمييز</strong>. هي ترى <strong>نصاً واحداً</strong> وتنفّذه حرفياً. الفرق بين "الشيفرة" و"البيانات" كان موجوداً في ذهن المطوّر فقط — ولم يُخبر قاعدة البيانات به أبداً.</p>
+<p><strong>الحل — الاستعلامات المُعدّة مسبقاً (Prepared Statements):</strong></p>
+<div class="highlight"><pre><span></span><code><span class="x">// ✅ آمن — هيكل الاستعلام ثابت، والقيمة تُرسل منفصلة</span>
+<span class="x">$stmt = $pdo-&gt;prepare(&quot;SELECT * FROM users WHERE username = ?&quot;);</span>
+<span class="x">$stmt-&gt;execute([$_POST[&#39;username&#39;]]);</span>
+</code></pre></div>
+<p>هنا يقول المطوّر لقاعدة البيانات صراحةً: <strong>"هذا هو الاستعلام. وهذه قيمة."</strong> القيمة تُرسل في قناة منفصلة، فلا يمكن أن تصبح جزءاً من القواعد مهما احتوت من علامات اقتباس أو شرطات.</p>
+<blockquote>
+<p><strong>لماذا التصفية (Filtering) ليست حلاً؟</strong>
+لا يمكنك حصر كل الحالات: الترميز (encoding)، اختلاف حالة الأحرف، تعليقات SQL، الصيغ البديلة. <strong>التصفية سباق تسلح تخسره دائماً. التصميم الصحيح لا سباق فيه.</strong> لا تُنقِّح المدخلات — افصل الشيفرة عن البيانات.</p>
+</blockquote>
+<h3>جوهر ثغرة SQL Injection — الشرح الكامل</h3>
+<p><strong>الفكرة في جملة:</strong> إذا استطعت إدخال <strong>قواعد SQL</strong> داخل <strong>قيمة</strong>، فقد تحوّلت من مستخدم إلى مبرمج — تستطيع تعديل الاستعلام نفسه.</p>
+<p><strong>مثال تسجيل الدخول.</strong> التطبيق يبني هذا الاستعلام:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;ali&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;secret&#39;</span><span class="p">;</span>
+</code></pre></div>
+<p>قاعدة البيانات تنفّذه هكذا: "هات لي صفاً اسم المستخدم فيه <code>ali</code> <strong>و</strong> كلمة المرور <code>secret</code>". سليم.</p>
+<p><strong>الآن ماذا لو كان اسم المستخدم المدخل هو <code>admin'--</code>؟</strong> يصبح نص الاستعلام:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;admin&#39;</span><span class="c1">-- &#39; AND password = &#39;anything&#39;;</span>
+</code></pre></div>
+<p><strong>انظر ماذا حدث:</strong> <code>--</code> في SQL تعني <strong>تعليق — ألغِ كل ما بعدها</strong>. الجزء <code>' AND password = 'anything'</code> كله أصبح تعليقاً لا وجود له. الاستعلام الفعلي صار:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;admin&#39;</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>كلمة المرور لم تُفحص إطلاقاً.</strong> لم نتجاوزها — بل <strong>حذفناها من الجملة</strong>. ولهذا يعمل هذا الهجوم بغض النظر عن كلمة المرور.</p>
+<p><strong>صيغة ثانية — <code>' OR 1=1--</code></strong> كاسم مستخدم:</p>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="c1">-- &#39; AND password = &#39;x&#39;;</span>
+</code></pre></div>
+<p><code>1=1</code> صحيحة دائماً، فيعيد الاستعلام <strong>كل</strong> المستخدمين. التطبيق يأخذ أول صف (عادةً المدير) ويظنك أنت.</p>
+<p><strong>لماذا كان هذا ممكناً؟</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>ما ظنّ المطوّر أنه حدث</th>
+<th>ما حدث فعلاً</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>قيمة نصية في حقل</td>
+<td><strong>قواعد SQL جديدة داخل الجملة</strong></td>
+</tr>
+<tr>
+<td>المدخل "بيانات"</td>
+<td>المدخل صار "شيفرة"</td>
+</tr>
+<tr>
+<td>الاستعلام ثابت</td>
+<td>الاستعلام <strong>أعاد المهاجم كتابته</strong></td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>هذا هو النمط الجذري الأول في هذا الأسبوع: الثقة بالمدخلات.</strong>
+كل أنواع الحقن — SQL، أوامر النظام، LDAP، XPath — هي <strong>نفس الخطأ</strong> مع مفسّر مختلف. تعلّم النمط مرة واحدة، وستفهم العائلة كلها.</p>
+</blockquote>
+<p><strong><code>UNION</code> — من "اقرأ بياناتي" إلى "اقرأ بياناتك":</strong></p>
+<div class="highlight"><pre><span></span><code><span class="err">&#39;</span><span class="w"> </span><span class="k">UNION</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="n">username</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">users</span><span class="c1">-- </span>
+</code></pre></div>
+<p>هذه لا تتلاعب بمنطق الاستعلام فحسب — بل <strong>تضيف استعلاماً ثانياً</strong> نتائجه تُدمج مع الأول. هكذا تُسرَّب جداول كاملة (بيانات اعتماد، بطاقات، كل شيء) عبر حقل بحث واحد بريء.</p>
+<h3>APIs و REST — واجهة التطبيق الحديثة</h3>
+<p><strong>الـ API</strong> هي الواجهة التي يتحدث بها برنامج مع برنامج آخر، بدلاً من إنسان مع موقع.</p>
+<p><strong>REST</strong> أسلوب في تصميمها، ملخّصه:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المفهوم</th>
+<th>المعنى</th>
+<th>مثال</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Endpoint</td>
+<td>عنوان المورد</td>
+<td><code>/api/users/42</code></td>
+</tr>
+<tr>
+<td>Verb</td>
+<td>الفعل على المورد</td>
+<td><code>GET</code> اقرأ · <code>POST</code> أنشئ · <code>PUT</code> استبدل · <code>DELETE</code> احذف</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>صيغة تبادل البيانات</td>
+<td><code>{"id":42,"user":"ali"}</code></td>
+</tr>
+<tr>
+<td>Status Code</td>
+<td>نتيجة العملية</td>
+<td><code>200</code>, <code>201</code>, <code>401</code>, <code>403</code>, <code>404</code>, <code>500</code></td>
+</tr>
+<tr>
+<td>Auth Header</td>
+<td>كيف تُثبت هويتك</td>
+<td><code>Authorization: Bearer eyJhbGci...</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>لماذا الـ APIs سطح هجوم ضخم؟</strong></p>
+<ol>
+<li><strong>لا واجهة رسومية تخفي شيئاً.</strong> في الموقع قد يكون الزر مخفياً — في الـ API يُنفَّذ الأمر مباشرة.</li>
+<li><strong>يوثّق المطوّرون افتراضهم الخاطئ:</strong> "من يستدعي الـ API هو تطبيقنا". المهاجم يستدعيها مباشرة بـ <code>curl</code>.</li>
+<li><strong>التحقق من التخويل غائب أكثر مما تتوقع</strong> — لأن المطوّر اختبر الـ API عبر التطبيق الرسمي، ولم يجرّب أبداً استدعاء <code>/api/users/43</code> بمعرّف جلسة شخص آخر.</li>
+<li><strong>معرّفات متسلسلة</strong> (<code>/api/orders/1001</code>, <code>1002</code>, <code>1003</code>) = <strong>IDOR</strong> جاهز.</li>
+</ol>
+<h3>OWASP Top 10 — الخريطة، لا القائمة</h3>
+<p>مشروع OWASP Top 10 هو أشهر مرجع لتصنيف مخاطر تطبيقات الويب. النسخة الحالية (2021):</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الفئة</th>
+<th>المعنى بالعربية</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A01</strong></td>
+<td>Broken Access Control</td>
+<td><strong>ضعف التحكم بالوصول</strong> — الأول في القائمة</td>
+</tr>
+<tr>
+<td><strong>A02</strong></td>
+<td>Cryptographic Failures</td>
+<td>إخفاقات التشفير</td>
+</tr>
+<tr>
+<td><strong>A03</strong></td>
+<td>Injection</td>
+<td><strong>الحقن</strong> — ويشمل SQL Injection</td>
+</tr>
+<tr>
+<td><strong>A04</strong></td>
+<td>Insecure Design</td>
+<td>تصميم غير آمن</td>
+</tr>
+<tr>
+<td><strong>A05</strong></td>
+<td>Security Misconfiguration</td>
+<td>إعدادات أمنية خاطئة</td>
+</tr>
+<tr>
+<td><strong>A06</strong></td>
+<td>Vulnerable and Outdated Components</td>
+<td>مكونات قديمة أو مثبّت بها ثغرات</td>
+</tr>
+<tr>
+<td><strong>A07</strong></td>
+<td>Identification and Authentication Failures</td>
+<td><strong>فشل التحقق من الهوية والمصادقة</strong></td>
+</tr>
+<tr>
+<td><strong>A08</strong></td>
+<td>Software and Data Integrity Failures</td>
+<td>إخفاقات سلامة البيانات والبرمجيات</td>
+</tr>
+<tr>
+<td><strong>A09</strong></td>
+<td>Security Logging and Monitoring Failures</td>
+<td>فشل التسجيل والمراقبة</td>
+</tr>
+<tr>
+<td><strong>A10</strong></td>
+<td>Server-Side Request Forgery (SSRF)</td>
+<td>تزوير الطلب من جهة السيرفر</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>الملاحظة الأهم:</strong> لاحظ أن معظم الفئات <strong>لا تُسمّي ثغرة</strong>، بل <strong>نمط فشل</strong>. "ضعف التحكم بالوصول" ليست ثغرة واحدة، بل عائلة كاملة. <strong>من يحفظ أسماء الفئات يفشل في الاختبارات العملية؛ من يفهم الأنماط يجدها في أي تطبيق.</strong></p>
+</blockquote>
+<h3>النمط الجذري الثاني: غياب التحقق من التخويل — IDOR</h3>
+<p><strong>هذا هو الفرق الذي يجب أن يثبت:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>السؤال</th>
+<th>النظام</th>
+<th>متى</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>من أنت؟</strong></td>
+<td>المصادقة (Authentication)</td>
+<td>مرة عند الدخول</td>
+</tr>
+<tr>
+<td><strong>هل يُسمح لك بهذا؟</strong></td>
+<td><strong>التخويل (Authorization)</strong></td>
+<td><strong>مع كل طلب</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>IDOR</strong> (الإشارة المباشرة غير الآمنة للكائن) تعني: التطبيق تحقّق أنك <strong>مسجّل الدخول</strong>، لكنه <strong>لم يتحقق أن السجل يخصّك</strong>.</p>
+<div class="highlight"><pre><span></span><code><span class="err">GET /api/invoice?id=1042      ← فاتورتك، تعمل بشكل طبيعي</span>
+<span class="err">GET /api/invoice?id=1043      ← فاتورة شخص آخر — وتعمل أيضاً!</span>
+</code></pre></div>
+<p>الخطأ ليس في الصياغة، بل في <strong>سؤال لم يُطرح أبداً</strong>: "هل المستخدم الحالي له حق في السجل رقم 1043؟"</p>
+<p><strong>الأنماط الثلاثة التي يجب أن تعرفها:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>النمط</th>
+<th>الشكل</th>
+<th>لماذا يفشل</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>الفحص غائب</td>
+<td>مسار <code>/admin</code> يستجيب للجميع</td>
+<td>لا يوجد تحقق أصلاً</td>
+</tr>
+<tr>
+<td>الفحص معطّل</td>
+<td>الزر مخفي لكن الـ API مفتوح</td>
+<td>الواجهة ليست أماناً</td>
+</tr>
+<tr>
+<td>الفحص معتمد على العميل</td>
+<td><code>role=admin</code> يُرسله المتصفح</td>
+<td>العميل ملك المهاجم</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>الجملة التي تلخّص الأسبوعين:</strong>
+<strong>سياسة الأصل الواحد، والزر المخفي، والحقل المعطّل، والتحقق في الجافاسكربت — كلها ميزات استخدام، وليست ضوابط أمنية. التحقق الوحيد الموجود هو الذي ينفّذه السيرفر، على كل طلب، بناءً على هوية هو من أنشأها — لا على شيء أخبره به العميل.</strong></p>
+</blockquote></div></div>
+</details><details class="lesson-sec" id="terms" data-sec="terms" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Keep these in English</span><span class="only-ar">احتفظ بها بالإنجليزية</span></span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>العربية</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database</td>
+<td>قاعدة البيانات</td>
+<td>تخزين منظّم في جداول</td>
+</tr>
+<tr>
+<td>SQL</td>
+<td>لغة الاستعلامات البنيوية</td>
+<td>لغة التحدث مع قواعد البيانات</td>
+</tr>
+<tr>
+<td>Query</td>
+<td>الاستعلام</td>
+<td>الأمر المُرسل لقاعدة البيانات</td>
+</tr>
+<tr>
+<td>Injection</td>
+<td>الحقن</td>
+<td>إدخال شيفرة داخل بيانات</td>
+</tr>
+<tr>
+<td>SQL Injection</td>
+<td>حقن SQL</td>
+<td>أشهر ثغرات الويب على الإطلاق</td>
+</tr>
+<tr>
+<td>Prepared Statement</td>
+<td>استعلام مُعدّ مسبقاً</td>
+<td>الفصل بين الشيفرة والبيانات — الحل الجذري</td>
+</tr>
+<tr>
+<td>Parameterized Query</td>
+<td>استعلام ذو معاملات</td>
+<td>الاسم الآخر لنفس الحل</td>
+</tr>
+<tr>
+<td>Input Validation</td>
+<td>التحقق من المدخلات</td>
+<td>مفيد، لكنه <strong>ليس</strong> بديلاً عن الفصل</td>
+</tr>
+<tr>
+<td>API</td>
+<td>واجهة برمجة التطبيقات</td>
+<td>حديث البرامج مع البرامج</td>
+</tr>
+<tr>
+<td>REST</td>
+<td>—</td>
+<td>أسلوب تصميم الـ APIs</td>
+</tr>
+<tr>
+<td>Endpoint</td>
+<td>نقطة النهاية</td>
+<td>عنوان مورد في الـ API</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>—</td>
+<td>صيغة تبادل البيانات</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>المصادقة</td>
+<td>التحقق من الهوية — "من أنت؟"</td>
+</tr>
+<tr>
+<td>Authorization</td>
+<td>التخويل</td>
+<td>التحقق من الصلاحية — "هل يُسمح لك؟"</td>
+</tr>
+<tr>
+<td>Access Control</td>
+<td>التحكم بالوصول</td>
+<td>تنفيذ سياسة التخويل</td>
+</tr>
+<tr>
+<td>IDOR</td>
+<td>الإشارة المباشرة غير الآمنة للكائن</td>
+<td>تصل لسجل غيرك بتغيير معرّف</td>
+</tr>
+<tr>
+<td>Root Cause</td>
+<td>السبب الجذري</td>
+<td>الخطأ التصميمي، لا الأعراض</td>
+</tr>
+</tbody>
+</table></div></div></div>
+</details>
+</div>
+<nav class="weeknav"><a class="prev" href="week-07.html"><span class="dir"><span class="only-en">← Previous</span><span class="only-ar">→ السابق</span></span><span class="ttl"><span class="only-en">Web I: HTTP Deep, Cookies, Sessions, Browsers</span><span class="only-ar" dir="rtl" lang="ar">الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات</span></span></a><a class="next" href="week-09.html"><span class="dir"><span class="only-en">Next →</span><span class="only-ar">← التالي</span></span><span class="ttl"><span class="only-en">Security Core: Risk, Threat Modeling, Access Control</span><span class="only-ar" dir="rtl" lang="ar">أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول</span></span></a></nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+<script id="pc-data" type="application/json">{"weeks": [{"n": 1, "en": "Terminal From Zero & Build Your Lab", "ar": "Terminal من الصفر وبناء مختبرك", "desc_en": "Start from absolute zero: learn what a terminal is, why almost all security work happens there, and build your own practice lab.", "desc_ar": "ابدأ من الصفر التام: تعلّم ما هو Terminal، ولماذا يحدث العمل الأمني كله تقريباً فيها، وابنِ مختبر تدريب خاصاً بك.", "stage": 1, "difficulty": "beginner", "load": "~18h", "prereq": null, "prereqKind": "", "url": "week-01.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Terminal", "Shell", "Kernel", "Linux", "Filesystem", "Directory"], "objectives": ["Explain what an operating system, a shell, and a filesystem are, in their own words", "Navigate the filesystem confidently: pwd, ls, cd, absolute vs relative paths", "Create, read, move, copy, and delete files and directories", "Use man and --help to teach themselves a command they've never seen", "Explain what a virtual machine is and why we use one instead of our real computer"]}, {"n": 2, "en": "Linux: Filesystem, Users, Permissions, Processes", "ar": "لينكس: نظام الملفات والمستخدمون والصلاحيات والعمليات", "desc_en": "Learn how Linux organises files and decides who may touch them — and why one wrong permission can hand over a whole system.", "desc_ar": "تعرّف على كيفية تنظيم Linux للملفات وتحديد من يحق له الوصول إليها — ولماذا خطأ صلاحيات واحد قد يسلّم النظام بالكامل.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 1, "prereqKind": "gate", "url": "week-02.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation", "Least Privilege", "Process ID (PID)"], "objectives": ["Explain the Linux permission model: owner / group / other, read / write / execute", "Read and set permissions in both symbolic (rwxr-xr-x) and numeric (755) notation", "Explain what chmod, chown, umask do and when each is used", "Create users and groups; explain why privilege separation matters", "Use sudo correctly and explain why running as root permanently is dangerous"]}, {"n": 3, "en": "Linux: Services, Logs, and Bash Scripting", "ar": "لينكس: الخدمات والسجلات وكتابة سكربتات Bash", "desc_en": "See what runs in the background, how logs record nearly everything, and how to automate repetitive work instead of repeating it.", "desc_ar": "اكتشف ما يعمل في الخلفية، وكيف تسجّل السجلات كل شيء تقريباً، وكيف تُؤتمت المهام المتكررة بدل تكرارها يدوياً.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 2, "prereqKind": "checkpoint", "url": "week-03.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Service / Daemon", "systemd", "Log", "journalctl", "cron", "Persistence"], "objectives": ["Explain what a service (daemon) is and how systemd manages it", "Start, stop, enable, disable, and inspect services with systemctl", "Read and interpret journalctl output", "Locate and read the key log files in /var/log and explain what each records", "Write a Bash script with variables, conditionals, loops, and arguments"]}, {"n": 4, "en": "Networking I: Models, Addressing, How Packets Move", "ar": "الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم", "desc_en": "Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.", "desc_ar": "افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 3, "prereqKind": "checkpoint", "url": "week-04.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask", "CIDR", "Broadcast"], "objectives": ["Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent", "Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer", "Convert between decimal and binary octets by hand, without a calculator", "Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges", "Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range"]}, {"n": 5, "en": "Networking II: TCP, Ports, DNS, DHCP + Wireshark", "ar": "الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark", "desc_en": "Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.", "desc_ar": "شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 4, "prereqKind": "checkpoint", "url": "week-05.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST", "Teardown", "Ephemeral Port"], "objectives": ["Describe the TCP three-way handshake and name the flag and sequence number in each packet", "Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals", "Contrast TCP and UDP and choose correctly between them for a given use case", "State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory", "Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)"]}, {"n": 6, "en": "Networking III: TLS, Firewalls, NAT + Nmap", "ar": "الشبكات ٣: TLS والجدران النارية وNAT مع Nmap", "desc_en": "Learn how connections are encrypted and filtered, then scan a network the way a security professional does — and find your own scan in the logs.", "desc_ar": "تعلّم كيف تُشفَّر الاتصالات وتُفلتر، ثم امسح شبكة كما يفعل محترف الأمن — وابحث عن أثر مسحتك أنت في السجلات.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 5, "prereqKind": "checkpoint", "url": "week-06.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust", "SNI", "Firewall"], "objectives": ["Explain what TLS protects and what it does not protect (hint: the endpoints are still endpoints)", "Describe the TLS handshake at a high level and explain the role of the certificate and the CA chain", "Inspect a live certificate with openssl s_client and read its subject, issuer, validity, and SANs", "Contrast stateless and stateful firewalls, and explain what connection tracking buys you", "Write, order, verify, and delete ufw rules, and read a firewall block in the logs"]}, {"n": 7, "en": "Web I: HTTP Deep, Cookies, Sessions, Browsers", "ar": "الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات", "desc_en": "Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.", "desc_ar": "تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 6, "prereqKind": "checkpoint", "url": "week-07.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Request / Response", "HTTP Header", "Method", "Status Code", "Stateless", "Cookie"], "objectives": ["Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page", "Use GET, POST, PUT, DELETE deliberately and explain when a server should use each", "Classify any status code by its class (1xx–5xx) and explain what the class means", "Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers", "Explain why HTTP is stateless, and how cookies and sessions restore state on top of it"]}, {"n": 8, "en": "Web II: Architecture, Databases, APIs + OWASP Top 10", "ar": "الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10", "desc_en": "See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.", "desc_ar": "تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 7, "prereqKind": "checkpoint", "url": "week-08.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Database", "SQL", "Query", "Injection", "SQL Injection", "Prepared Statement"], "objectives": ["Describe a three-tier web architecture and identify the trust boundary between each tier", "Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN", "Explain how application code builds a query and sends it to a database", "Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header", "Name the OWASP Top 10 categories and place a given vulnerability into the right one"]}, {"n": 9, "en": "Security Core: Risk, Threat Modeling, Access Control", "ar": "أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول", "desc_en": "Learn the words the profession runs on — threat, vulnerability, risk — and how to describe a problem precisely enough to fix it.", "desc_ar": "تعلّم الكلمات التي تقوم عليها المهنة — التهديد والثغرة والخطر — وكيف تصف مشكلة بدقة تكفي لحلّها.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 8, "prereqKind": "checkpoint", "url": "week-09.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Confidentiality", "Integrity", "Availability", "Authentication", "Authorization", "DAC / MAC / RBAC / ABAC"], "objectives": ["Explain the CIA triad and give a concrete, real failure of each of the three properties", "Distinguish authentication from authorization, and explain how conflating them produces breaches", "Compare the four access control models — DAC, MAC, RBAC, ABAC — and say when each is used", "Apply least privilege and separation of duties to a real scenario", "Define asset, threat, vulnerability, exploit, and risk — and never confuse them again"]}, {"n": 10, "en": "Applied Cryptography", "ar": "التشفير التطبيقي", "desc_en": "Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.", "desc_ar": "افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 9, "prereqKind": "checkpoint", "url": "week-10.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext", "Symmetric / Asymmetric", "Public / Private Key"], "objectives": ["Distinguish hashing, encryption, and encoding — and say what each is actually for", "Explain why MD5 is broken, what \"broken\" precisely means, and why it still appears everywhere", "Explain salting, and demonstrate why an unsalted password hash is catastrophic", "Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)", "Explain symmetric encryption, and articulate the key distribution problem it creates"]}, {"n": 11, "en": "Defensive Taster: Hardening, Detection, Incident Response", "ar": "جولة دفاعية: التقوية والكشف والاستجابة للحوادث", "desc_en": "Play defence: lock down a system, collect its logs, then attack your own machine and detect yourself in a SIEM.", "desc_ar": "العب دور الدفاع: قوِّ نظاماً، واجمع سجلاته، ثم اهجم على جهازك أنت واكتشف هجومك في نظام SIEM.", "stage": 6, "difficulty": "intermediate", "load": "~18h", "prereq": 10, "prereqKind": "checkpoint", "url": "week-11.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark", "Prevention / Detection / Response", "Log Aggregation"], "objectives": ["Explain system hardening and what a CIS Benchmark actually is", "Reduce attack surface on a real Ubuntu VM: services, ports, packages, config", "Explain why prevention alone always eventually fails, and what detection adds", "Explain what a log is, what log aggregation solves, and why central collection matters", "Describe what a SIEM is, what it correlates, and why it exists"]}, {"n": 12, "en": "Offensive Taster: Methodology, Recon, Exploitation, Reporting", "ar": "جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير", "desc_en": "Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.", "desc_ar": "تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.", "stage": 6, "difficulty": "advanced", "load": "~18h", "prereq": 11, "prereqKind": "checkpoint", "url": "week-12.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)", "Penetration Test", "Vulnerability Assessment"], "objectives": ["Explain authorization, scope, and rules of engagement — and why all three are written, not spoken", "Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime", "Describe the PTES phases and where OWASP WSTG fits for web applications", "Perform passive reconnaissance using only public sources", "Perform active enumeration against your own lab target"]}, {"n": 13, "en": "Capstone: Attack/Defend Exercise & Specialization Decision", "ar": "مشروع الختام: تمرين هجوم/دفاع وقرار التخصص", "desc_en": "Put it all together in a two-team exercise, then choose the direction you will specialise in — based on what you actually did, not what sounded impressive.", "desc_ar": "اجمع كل شيء في تمرين بفريقين، ثم اختر الاتجاه الذي ستتخصص فيه — بناءً على ما فعلته فعلاً، لا على ما بدا مثيراً.", "stage": 7, "difficulty": "advanced", "load": "~18h", "prereq": 12, "prereqKind": "checkpoint", "url": "week-13.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "brief", "en": "The Scenario", "ar": "سيناريو التمرين", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "structure", "en": "Exercise Structure", "ar": "هيكل التمرين", "hours": null, "counts": true}, {"key": "rubric", "en": "How You'll Be Assessed", "ar": "كيف ستُقيَّم", "hours": null, "counts": false}, {"key": "deliverables", "en": "What You Must Deliver", "ar": "ما يجب أن تسلّمه", "hours": null, "counts": true}, {"key": "debrief", "en": "Structured Debrief", "ar": "المراجعة المنظّمة", "hours": null, "counts": false}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "decision", "en": "Choosing Your Direction", "ar": "اختيار مسارك", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "limits", "en": "What You Still Don't Know", "ar": "ما لا تعرفه بعد", "hours": null, "counts": false}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Capstone", "Attack/Defend Exercise", "Red Team / Blue Team", "Purple Team", "White Cell", "Rules of Engagement"], "objectives": ["Plan and execute a team engagement under a written scope and rules of engagement", "Defend a live Ubuntu target: hardening, monitoring, triage, containment, and reporting", "Attack a live Ubuntu target: reconnaissance, enumeration, verified exploitation, and reporting", "Keep an accurate, timestamped operational log throughout an engagement", "Produce a professional incident report (defenders) or penetration test report (attackers)"]}], "stages": [{"n": 1, "en": "Start Here — Computer & Terminal Basics", "ar": "ابدأ من هنا — أساسيات الحاسوب و Terminal", "weeks": [1], "desc_en": "What a terminal is, how a computer organises files, and how to build a safe lab you can break and rebuild without risking anything real.", "desc_ar": "ما هو Terminal، وكيف ينظّم الحاسوب ملفاته، وكيف تبني مختبراً آمناً تكسره وتعيد بناءه دون أي خطر على أجهزتك الحقيقية.", "out_en": "You have your own isolated lab and can move around a system from the command line.", "out_ar": "تملك مختبراً معزولاً خاصاً بك، وتستطيع التنقل في النظام من سطر الأوامر.", "icon": "terminal"}, {"n": 2, "en": "Linux Fundamentals", "ar": "أساسيات Linux", "weeks": [2, 3], "desc_en": "How Linux stores files, who is allowed to touch them, what runs in the background — and how intruders stay on a machine once they are in.", "desc_ar": "كيف يخزّن Linux الملفات، ومن يُسمح له بالوصول إليها، وما يعمل في الخلفية — وكيف يبقى المهاجم على الجهاز بعد دخوله.", "out_en": "You can navigate, inspect and script a Linux system — and spot the misconfigurations that give it away.", "out_ar": "تستطيع التنقل في نظام Linux وفحصه وكتابة سكربتات له — وملاحظة الأخطاء الإعدادية التي تسلّمه.", "icon": "terminal"}, {"n": 3, "en": "Networking", "ar": "الشبكات", "weeks": [4, 5, 6], "desc_en": "How machines find each other, how data actually travels, and how to watch that traffic — the skill most attacks and defences are built on.", "desc_ar": "كيف تجد الأجهزة بعضها، وكيف تنتقل البيانات فعلاً، وكيف تراقب هذه الحركة — المهارة التي يُبنى عليها معظم الهجوم والدفاع.", "out_en": "You can read a packet capture, explain what you see, and scan a network you are authorised to test.", "out_ar": "تستطيع قراءة تحليل حزم الشبكة، وشرح ما تراه، ومسح شبكة مصرَّح لك باختبارها.", "icon": "network"}, {"n": 4, "en": "Web Security", "ar": "أمن الويب", "weeks": [7, 8], "desc_en": "How a website really works — requests, cookies, sessions, databases — and where those pieces break when user input is trusted.", "desc_ar": "كيف يعمل موقع الويب فعلاً — الطلبات والكوكيز والجلسات وقواعد البيانات — وأين تنكسر هذه الأجزاء عند الثقة بمدخلات المستخدم.", "out_en": "You can follow a web request end to end, and name the flaw behind a broken page.", "out_ar": "تستطيع تتبّع طلب ويب من البداية للنهاية، وتسمية الثغرة وراء أي خلل.", "icon": "globe"}, {"n": 5, "en": "Cybersecurity Fundamentals", "ar": "أساسيات الأمن السيبراني", "weeks": [9, 10], "desc_en": "The vocabulary the whole profession runs on: threat, vulnerability, risk, the CIA Triad, authentication — plus what hashing and encryption actually do.", "desc_ar": "المفردات التي تقوم عليها المهنة كلها: التهديد والثغرة والخطر وثلاثي CIA والمصادقة — إضافة إلى ما تفعله التجزئة والتشفير فعلاً.", "out_en": "You can describe a risk precisely, using the same words a security team uses.", "out_ar": "تستطيع وصف أي خطر بدقة، بالكلمات نفسها التي يستخدمها فريق الأمن.", "icon": "shield"}, {"n": 6, "en": "Practical Security", "ar": "الأمن التطبيقي", "weeks": [11, 12], "desc_en": "Both sides of the job: harden and monitor a system, then run a real assessment against a target you are authorised to test — and write it up.", "desc_ar": "وجها العمل: تقوية نظام ومراقبته، ثم تنفيذ تقييم حقيقي على هدف مصرَّح لك باختباره — وكتابة تقريره.", "out_en": "You have done both defence and offence, under scope, and documented the result.", "out_ar": "نفّذت الدفاع والهجوم معاً، ضمن نطاق محدد، ووثّقت النتيجة.", "icon": "target"}, {"n": 7, "en": "Choose Your Direction", "ar": "اختر مسارك", "weeks": [13], "desc_en": "A team attack/defend exercise, then an evidence-based decision about which specialisation fits you — not a guess made in week one.", "desc_ar": "تمرين هجوم/دفاع بفريقين، ثم قرار مبني على دليل حول التخصص الذي يناسبك — لا تخمين في الأسبوع الأول.", "out_en": "You know which direction you are heading, and why.", "out_ar": "تعرف إلى أين تتجه، ولماذا.", "icon": "compass"}], "practice": [{"wk": 1, "id": "w1-build-the-lab", "en": "Build the lab", "ar": "Build the lab", "goal_en": "A working host + Ubuntu + Kali setup.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-terminal-survival-kit", "en": "Terminal survival kit", "ar": "Terminal survival kit", "goal_en": "Fluency with the 20 commands that cover 90% of daily work.", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-bandit-levels-0-10", "en": "Bandit levels 0-10", "ar": "Bandit levels 0-10", "goal_en": "Apply the survival kit to real problems.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 2, "id": "w2-the-permission-model-by-hand", "en": "The permission model by hand", "ar": "The permission model by hand", "goal_en": "Build intuition for permissions by creating every combination.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-users-groups-and-sudo", "en": "Users, groups, and sudo", "ar": "Users, groups, and sudo", "goal_en": "Notes explaining why limited sudo is better than full sudo, with reference to a real-world scenario.", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-processes-and-signals", "en": "Processes and signals", "ar": "Processes and signals", "goal_en": "", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-finding-suid-binaries", "en": "Finding SUID binaries", "ar": "Finding SUID binaries", "goal_en": "The first genuinely security-flavored lab.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 3, "id": "w3-services-and-systemd", "en": "Services and systemd", "ar": "Services and systemd", "goal_en": "Your working unit file plus an explanation of the difference between stop/disable and start/enable.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-reading-the-logs", "en": "Reading the logs", "ar": "Reading the logs", "goal_en": "The output of step 4 (you'll need to generate failures from at least two different source IPs, or simulate it), plus a written explanation of the pipeline.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-bash-scripting", "en": "Bash scripting", "ar": "Bash scripting", "goal_en": "", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 4, "id": "w4-subnetting-drills-by-hand", "en": "Subnetting drills, by hand", "ar": "Subnetting drills, by hand", "goal_en": "Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-map-your-own-lab-network", "en": "Map your own lab network", "ar": "Map your own lab network", "goal_en": "Read the network your own machine lives on, from the command line only.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-build-a-three-machine-network-on-an-internal-net", "en": "Build a three-machine network on an Internal Network", "ar": "Build a three-machine network on an Internal Network", "goal_en": "Build a switched network with no router and no DHCP. You assign every address by hand. This is where addressing stops being theory.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-enumerate-the-lab-with-arp-scan", "en": "Enumerate the lab with `arp-scan`", "ar": "Enumerate the lab with `arp-scan`", "goal_en": "Discover every host on a network without asking a single one of them for permission — using only ARP.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 5, "id": "w5-dissect-a-tcp-handshake", "en": "Dissect a TCP handshake", "ar": "Dissect a TCP handshake", "goal_en": "Stop reading about the handshake and watch it happen.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-a-login-in-plaintext", "en": "Capture a login in plaintext", "ar": "Capture a login in plaintext", "goal_en": "Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-follow-a-dns-resolution", "en": "Follow a DNS resolution", "ar": "Follow a DNS resolution", "goal_en": "See the exact packets behind \"typing a name into a browser\".", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-dhcp-dora-and-analyse-a-pcap", "en": "Capture DHCP DORA and analyse a pcap", "ar": "Capture DHCP DORA and analyse a pcap", "goal_en": "See how a machine gets an address, then analyse traffic you did not generate.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 6, "id": "w6-firewalls-with-ufw-and-reading-the-blocks", "en": "Firewalls with `ufw`, and reading the blocks", "ar": "Firewalls with `ufw`, and reading the blocks", "goal_en": "Write firewall rules, verify them from the outside, and find the denied traffic in the logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-tls-inspect-a-real-certificate", "en": "TLS: inspect a real certificate", "ar": "TLS: inspect a real certificate", "goal_en": "See the trust chain, not just the padlock.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-nmap-from-discovery-to-service-identification", "en": "Nmap: from discovery to service identification", "ar": "Nmap: from discovery to service identification", "goal_en": "Scan your own lab every way Nmap allows, and understand what each scan type actually sends.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-services-versions-nse-and-the-defender-s-view", "en": "Services, versions, NSE, and the defender's view", "ar": "Services, versions, NSE, and the defender's view", "goal_en": "Go from \"port 22 is open\" to \"this is OpenSSH version X on Ubuntu\" — then watch yourself get caught.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 7, "id": "w7-read-the-wire-with-devtools", "en": "Read the wire with DevTools", "ar": "Read the wire with DevTools", "goal_en": "See that a web page is not a thing — it is a transcript.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-the-same-requests-by-hand-with-curl", "en": "The same requests, by hand, with curl", "ar": "The same requests, by hand, with curl", "goal_en": "Prove that the browser is a convenience, not a requirement.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-your-own-web-server-and-its-access-log", "en": "Your own web server and its access log", "ar": "Your own web server and its access log", "goal_en": "Own both ends of the conversation.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-burp-suite-as-a-proxy-and-breaking-a-cookie", "en": "Burp Suite as a proxy, and breaking a cookie", "ar": "Burp Suite as a proxy, and breaking a cookie", "goal_en": "Put yourself between the browser and the server — then prove why cookie flags exist.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 8, "id": "w8-stand-up-a-deliberately-vulnerable-app", "en": "Stand up a deliberately vulnerable app", "ar": "Stand up a deliberately vulnerable app", "goal_en": "A target you are unambiguously authorized to attack, running in your own lab.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-sql-by-hand-on-your-own-data", "en": "SQL by hand, on your own data", "ar": "SQL by hand, on your own data", "goal_en": "Understand injection by first understanding the language being injected into.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-portswigger-academy-sql-injection", "en": "PortSwigger Academy: SQL injection", "ar": "PortSwigger Academy: SQL injection", "goal_en": "Your first real exploitation, on a target that is built to be exploited.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-access-control-and-finding-the-attack-in-the-log", "en": "Access control, and finding the attack in the log", "ar": "Access control, and finding the attack in the log", "goal_en": "The second root-cause pattern, then close the loop back to Week 3's logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 9, "id": "w9-threat-model-your-own-lab-with-stride", "en": "Threat model your own lab with STRIDE", "ar": "Threat model your own lab with STRIDE", "goal_en": "Produce a data-flow diagram and a complete STRIDE analysis of the lab you built in Weeks 1–8. You are attacking your own creation, on paper.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-risk-assessment-likelihood-impact", "en": "Risk assessment: likelihood × impact", "ar": "Risk assessment: likelihood × impact", "goal_en": "Turn the threat list from Lab 9.1 into a prioritised, defensible risk register.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-design-an-rbac-scheme-for-a-small-company", "en": "Design an RBAC scheme for a small company", "ar": "Design an RBAC scheme for a small company", "goal_en": "Design access control from scratch for a realistic business, and defend every permission.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-find-a-real-misconfiguration-and-write-it-up-as-", "en": "Find a real misconfiguration and write it up as a finding", "ar": "Find a real misconfiguration and write it up as a finding", "goal_en": "Produce a professional-grade vulnerability finding about your own environment, with evidence and a risk rating.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-analyse-a-published-cve-writeup-and-classify-it", "en": "Analyse a published CVE writeup and classify it", "ar": "Analyse a published CVE writeup and classify it", "goal_en": "Read a real vulnerability the way a professional does, and place it inside this week's framework.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 10, "id": "w10-hashing-is-not-encryption", "en": "Hashing is not encryption", "ar": "Hashing is not encryption", "goal_en": "Feel, not read, the difference between a hash and a cipher.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-crack-your-own-hashes-and-learn-why-password-pol", "en": "Crack your own hashes, and learn why password policy exists", "ar": "Crack your own hashes, and learn why password policy exists", "goal_en": "Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-inspect-a-real-tls-certificate-and-decode-every-", "en": "Inspect a real TLS certificate and decode every field", "ar": "Inspect a real TLS certificate and decode every field", "goal_en": "Stop treating the padlock as magic.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-generate-a-keypair-sign-a-file-and-break-the-sig", "en": "Generate a keypair, sign a file, and break the signature", "ar": "Generate a keypair, sign a file, and break the signature", "goal_en": "Prove a digital signature is bound to a specific file.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-watch-ecb-mode-leak-a-picture", "en": "Watch ECB mode leak a picture", "ar": "Watch ECB mode leak a picture", "goal_en": "See why ECB is the textbook example of a mode you must never use.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 11, "id": "w11-harden-your-ubuntu-vm", "en": "Harden your Ubuntu VM", "ar": "Harden your Ubuntu VM", "goal_en": "Take a machine from default-install to a documented, defensible baseline.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-stand-up-a-siem-and-ship-logs-into-it", "en": "Stand up a SIEM and ship logs into it", "ar": "Stand up a SIEM and ship logs into it", "goal_en": "A working Wazuh deployment receiving logs from your Ubuntu VM.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-the-full-loop-attack-it-then-detect-it", "en": "The full loop: attack it, then detect it", "ar": "The full loop: attack it, then detect it", "goal_en": "Generate a real brute-force against your own target and catch it in the SIEM. This is the single most important lab of the week.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-write-a-sigma-rule", "en": "Write a Sigma rule", "ar": "Write a Sigma rule", "goal_en": "Describe a behaviour in a vendor-neutral way.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-incident-timeline-and-att-ck-mapping", "en": "Incident timeline and ATT&CK mapping", "ar": "Incident timeline and ATT&CK mapping", "goal_en": "Turn scattered alerts into a story.", "goal_ar": "", "hours": 0.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-paperwork-first", "en": "Write the paperwork first", "ar": "Write the paperwork first", "goal_en": "Produce a real scope and rules-of-engagement document before you produce a single packet.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-passive-reconnaissance", "en": "Passive reconnaissance", "ar": "Passive reconnaissance", "goal_en": "Learn how much is knowable about a target without ever touching its infrastructure.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-scan-and-enumerate-metasploitable2", "en": "Scan and enumerate Metasploitable2", "ar": "Scan and enumerate Metasploitable2", "goal_en": "Take a deliberately vulnerable machine from \"unknown host\" to \"mapped attack surface.\"", "goal_ar": "", "hours": 2.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-verify-don-t-trust", "en": "Verify, don't trust", "ar": "Verify, don't trust", "goal_en": "Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-finding", "en": "Write the finding", "ar": "Write the finding", "goal_en": "Produce the actual deliverable of a penetration test.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}], "totalLessons": 53}</script>
+<script src="assets/app.js"></script>
+</body>
+</html>

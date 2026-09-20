@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Resources | Pre Cybersecurity 0.1</title>
+<meta name="description" content="Free resources for the 13-week cybersecurity track, mapped to weeks.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html" aria-current="page"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+    <span class="eyebrow"><span class="only-en">Reference</span><span class="only-ar">مرجع</span></span>
+    <h1><span class="only-en">Resources</span><span class="only-ar">المصادر</span></h1>
+    <p class="lede"><span class="only-en">Every resource is free. No trials, no expiring tiers — the total cost of this programme is $0.</span><span class="only-ar" dir="rtl" lang="ar">كل المصادر مجانية. لا فترات تجريبية ولا اشتراكات منتهية — التكلفة الإجمالية للبرنامج صفر.</span></p>
+  </div>
+</header>
+<div class="container">
+  <div class="grid grid-3" style="margin-bottom:28px">
+    <a class="card card-pad" href="glossary.html" style="text-decoration:none;color:var(--ink)">
+      <div class="lesson-ico" style="margin-bottom:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div>
+      <h3 style="font-size:1rem;margin-bottom:5px"><span class="only-en">Bilingual glossary</span><span class="only-ar">قاموس المصطلحات</span></h3>
+      <p style="font-size:.88rem;color:var(--muted)"><span class="only-en">Every technical term in English, with an Arabic explanation.</span><span class="only-ar" dir="rtl" lang="ar">كل مصطلح تقني بالإنجليزية، مع شرح بالعربية.</span></p>
+    </a>
+    <a class="card card-pad" href="specializations.html" style="text-decoration:none;color:var(--ink)">
+      <div class="lesson-ico" style="margin-bottom:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></div>
+      <h3 style="font-size:1rem;margin-bottom:5px"><span class="only-en">Choosing your direction</span><span class="only-ar">اختيار مسارك</span></h3>
+      <p style="font-size:.88rem;color:var(--muted)"><span class="only-en">How to pick a specialisation after week 13, on evidence.</span><span class="only-ar" dir="rtl" lang="ar">كيف تختار تخصصك بعد الأسبوع ١٣، بناءً على دليل.</span></p>
+    </a>
+    <a class="card card-pad" href="practice.html" style="text-decoration:none;color:var(--ink)">
+      <div class="lesson-ico" style="margin-bottom:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></div>
+      <h3 style="font-size:1rem;margin-bottom:5px"><span class="only-en">Practice exercises</span><span class="only-ar">تمارين تطبيقية</span></h3>
+      <p style="font-size:.88rem;color:var(--muted)"><span class="only-en">Every hands-on exercise in the programme, in one list.</span><span class="only-ar" dir="rtl" lang="ar">كل التمارين التطبيقية في البرنامج، في قائمة واحدة.</span></p>
+    </a>
+  </div>
+  <div class="prose" style="max-width:none"><h1>Master Resource List — 100% Free</h1>
+<p>Every resource here is free. No trials, no paywalls, no "free tier that expires." Where a paid upgrade exists, it's marked — but <strong>nothing in this program requires it.</strong></p>
+<blockquote>
+<p><strong>Note on paid platforms:</strong> TryHackMe and HackTheBox Academy are excellent and worth the ~$14-20/month <em>if</em> anyone in the group can afford it later. But they are not needed for the 13 weeks. Every week has a working free path.</p>
+</blockquote>
+<hr>
+<h2>Core platforms — used throughout</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>URL</th>
+<th>What it's for</th>
+<th>Weeks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OverTheWire</strong></td>
+<td>overthewire.org/wargames</td>
+<td>Bandit (Linux/CLI), Natas (web), Leviathan</td>
+<td>1-13</td>
+</tr>
+<tr>
+<td><strong>PortSwigger Web Security Academy</strong></td>
+<td>portswigger.net/web-security</td>
+<td><strong>The best web security resource that exists.</strong> Free, with labs</td>
+<td>8, 12</td>
+</tr>
+<tr>
+<td><strong>TryHackMe</strong></td>
+<td>tryhackme.com</td>
+<td>Free rooms (many are free)</td>
+<td>6-13</td>
+</tr>
+<tr>
+<td><strong>PicoCTF</strong></td>
+<td>picoctf.org</td>
+<td>Beginner CTF, permanent practice gym</td>
+<td>5-13</td>
+</tr>
+<tr>
+<td><strong>MITRE ATT&amp;CK</strong></td>
+<td>attack.mitre.org</td>
+<td>Attacker behaviour knowledge base</td>
+<td>11, 13</td>
+</tr>
+<tr>
+<td><strong>OWASP</strong></td>
+<td>owasp.org</td>
+<td>Web security standards, Top 10</td>
+<td>8</td>
+</tr>
+<tr>
+<td><strong>GTFOBins</strong></td>
+<td>gtfobins.github.io</td>
+<td>Abusing standard binaries for privesc</td>
+<td>2, 12</td>
+</tr>
+<tr>
+<td><strong>VulnHub</strong></td>
+<td>vulnhub.com</td>
+<td>Downloadable vulnerable VMs</td>
+<td>12</td>
+</tr>
+<tr>
+<td><strong>Hack The Box</strong></td>
+<td>hackthebox.com</td>
+<td>Free machines + retired machines</td>
+<td>12</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<h2>By week</h2>
+<h3>Week 1 — Terminal &amp; lab setup</h3>
+<ul>
+<li><strong>Linux Journey</strong> — linuxjourney.com — <em>free, gentle, well-structured intro</em></li>
+<li><strong>The Linux Command Line</strong> (William Shotts) — linuxcommand.org/tlcl.php — <em>free full PDF, the standard reference</em></li>
+<li><strong>OverTheWire Bandit</strong> — overthewire.org/wargames/bandit — <em>the best CLI trainer for absolute beginners</em></li>
+<li><strong>VirtualBox manual ch.1</strong> — virtualbox.org/manual/ch01.html</li>
+<li><strong>Kali docs</strong> — kali.org/docs</li>
+</ul>
+<h3>Week 2 — Linux permissions &amp; users</h3>
+<ul>
+<li><strong>Linux Journey: Users, Permissions, Special Permissions</strong> — linuxjourney.com</li>
+<li><strong>GTFOBins</strong> — gtfobins.github.io — <em>for understanding SUID abuse conceptually</em></li>
+<li><strong>Ubuntu RootSudo docs</strong> — help.ubuntu.com/community/RootSudo</li>
+</ul>
+<h3>Week 3 — Services, logs, Bash</h3>
+<ul>
+<li><strong>Ryan's Bash Scripting Tutorial</strong> — ryanstutorials.net/bash-scripting-tutorial</li>
+<li><strong>systemd manual</strong> — freedesktop.org/software/systemd/man/systemctl.html</li>
+<li><strong>ExplainShell</strong> — explainshell.com — <em>paste a command, get each part explained. Superb for pipelines.</em></li>
+<li><strong>ShellCheck</strong> — shellcheck.net — <em>paste your script, get it critiqued. Use it on every script.</em></li>
+</ul>
+<h3>Week 4 — Networking I</h3>
+<ul>
+<li><strong>Professor Messer Network+</strong> — youtube.com/@professormesser — <em>free full Network+ course</em></li>
+<li><strong>Practical Networking</strong> — practicalnetworking.net — <em>exceptional on subnetting</em></li>
+<li><strong>Subnetting Practice</strong> — subnettingpractice.com — <em>drill until it's automatic</em></li>
+<li><strong>AR Arabic supplement:</strong> IT Dose / عماد نشأت — <em>strong visuals for networking fundamentals</em></li>
+</ul>
+<h3>Week 5 — TCP/UDP, DNS, DHCP, Wireshark</h3>
+<ul>
+<li><strong>Wireshark docs</strong> — wireshark.org/docs</li>
+<li><strong>Wireshark Sample Captures</strong> — wiki.wireshark.org/SampleCaptures — <em>real pcaps to analyze</em></li>
+<li><strong>Chris Greer (YouTube)</strong> — <em>Wireshark tutorials, practical and clear</em></li>
+<li><strong>Malware-Traffic-Analysis.net</strong> — <em>free pcaps of real malicious traffic</em></li>
+</ul>
+<h3>Week 6 — TLS, firewalls, Nmap</h3>
+<ul>
+<li><strong>Nmap docs</strong> — nmap.org/book — <em>the free official book</em></li>
+<li><strong>Nmap NSE scripts</strong> — nmap.org/nsedoc</li>
+<li><strong>Practical TLS (free course)</strong> — <em>search "Practical TLS free" on YouTube</em></li>
+</ul>
+<h3>Week 7 — HTTP, cookies, sessions</h3>
+<ul>
+<li><strong>MDN Web Docs</strong> — developer.mozilla.org — <em>the authoritative reference</em></li>
+<li><strong>HTTP Cats</strong> — http.cat — <em>status codes, memorably</em></li>
+<li><strong>Burp Suite Community</strong> — portswigger.net/burp/communitydownload — <em>free version is fully sufficient</em></li>
+</ul>
+<h3>Week 8 — Web architecture, OWASP Top 10</h3>
+<ul>
+<li><strong>PortSwigger Web Security Academy</strong> — portswigger.net/web-security — <strong>start here, spend the most time here</strong></li>
+<li><strong>OWASP Top 10</strong> — owasp.org/Top10</li>
+<li><strong>OWASP Juice Shop</strong> — owasp.org/www-project-juice-shop — <em>modern, deliberately vulnerable app</em></li>
+<li><strong>DVWA</strong> — dvwa.co.uk — <em>classic vulnerable app, easier than Juice Shop</em></li>
+<li><strong>AR Arabic supplement:</strong> إبراهيم حجازي Ibrahim Hegazy — <em>web app vulnerabilities, excellent for Arabic speakers</em></li>
+</ul>
+<h3>Week 9 — Security core</h3>
+<ul>
+<li><strong>Professor Messer Security+</strong> — youtube.com/@professormesser — <em>free full course</em></li>
+<li><strong>NIST CSF</strong> — nist.gov/cyberframework</li>
+<li><strong>MITRE ATT&amp;CK</strong> — attack.mitre.org</li>
+<li><strong>OWASP Threat Modeling</strong> — owasp.org/www-community/Threat_Modeling</li>
+</ul>
+<h3>Week 10 — Cryptography</h3>
+<ul>
+<li><strong>Crypto101</strong> — crypto101.io — <em>free book, the best beginner crypto text</em></li>
+<li><strong>Practical Cryptography for Developers</strong> — cryptobook.nakov.com — <em>free, hands-on</em></li>
+<li><strong>PicoCTF crypto challenges</strong> — <em>excellent progressive practice</em></li>
+<li><strong>Cryptohack</strong> — cryptohack.org — <em>free, structured, challenging</em></li>
+</ul>
+<h3>Week 11 — Defensive</h3>
+<ul>
+<li><strong>Wazuh</strong> — wazuh.com — <em>fully open-source SIEM, installs on one VM</em></li>
+<li><strong>Security Onion</strong> — securityonion.net — <em>free, heavier</em></li>
+<li><strong>Sigma</strong> — github.com/SigmaHQ/sigma — <em>detection rules</em></li>
+<li><strong>NIST SP 800-61</strong> — <em>the incident handling guide, free PDF</em></li>
+<li><strong>LetsDefend</strong> — letsdefend.io — <em>free tier, SOC analyst training</em></li>
+<li><strong>Blue Team Labs Online</strong> — blueteamlabs.online — <em>free challenges</em></li>
+<li><strong>CIS Benchmarks</strong> — cisecurity.org/cis-benchmarks — <em>free PDFs after registration</em></li>
+<li><strong>The DFIR Report</strong> — thedfirreport.com — <em>real intrusion case studies</em></li>
+</ul>
+<h3>Week 12 — Offensive</h3>
+<ul>
+<li><strong>PTES</strong> — pentest-standard.org</li>
+<li><strong>OWASP WSTG</strong> — owasp.org/www-project-web-security-testing-guide</li>
+<li><strong>Metasploitable2</strong> — <em>downloadable vulnerable VM</em></li>
+<li><strong>CVSS</strong> — first.org/cvss</li>
+<li><strong>HackTricks</strong> — book.hacktricks.xyz — <em>free, comprehensive offensive reference</em></li>
+<li><strong>PayloadsAllTheThings</strong> — github.com/swisskyrepo/PayloadsAllTheThings</li>
+<li><strong>AR Arabic supplement:</strong> ناكراه Nakerah Network — <em>OSCP content, buffer overflow</em></li>
+</ul>
+<h3>Week 13 — Capstone</h3>
+<ul>
+<li>Everything above, combined.</li>
+<li><strong>TCM Security (YouTube)</strong> — youtube.com/@TCMSecurityAcademy — <em>free full practical ethical hacking course</em></li>
+</ul>
+<hr>
+<h2>Arabic-language supplements</h2>
+<p>Used as <strong>reinforcement</strong>, never as a replacement. The English sources stay primary — the terminology and the job market are English.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Focus</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>IT Dose / عماد نشأت</strong></td>
+<td>Networking fundamentals, IP &amp; subnetting</td>
+<td>Weeks 4-6 — strong visuals</td>
+</tr>
+<tr>
+<td><strong>SECstien / سكشـتاين</strong></td>
+<td>Cybersecurity, ethical hacking, pentesting</td>
+<td>Weeks 6-13 general</td>
+</tr>
+<tr>
+<td><strong>إبراهيم حجازي Ibrahim Hegazy</strong></td>
+<td>Web application vulnerabilities</td>
+<td>Weeks 7-8</td>
+</tr>
+<tr>
+<td><strong>الباشمبرمج Hamed Esam</strong></td>
+<td>CEH course, Kali basics</td>
+<td>Weeks 1-2, 12</td>
+</tr>
+<tr>
+<td><strong>ناكراه Nakerah Network</strong></td>
+<td>OSCP content, buffer overflow</td>
+<td>Weeks 10-12</td>
+</tr>
+<tr>
+<td><strong>حسن سعد Hassan Saad</strong></td>
+<td>Network pentesting, tech essentials</td>
+<td>Weeks 4-6</td>
+</tr>
+<tr>
+<td><strong>تكناوي دوت نت</strong></td>
+<td>Forensics, ethical hacking</td>
+<td>Week 11</td>
+</tr>
+<tr>
+<td><strong>Netriders Academy</strong></td>
+<td>Certification concepts</td>
+<td>Weeks 9-10</td>
+</tr>
+<tr>
+<td><strong>OWASP Egypt</strong></td>
+<td>AppSec webinars</td>
+<td>Week 8</td>
+</tr>
+<tr>
+<td><strong>جمعية أمن المعلومات والحماية</strong></td>
+<td>Awareness, general security</td>
+<td>Throughout</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>Say this to the group in Week 1:</strong> these Arabic channels are genuinely good, and they are not enough on their own. The gap isn't quality — it's volume and currency. The best material in this field is written in English the week it happens. Use Arabic to <em>understand</em>, English to <em>work</em>.</p>
+</blockquote>
+<hr>
+<h2>Tools to install</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Where</th>
+<th>Free?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VirtualBox</td>
+<td>virtualbox.org</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Kali Linux</td>
+<td>kali.org</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Ubuntu Desktop LTS</td>
+<td>ubuntu.com</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Wireshark</td>
+<td>wireshark.org</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Nmap</td>
+<td>nmap.org (pre-installed in Kali)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Burp Suite Community</td>
+<td>portswigger.net/burp/communitydownload</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Wazuh</td>
+<td>wazuh.com</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>GnuPG / OpenSSL</td>
+<td>pre-installed</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>John the Ripper / Hashcat</td>
+<td>pre-installed in Kali</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table></div>
+<h2>Lab targets to download</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Purpose</th>
+<th>Free?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Metasploitable2</td>
+<td>Linux privesc + network services</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>DVWA</td>
+<td>Classic web vulnerabilities</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>OWASP Juice Shop</td>
+<td>Modern web app vulnerabilities</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>bWAPP</td>
+<td>Broad web vulnerability coverage</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>VulnHub VMs</td>
+<td>Full machines to pwn</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Total cost of this program: $0.</strong> The constraint is time and consistency, not money.</p></div>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

